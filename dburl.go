@@ -23,7 +23,23 @@ import (
 // URL wraps the standard net/url.URL type, adding a Proto string.
 type URL struct {
 	url.URL
-	Proto string
+	OriginalScheme, Proto, Driver, DSN string
+}
+
+// String satisfies the stringer interface.
+func (u *URL) String() string {
+	p := &url.URL{
+		Scheme:   u.OriginalScheme,
+		Opaque:   u.Opaque,
+		User:     u.User,
+		Host:     u.Host,
+		Path:     u.Path,
+		RawPath:  u.RawPath,
+		RawQuery: u.RawQuery,
+		Fragment: u.Fragment,
+	}
+
+	return p.String()
 }
 
 // Parse parses a rawurl string and normalizes the scheme.
@@ -37,8 +53,8 @@ func Parse(rawurl string) (*URL, error) {
 		return nil, errors.New("invalid database scheme")
 	}
 
-	// set v
-	v := &URL{URL: *u, Proto: "tcp"}
+	// create url
+	v := &URL{URL: *u, OriginalScheme: u.Scheme, Proto: "tcp"}
 	v.Scheme = strings.ToLower(v.Scheme)
 
 	// check if +unix or whatever is in the scheme
@@ -53,36 +69,24 @@ func Parse(rawurl string) (*URL, error) {
 		return nil, errors.New("invalid transport protocol")
 	}
 
-	return v, nil
-}
-
-// ProcessURL processes the provided URL and returns the connection info
-// suitable for passing to database/sql.Open.
-func ProcessURL(u *URL) (string, string, error) {
 	// get loader
-	loader, ok := loaders[u.Scheme]
+	loader, ok := loaders[v.Scheme]
 	if !ok {
-		return "", "", errors.New("unknown database type")
+		return nil, errors.New("unknown database type")
 	}
 
 	// process
-	driverName, dsn, err := loader(u)
-	if err != nil {
-		return "", "", err
-	}
-
-	return driverName, dsn, nil
-}
-
-// OpenURL opens a sql.DB connection to the provided URL.
-func OpenURL(u *URL) (*sql.DB, error) {
-	// process
-	driverName, dsn, err := ProcessURL(u)
+	v.Driver, v.DSN, err = loader(v)
 	if err != nil {
 		return nil, err
 	}
 
-	return sql.Open(driverName, dsn)
+	return v, nil
+}
+
+// OpenURL opens a sql.DB connection to the provided URL.
+func OpenURL(u *URL) (*sql.DB, error) {
+	return sql.Open(u.Driver, u.DSN)
 }
 
 // Open takes a rawurl like
@@ -202,7 +206,18 @@ func oracleProcess(u *URL) (string, string, error) {
 
 // postgresProcess processes a mssql url and protocol.
 func postgresProcess(u *URL) (string, string, error) {
-	return "postgres", u.Query().Encode(), nil
+	p := &url.URL{
+		Scheme:   "postgres",
+		Opaque:   u.Opaque,
+		User:     u.User,
+		Host:     u.Host,
+		Path:     u.Path,
+		RawPath:  u.RawPath,
+		RawQuery: u.RawQuery,
+		Fragment: u.Fragment,
+	}
+
+	return "postgres", p.String(), nil
 }
 
 // sqliteProcess processes a mssql url and protocol.
