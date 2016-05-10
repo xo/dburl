@@ -6,6 +6,7 @@ databases in the form of a URL.
 Standard URLs are of the form `protocol+transport://user:pass@host/dbname?opt1=a&opt2=b`.
 
 For example, the following are URLs that can be processed using `Parse` or `Open`:
+```
     postgres://user:pass@localhost/mydb
     pgsql://user:pass@pg-server123.example.com/anotherdb?sslmode=disable
     mysql://user:pass@localhost:8899/mydb
@@ -14,6 +15,7 @@ For example, the following are URLs that can be processed using `Parse` or `Open
     sqlserver://localhost/databaseName
     sqlite://path/to/mydatabase.sqlite3
     file://mydb.sqlite3
+```
 
 Additional protocol aliases are provided for all of the databases in order to
 facilitate better handling of URLs from various sources.
