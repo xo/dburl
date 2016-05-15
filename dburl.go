@@ -110,7 +110,15 @@ func mssqlProcess(u *URL) (string, string, error) {
 	// build host or domain socket
 	host := u.Host
 	port := 1433
-	dbname := u.Path[1:]
+	var dbname string
+
+	// grab dbname
+	if u.Path != "" {
+		dbname = u.Path[1:]
+	}
+	if dbname == "" {
+		return "", "", errors.New("no database name specified")
+	}
 
 	// extract port if present
 	pos := strings.Index(host, ":")
@@ -247,7 +255,7 @@ func init() {
 		"mysql":   mysqlProcess,
 		"mariadb": mysqlProcess,
 		"maria":   mysqlProcess,
-		"precona": mysqlProcess,
+		"percona": mysqlProcess,
 		"aurora":  mysqlProcess,
 		"my":      mysqlProcess,
 
