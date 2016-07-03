@@ -8,6 +8,7 @@
 //     postgres://user:pass@localhost/mydb
 //     mysql://user:pass@localhost/mydb
 //     oracle://user:pass@somehost.com/oracledb
+//     sqlite:/path/to/file.db
 package dburl
 
 import (
