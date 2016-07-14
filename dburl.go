@@ -66,7 +66,7 @@ func Parse(rawurl string) (*URL, error) {
 	}
 
 	// check protocol
-	if v.Proto != "tcp" && v.Proto != "udp" {
+	if v.Proto != "tcp" && v.Proto != "udp" && v.Proto != "unix" {
 		return nil, errors.New("invalid transport protocol")
 	}
 
@@ -135,11 +135,13 @@ func mssqlProcess(u *URL) (string, string, error) {
 	dsn := fmt.Sprintf("server=%s;port=%d;database=%s", host, port, dbname)
 
 	// add user/pass
-	if user := u.User.Username(); len(user) > 0 {
-		dsn = dsn + ";user id=" + user
-	}
-	if pass, ok := u.User.Password(); ok {
-		dsn = dsn + ";password=" + pass
+	if u.User != nil {
+		if user := u.User.Username(); len(user) > 0 {
+			dsn = dsn + ";user id=" + user
+		}
+		if pass, ok := u.User.Password(); ok {
+			dsn = dsn + ";password=" + pass
+		}
 	}
 
 	// add params
@@ -154,43 +156,62 @@ func mssqlProcess(u *URL) (string, string, error) {
 func mysqlProcess(u *URL) (string, string, error) {
 	// build host or domain socket
 	host := u.Host
-	dbname := u.Path[1:]
+	dbname := u.Path
+
+	if strings.HasPrefix(dbname, "/") {
+		dbname = dbname[1:]
+	}
+
 	if u.Proto == "unix" {
-		host = path.Join(u.Host, path.Dir(u.Path))
-		dbname = path.Base(u.Path)
+		if u.Opaque != "" {
+			host = path.Dir(u.Opaque)
+			dbname = path.Base(u.Opaque)
+		} else {
+			host = path.Join(u.Host, path.Dir(u.Path))
+			dbname = path.Base(u.Path)
+		}
 	} else if !strings.Contains(host, ":") {
 		// append default port
 		host = host + ":3306"
 	}
 
+	// create dsn
+	dsn := fmt.Sprintf("%s(%s)", u.Proto, host)
+
 	// build user/pass
 	userinfo := ""
-	if un := u.User.Username(); len(un) > 0 {
-		userinfo = un
-		if up, ok := u.User.Password(); ok {
-			userinfo = userinfo + ":" + up
+	if u.User != nil {
+		if un := u.User.Username(); len(un) > 0 {
+			userinfo = un
+			if up, ok := u.User.Password(); ok {
+				userinfo = userinfo + ":" + up
+			}
 		}
 	}
 
-	// build params
+	if userinfo != "" {
+		dsn = userinfo + "@" + dsn
+	}
+	if dbname != "" {
+		dsn = dsn + "/" + dbname
+	}
+
+	// add params
 	params := u.Query().Encode()
 	if len(params) > 0 {
-		params = "?" + params
+		dsn = dsn + "?" + params
 	}
 
 	// format
-	return "mysql", fmt.Sprintf(
-		"%s@%s(%s)/%s%s",
-		userinfo,
-		u.Proto,
-		host,
-		dbname,
-		params,
-	), nil
+	return "mysql", dsn, nil
 }
 
 // oracleProcess processes a mssql url and protocol.
 func oracleProcess(u *URL) (string, string, error) {
+	if u.User == nil {
+		return "", "", errors.New("must provide username and password in oracle dsn")
+	}
+
 	// build host or domain socket
 	host := u.Host
 	dbname := u.Path[1:]
