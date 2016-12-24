@@ -264,40 +264,36 @@ func sqliteProcess(u *URL) (string, string, error) {
 	return "sqlite3", p + u.Query().Encode(), nil
 }
 
-var loaders map[string]func(*URL) (string, string, error)
+var loaders = map[string]func(*URL) (string, string, error){
+	// mssql
+	"mssql":     mssqlProcess,
+	"sqlserver": mssqlProcess,
+	"ms":        mssqlProcess,
 
-func init() {
-	loaders = map[string]func(*URL) (string, string, error){
-		// mssql
-		"mssql":     mssqlProcess,
-		"sqlserver": mssqlProcess,
-		"ms":        mssqlProcess,
+	// mysql
+	"mysql":   mysqlProcess,
+	"mariadb": mysqlProcess,
+	"maria":   mysqlProcess,
+	"percona": mysqlProcess,
+	"aurora":  mysqlProcess,
+	"my":      mysqlProcess,
 
-		// mysql
-		"mysql":   mysqlProcess,
-		"mariadb": mysqlProcess,
-		"maria":   mysqlProcess,
-		"percona": mysqlProcess,
-		"aurora":  mysqlProcess,
-		"my":      mysqlProcess,
+	// oracle
+	"ora":    oracleProcess,
+	"oracle": oracleProcess,
+	"oci8":   oracleProcess,
+	"oci":    oracleProcess,
+	"or":     oracleProcess,
 
-		// oracle
-		"ora":    oracleProcess,
-		"oracle": oracleProcess,
-		"oci8":   oracleProcess,
-		"oci":    oracleProcess,
-		"or":     oracleProcess,
+	// postgresql
+	"postgres":   postgresProcess,
+	"postgresql": postgresProcess,
+	"pgsql":      postgresProcess,
+	"pg":         postgresProcess,
 
-		// postgresql
-		"postgres":   postgresProcess,
-		"postgresql": postgresProcess,
-		"pgsql":      postgresProcess,
-		"pg":         postgresProcess,
-
-		// sqlite
-		"sqlite3": sqliteProcess,
-		"sqlite":  sqliteProcess,
-		"file":    sqliteProcess,
-		"sq":      sqliteProcess,
-	}
+	// sqlite
+	"sqlite3": sqliteProcess,
+	"sqlite":  sqliteProcess,
+	"file":    sqliteProcess,
+	"sq":      sqliteProcess,
 }
