@@ -128,6 +128,10 @@ func Parse(rawurl string) (*URL, error) {
 		return nil, err
 	}
 
+	if v.Driver != "sqlite3" && v.Opaque != "" {
+		return Parse(v.Scheme + "://" + v.Opaque)
+	}
+
 	return v, nil
 }
 
