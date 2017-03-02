@@ -40,7 +40,8 @@ import (
 	"strings"
 )
 
-// URL wraps the standard net/url.URL type, adding a Proto string.
+// URL wraps the standard net/url.URL type, adding OriginalScheme, Proto,
+// Driver, and DSN strings.
 type URL struct {
 	url.URL
 	OriginalScheme, Proto, Driver, DSN string
@@ -72,16 +73,19 @@ func (u *URL) Short() string {
 	s += ":"
 
 	if u.User != nil {
-		if username := u.User.Username(); username != "" {
-			s += username + "@"
+		if un := u.User.Username(); un != "" {
+			s += un + "@"
 		}
 	}
+
 	if u.Host != "" {
 		s += u.Host
 	}
+
 	if u.Path != "" && u.Path != "/" {
 		s += u.Path
 	}
+
 	if u.Opaque != "" {
 		s += u.Opaque
 	}
@@ -129,29 +133,23 @@ func Parse(rawurl string) (*URL, error) {
 	}
 
 	if v.Driver != "sqlite3" && v.Opaque != "" {
-		return Parse(v.Scheme + "://" + v.Opaque)
+		return Parse(v.OriginalScheme + "://" + v.Opaque)
 	}
 
 	return v, nil
 }
 
-// OpenURL opens a sql.DB connection to the provided URL.
-func OpenURL(u *URL) (*sql.DB, error) {
-	return sql.Open(u.Driver, u.DSN)
-}
-
-// Open takes a rawurl like
-// "protocol+transport://user:pass@host/dbname?option1=a&option2=b" and creates a
-// standard sql.DB connection.
+// Open takes a rawurl like "protocol+transport://user:pass@host/dbname?option1=a&option2=b"
+// and creates a standard sql.DB connection.
 //
-// Supports mysql, postgresql, mssql, sqlite, and oracle databases.
+// See Parse for information on formatting URLs to work properly with Open.
 func Open(rawurl string) (*sql.DB, error) {
 	u, err := Parse(rawurl)
 	if err != nil {
 		return nil, err
 	}
 
-	return OpenURL(u)
+	return sql.Open(u.Driver, u.DSN)
 }
 
 // mssqlProcess processes a mssql url and protocol.
@@ -161,14 +159,11 @@ func mssqlProcess(u *URL) (string, string, error) {
 	// build host or domain socket
 	host := u.Host
 	port := 1433
-	var dbname string
 
 	// grab dbname
+	var dbname string
 	if u.Path != "" {
 		dbname = u.Path[1:]
-	}
-	if dbname == "" {
-		return "", "", errors.New("no database name specified")
 	}
 
 	// extract port if present
@@ -182,21 +177,24 @@ func mssqlProcess(u *URL) (string, string, error) {
 	}
 
 	// format dsn
-	dsn := fmt.Sprintf("server=%s;port=%d;database=%s", host, port, dbname)
+	dsn := fmt.Sprintf("server=%s;port=%d", host, port)
+	if dbname != "" {
+		dsn += ";database=" + dbname
+	}
 
 	// add user/pass
 	if u.User != nil {
 		if user := u.User.Username(); len(user) > 0 {
-			dsn = dsn + ";user id=" + user
+			dsn += ";user id=" + user
 		}
 		if pass, ok := u.User.Password(); ok {
-			dsn = dsn + ";password=" + pass
+			dsn += ";password=" + pass
 		}
 	}
 
 	// add params
 	for k, v := range u.Query() {
-		dsn = dsn + ";" + k + "=" + v[0]
+		dsn += ";" + k + "=" + v[0]
 	}
 
 	return "mssql", dsn, nil
@@ -229,17 +227,13 @@ func mysqlProcess(u *URL) (string, string, error) {
 	dsn := fmt.Sprintf("%s(%s)", u.Proto, host)
 
 	// build user/pass
-	userinfo := ""
 	if u.User != nil {
 		if un := u.User.Username(); len(un) > 0 {
-			userinfo = un
 			if up, ok := u.User.Password(); ok {
-				userinfo = userinfo + ":" + up
+				un += ":" + up
 			}
+			dsn = un + "@" + dsn
 		}
-	}
-	if userinfo != "" {
-		dsn = userinfo + "@" + dsn
 	}
 
 	// add database name
