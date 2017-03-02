@@ -238,13 +238,12 @@ func mysqlProcess(u *URL) (string, string, error) {
 			}
 		}
 	}
-
 	if userinfo != "" {
 		dsn = userinfo + "@" + dsn
 	}
-	if dbname != "" {
-		dsn = dsn + "/" + dbname
-	}
+
+	// add database name
+	dsn += "/" + dbname
 
 	// add params
 	params := u.Query().Encode()
