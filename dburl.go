@@ -4,11 +4,30 @@
 // Standard URLs are of the form
 // protocol+transport://user:pass@host/dbname?opt1=a&opt2=b
 //
-// For example, the following are URLs that can be processed using Parse or Open:
-//     postgres://user:pass@localhost/mydb
-//     mysql://user:pass@localhost/mydb
+// For example, the following are URLs that can be processed using Parse or
+// Open:
+//
+//     postgres://user:pass@localhost/dbname
+//     pg://user:pass@localhost/dbname?sslmode=disable
+//     mysql://user:pass@localhost/dbname
+//     sqlserver://user:pass@remote-host.com/dbname
 //     oracle://user:pass@somehost.com/oracledb
 //     sqlite:/path/to/file.db
+// 	   file:myfile.sqlite3?loc=auto
+//
+// Protocol aliases:
+//
+// The following protocol aliases are available, and will be parsed according
+// to the rules for their respective driver.
+//
+//     Database (driver)            | Aliases
+//     ------------------------------------------------------------------
+//     Microsoft SQL Server (mssql) | ms, sqlserver
+//     MySQL (mysql)                | my, mariadb, maria, percona, aurora
+//     Oracle (ora)                 | or, oracle, oci8, oci
+//     PostgreSQL (postgres)        | pg, postgresql, pgsql
+//     SQLite3 (sqlite3)            | sq, sqlite, file
+//
 package dburl
 
 import (
@@ -41,6 +60,33 @@ func (u *URL) String() string {
 	}
 
 	return p.String()
+}
+
+// Short provides a short description of the user, host, and database.
+func (u *URL) Short() string {
+	s := u.Driver[:2]
+	if s == "po" {
+		s = "pg"
+	}
+
+	s += ":"
+
+	if u.User != nil {
+		if username := u.User.Username(); username != "" {
+			s += username + "@"
+		}
+	}
+	if u.Host != "" {
+		s += u.Host
+	}
+	if u.Path != "" && u.Path != "/" {
+		s += u.Path
+	}
+	if u.Opaque != "" {
+		s += u.Opaque
+	}
+
+	return s
 }
 
 // Parse parses a rawurl string and normalizes the scheme.
