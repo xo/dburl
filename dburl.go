@@ -40,6 +40,24 @@ import (
 	"strings"
 )
 
+var (
+	// ErrInvalidDatabaseScheme is the invalid database scheme error.
+	ErrInvalidDatabaseScheme = errors.New("invalid database scheme")
+
+	// ErrInvalidTransportProtocol is the invalid transport protocol error.
+	ErrInvalidTransportProtocol = errors.New("invalid transport protocol")
+
+	// ErrUnknownDatabaseType is the unknown database type error.
+	ErrUnknownDatabaseType = errors.New("unknown database type")
+
+	// ErrInvalidPort is the invalid port error.
+	ErrInvalidPort = errors.New("invalid port")
+
+	// ErrOraMustProvideUsernameAndPassword is the ora (Oracle) must provide
+	// username and password error.
+	ErrOraMustProvideUsernameAndPassword = errors.New("ora: must provide username and password")
+)
+
 // URL wraps the standard net/url.URL type, adding OriginalScheme, Proto,
 // Driver, and DSN strings.
 type URL struct {
@@ -101,7 +119,7 @@ func Parse(rawurl string) (*URL, error) {
 		return nil, err
 	}
 	if u.Scheme == "" {
-		return nil, errors.New("invalid database scheme")
+		return nil, ErrInvalidDatabaseScheme
 	}
 
 	// create url
@@ -117,13 +135,13 @@ func Parse(rawurl string) (*URL, error) {
 
 	// check protocol
 	if v.Proto != "tcp" && v.Proto != "udp" && v.Proto != "unix" {
-		return nil, errors.New("invalid transport protocol")
+		return nil, ErrInvalidTransportProtocol
 	}
 
 	// get loader
 	loader, ok := loaders[v.Scheme]
 	if !ok {
-		return nil, errors.New("unknown database type")
+		return nil, ErrUnknownDatabaseType
 	}
 
 	// process
@@ -171,7 +189,7 @@ func mssqlProcess(u *URL) (string, string, error) {
 	if pos != -1 {
 		port, err = strconv.Atoi(host[pos+1:])
 		if err != nil {
-			return "", "", errors.New("invalid port")
+			return "", "", ErrInvalidPort
 		}
 		host = host[:pos]
 	}
@@ -252,7 +270,7 @@ func mysqlProcess(u *URL) (string, string, error) {
 // oracleProcess processes a mssql url and protocol.
 func oracleProcess(u *URL) (string, string, error) {
 	if u.User == nil {
-		return "", "", errors.New("must provide username and password in oracle dsn")
+		return "", "", ErrOraMustProvideUsernameAndPassword
 	}
 
 	// build host or domain socket
