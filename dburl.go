@@ -364,3 +364,18 @@ var loaders = map[string]func(*URL) (string, string, error){
 	"file":    sqliteProcess,
 	"sq":      sqliteProcess,
 }
+
+// AddLoaderAliases copies the existing loader set for name for each of the
+// aliases.
+func AddLoaderAliases(name string, aliases ...string) error {
+	f, ok := loaders[name]
+	if !ok {
+		return ErrInvalidDatabaseScheme
+	}
+
+	for _, alias := range aliases {
+		loaders[alias] = f
+	}
+
+	return nil
+}
