@@ -88,6 +88,10 @@ func (u *URL) Short() string {
 		s = "pg"
 	}
 
+	if u.Proto != "tcp" {
+		s += "+" + u.Proto
+	}
+
 	s += ":"
 
 	if u.User != nil {
@@ -236,6 +240,11 @@ func mysqlProcess(u *URL) (string, string, error) {
 			host = path.Join(u.Host, path.Dir(u.Path))
 			dbname = path.Base(u.Path)
 		}
+		host = host + "/" + dbname
+		dbname = ""
+
+		u.Host = host
+		u.Path = ""
 	} else if !strings.Contains(host, ":") {
 		// append default port
 		host = host + ":3306"
