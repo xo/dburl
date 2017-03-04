@@ -242,7 +242,7 @@ func mysqlProcess(u *URL) (string, string, error) {
 	// add params
 	params := u.Query().Encode()
 	if len(params) > 0 {
-		dsn = dsn + "?" + params
+		dsn += "?" + params
 	}
 
 	// format
@@ -295,16 +295,22 @@ func postgresProcess(u *URL) (string, string, error) {
 
 // sqliteProcess processes a mssql url and protocol.
 func sqliteProcess(u *URL) (string, string, error) {
-	p := u.Opaque
+	dsn := u.Opaque
 	if u.Path != "" {
-		p = u.Path
+		dsn = u.Path
 	}
 
 	if u.Host != "" && u.Host != "localhost" {
-		p = path.Join(u.Host, p)
+		dsn = path.Join(u.Host, dsn)
 	}
 
-	return "sqlite3", p + u.Query().Encode(), nil
+	// add params
+	params := u.Query().Encode()
+	if len(params) > 0 {
+		dsn += "?" + params
+	}
+
+	return "sqlite3", dsn, nil
 }
 
 var loaders = map[string]func(*URL) (string, string, error){
