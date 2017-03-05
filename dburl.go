@@ -1,69 +1,75 @@
 // Package dburl provides a standard, URL style mechanism for of parsing, and
 // opening database connection strings (in the form of a URL).
 //
-// Supported URLs are of the form:
+// Database URL Connection Strings
 //
-//     protocol+transport://user:pass@host/dbname?opt1=a&opt2=b
+// Supported database URLs are of the form:
 //
-//                   -- OR --
-//
-//     protocol:/path/to/file
+//   protocol+transport://user:pass@host/dbname?opt1=a&opt2=b
+//   protocol:/path/to/file
 //
 // Where:
 //
-//     protocol   - driver name or alias (see below)
-//     transport  - the transport protocol [tcp, udp, unix] (only mysql for now)
-//     user       - the username to connect as
-//     pass       - the password to use
-//     host       - the remote host
-//     dbname     - the database or service name to connect to
-//     ?opt1=...  - additional database driver options (see the respective SQL driver for available options)
+//   protocol   - driver name or alias (see below)
+//   transport  - the transport protocol [tcp, udp, unix] (only mysql for now)
+//   user       - the username to connect as
+//   pass       - the password to use
+//   host       - the remote host
+//   dbname     - the database or service name to connect to
+//   ?opt1=...  - additional database driver options (see the respective SQL driver for available options)
 //
-// For example, the following are URLs that can be processed using Parse or
-// Open:
+// Example URLs for Open or Parse
 //
-//     postgres://user:pass@localhost/dbname
-//     pg://user:pass@localhost/dbname?sslmode=disable
-//     mysql://user:pass@localhost/dbname
-//     mysql:/var/run/mysqld/mysqld.sock
-//     sqlserver://user:pass@remote-host.com/dbname
-//     oracle://user:pass@somehost.com/oracledb
-//     sap://user:pass@localhost/dbname
-//     sqlite:/path/to/file.db
-//     file:myfile.sqlite3?loc=auto
+// The following are URLs that can be processed using Parse or Open:
+//
+//   postgres://user:pass@localhost/dbname
+//   pg://user:pass@localhost/dbname?sslmode=disable
+//   mysql://user:pass@localhost/dbname
+//   mysql:/var/run/mysqld/mysqld.sock
+//   sqlserver://user:pass@remote-host.com/dbname
+//   oracle://user:pass@somehost.com/oracledb
+//   sap://user:pass@localhost/dbname
+//   sqlite:/path/to/file.db
+//   file:myfile.sqlite3?loc=auto
+//
+// Parsing Rules
 //
 // Parse relies heavily on the standard net/url/URL type, as such it has the
-// same parsing conventions/semantics for any URL that is parsed by the
-// standard Go library's net/url/Parse.
+// same parsing conventions/semantics as any URL parsed by the standard
+// library's net/url/Parse.
 //
-// SQL Driver aliases for protocols:
+// SQL Driver Aliases
 //
 // The following protocol aliases are available, and any URL passed to Open or
-// Parse will be procesesd the same as their respective driver:
+// Parse will be processed the same as their respective driver:
 //
-//     Database (driver)            | Aliases
-//     ------------------------------------------------------------------
-//     Microsoft SQL Server (mssql) | ms, sqlserver
-//     MySQL (mysql)                | my, mariadb, maria, percona, aurora
-//     Oracle (ora)                 | or, oracle, oci8, oci
-//     PostgreSQL (postgres)        | pg, postgresql, pgsql
-//     SAP HANA (hdb)               | sa, saphana, sap, hana
-//     SQLite3 (sqlite3)            | sq, sqlite, file
+//   Database (driver)            | Aliases
+//   ------------------------------------------------------------------
+//   Microsoft SQL Server (mssql) | ms, sqlserver
+//   MySQL (mysql)                | my, mariadb, maria, percona, aurora
+//   Oracle (ora)                 | or, oracle, oci8, oci
+//   PostgreSQL (postgres)        | pg, postgresql, pgsql
+//   SAP HANA (hdb)               | sa, saphana, sap, hana
+//   SQLite3 (sqlite3)            | sq, sqlite, file
+//
+// Usage Notes
 //
 // Please note that this package does not import actual SQL drivers, and only
 // provides a standard mechanism to parse their respective URL string.
 //
-// For reference, these are the following "expected" SQL drivers one would need
-// to import:
+// For reference, these are the following "expected" SQL drivers that would need
+// to be imported:
 //
-//     Database (driver)            | Package
-//     ------------------------------------------------------------------
-//     Microsoft SQL Server (mssql) | github.com/denisenkom/go-mssqldb
-//     MySQL (mysql)                | github.com/go-sql-driver/mysql
-//     Oracle (ora)                 | gopkg.in/rana/ora.v4
-//     PostgreSQL (postgres)        | github.com/lib/pq
-//     SAP HANA (hdb)               | github.com/SAP/go-hdb/driver
-//     SQLite3 (sqlite3)            | github.com/mattn/go-sqlite3
+//   Database (driver)            | Package
+//   ------------------------------------------------------------------
+//   Microsoft SQL Server (mssql) | github.com/denisenkom/go-mssqldb
+//   MySQL (mysql)                | github.com/go-sql-driver/mysql
+//   Oracle (ora)                 | gopkg.in/rana/ora.v4
+//   PostgreSQL (postgres)        | github.com/lib/pq
+//   SAP HANA (hdb)               | github.com/SAP/go-hdb/driver
+//   SQLite3 (sqlite3)            | github.com/mattn/go-sqlite3
+//
+// Existence
 //
 // This package was written mainly to support xo (https://github.com/knq/xo)
 // and usql (https://github.com/knq/usql).
