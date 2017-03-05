@@ -143,5 +143,5 @@ func main() {
 
 The dburl package was built primarily to support these projects:
 
-* [xo](https://github.com/knq/xo) - a command line tool to generate Go types from a database schema
-* [usql](https://github.com/knq/usql) - a universal/utility command line tool to execute queries on databases
+* [usql](https://github.com/knq/usql) - a universal command-line interface for SQL databases
+* [xo](https://github.com/knq/xo) - a command-line tool to generate Go code from a database schema
