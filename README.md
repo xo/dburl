@@ -24,8 +24,8 @@ facilitate better handling of URLs from various sources. Please see the
 [GoDoc page](https://godoc.org/github.com/knq/dburl) for more information on
 the all the available aliases.
 
-**Note**: you willstill need to import the related database driver package into
-your code, as this package does not import any database drivers.
+**Note**: you will still need to import the related database driver package
+into your code, as this package does not import any database drivers.
 
 ## Installation
 
