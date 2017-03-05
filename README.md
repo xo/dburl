@@ -2,8 +2,8 @@
 
 Package dburl provides a standard, URL style mechanism for parsing and
 opening SQL database connection strings for [Go](https://golang.org/project),
-and supports parsing and opening URL strings for PostgreSQL, MySQL, SQLite3,
-Oracle, Microsoft SQL Server, and SAP HANA databases.
+supporting standard URLs for PostgreSQL, MySQL, SQLite3, Oracle, Microsoft SQL
+Server, and SAP HANA databases.
 
 ## Database URL Connection Strings
 
