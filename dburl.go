@@ -1,8 +1,23 @@
-// Package dburl provides a standardized way of processing database connection
-// strings in the form of a URL.
+// Package dburl provides a standard, URL style mechanism for of parsing, and
+// opening database connection strings (in the form of a URL).
 //
-// Standard URLs are of the form
-// protocol+transport://user:pass@host/dbname?opt1=a&opt2=b
+// Supported URLs are of the form:
+//
+//     protocol+transport://user:pass@host/dbname?opt1=a&opt2=b
+//
+//                   -- OR --
+//
+//     protocol:/path/to/file
+//
+// Where:
+//
+//     protocol   - driver name or alias (see below)
+//     transport  - the transport protocol [tcp, udp, unix] (only mysql for now)
+//     user       - the username to connect as
+//     pass       - the password to use
+//     host       - the remote host
+//     dbname     - the database or service name to connect to
+//     ?opt1=...  - additional database driver options (see the respective SQL driver for available options)
 //
 // For example, the following are URLs that can be processed using Parse or
 // Open:
@@ -10,15 +25,21 @@
 //     postgres://user:pass@localhost/dbname
 //     pg://user:pass@localhost/dbname?sslmode=disable
 //     mysql://user:pass@localhost/dbname
+//     mysql:/var/run/mysqld/mysqld.sock
 //     sqlserver://user:pass@remote-host.com/dbname
 //     oracle://user:pass@somehost.com/oracledb
+//     sap://user:pass@localhost/dbname
 //     sqlite:/path/to/file.db
-// 	   file:myfile.sqlite3?loc=auto
+//     file:myfile.sqlite3?loc=auto
 //
-// Protocol aliases:
+// Parse relies heavily on the standard net/url/URL type, as such it has the
+// same parsing conventions/semantics for any URL that is parsed by the
+// standard Go library's net/url/Parse.
 //
-// The following protocol aliases are available, and will be parsed according
-// to the rules for their respective driver.
+// SQL Driver aliases for protocols:
+//
+// The following protocol aliases are available, and any URL passed to Open or
+// Parse will be procesesd the same as their respective driver:
 //
 //     Database (driver)            | Aliases
 //     ------------------------------------------------------------------
@@ -26,8 +47,26 @@
 //     MySQL (mysql)                | my, mariadb, maria, percona, aurora
 //     Oracle (ora)                 | or, oracle, oci8, oci
 //     PostgreSQL (postgres)        | pg, postgresql, pgsql
+//     SAP HANA (hdb)               | sa, saphana, sap, hana
 //     SQLite3 (sqlite3)            | sq, sqlite, file
 //
+// Please note that this package does not import actual SQL drivers, and only
+// provides a standard mechanism to parse their respective URL string.
+//
+// For reference, these are the following "expected" SQL drivers one would need
+// to import:
+//
+//     Database (driver)            | Package
+//     ------------------------------------------------------------------
+//     Microsoft SQL Server (mssql) | github.com/denisenkom/go-mssqldb
+//     MySQL (mysql)                | github.com/go-sql-driver/mysql
+//     Oracle (ora)                 | gopkg.in/rana/ora.v4
+//     PostgreSQL (postgres)        | github.com/lib/pq
+//     SAP HANA (hdb)               | github.com/SAP/go-hdb/driver
+//     SQLite3 (sqlite3)            | github.com/mattn/go-sqlite3
+//
+// This package was written mainly to support xo (https://github.com/knq/xo)
+// and usql (https://github.com/knq/usql).
 package dburl
 
 import (
@@ -61,8 +100,22 @@ var (
 // URL wraps the standard net/url.URL type, adding OriginalScheme, Proto,
 // Driver, and DSN strings.
 type URL struct {
+	// URL is the base net/url/URL.
 	url.URL
-	OriginalScheme, Proto, Driver, DSN string
+
+	// OriginalScheme is the original parsed scheme (ie, "sq", "mysql+unix", "sap", etc).
+	OriginalScheme string
+
+	// Proto is the specified protocol (ie, "tcp", "udp", "unix"), if provided.
+	Proto string
+
+	// Driver is the non-aliased SQL driver name that should be used in a call
+	// to sql/Open.
+	Driver string
+
+	// DSN is the built connection "data source name" that can be used in a
+	// call to sql/Open.
+	DSN string
 }
 
 // String satisfies the stringer interface.
@@ -84,8 +137,11 @@ func (u *URL) String() string {
 // Short provides a short description of the user, host, and database.
 func (u *URL) Short() string {
 	s := u.Driver[:2]
-	if s == "po" {
+	switch s {
+	case "po":
 		s = "pg"
+	case "hd":
+		s = "sa"
 	}
 
 	if u.Proto != "tcp" {
@@ -130,7 +186,7 @@ func Parse(rawurl string) (*URL, error) {
 	v := &URL{URL: *u, OriginalScheme: u.Scheme, Proto: "tcp"}
 	v.Scheme = strings.ToLower(v.Scheme)
 
-	// check if +unix or whatever is in the scheme
+	// check if +protocol is in scheme
 	if strings.Contains(v.Scheme, "+") {
 		p := strings.SplitN(v.Scheme, "+", 2)
 		v.Scheme = p[0]
@@ -222,7 +278,7 @@ func mssqlProcess(u *URL) (string, string, error) {
 	return "mssql", dsn, nil
 }
 
-// mysqlProcess processes a mssql url and protocol.
+// mysqlProcess processes a mysql url and protocol.
 func mysqlProcess(u *URL) (string, string, error) {
 	// build host or domain socket
 	host := u.Host
@@ -276,7 +332,7 @@ func mysqlProcess(u *URL) (string, string, error) {
 	return "mysql", dsn, nil
 }
 
-// oracleProcess processes a mssql url and protocol.
+// oracleProcess processes a ora (Oracle) url and protocol.
 func oracleProcess(u *URL) (string, string, error) {
 	if u.User == nil {
 		return "", "", ErrOraMustProvideUsernameAndPassword
@@ -304,7 +360,7 @@ func oracleProcess(u *URL) (string, string, error) {
 	), nil
 }
 
-// postgresProcess processes a mssql url and protocol.
+// postgresProcess processes a postgres url and protocol.
 func postgresProcess(u *URL) (string, string, error) {
 	p := &url.URL{
 		Scheme:   "postgres",
@@ -320,7 +376,23 @@ func postgresProcess(u *URL) (string, string, error) {
 	return "postgres", p.String(), nil
 }
 
-// sqliteProcess processes a mssql url and protocol.
+// sapProcess processes a hdb url and protocol.
+func sapProcess(u *URL) (string, string, error) {
+	p := &url.URL{
+		Scheme:   "hdb",
+		Opaque:   u.Opaque,
+		User:     u.User,
+		Host:     u.Host,
+		Path:     u.Path,
+		RawPath:  u.RawPath,
+		RawQuery: u.RawQuery,
+		Fragment: u.Fragment,
+	}
+
+	return "hdb", p.String(), nil
+}
+
+// sqliteProcess processes a sqlite3 url and protocol.
 func sqliteProcess(u *URL) (string, string, error) {
 	dsn := u.Opaque
 	if u.Path != "" {
@@ -372,6 +444,13 @@ var loaders = map[string]func(*URL) (string, string, error){
 	"sqlite":  sqliteProcess,
 	"file":    sqliteProcess,
 	"sq":      sqliteProcess,
+
+	// sap hana
+	"hdb":     sapProcess,
+	"hana":    sapProcess,
+	"sap":     sapProcess,
+	"saphana": sapProcess,
+	"sa":      sapProcess,
 }
 
 // AddLoaderAliases copies the existing loader set for name for each of the
