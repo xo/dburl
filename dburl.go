@@ -10,13 +10,14 @@
 //
 // Where:
 //
-//   protocol   - driver name or alias (see below)
-//   transport  - the transport protocol [tcp, udp, unix] (only mysql for now)
-//   user       - the username to connect as
-//   pass       - the password to use
-//   host       - the remote host
-//   dbname     - the database or service name to connect to
-//   ?opt1=...  - additional database driver options (see the respective SQL driver for available options)
+//   protocol  - driver name or alias (see below)
+//   transport - the transport protocol [tcp, udp, unix] (only mysql for now)
+//   user      - the username to connect as
+//   pass      - the password to use
+//   host      - the remote host
+//   dbname    - the database or service name to connect to
+//   ?opt1=... - additional database driver options
+//                 (see respective SQL driver for available options)
 //
 // Example URLs for Open or Parse
 //
@@ -69,7 +70,7 @@
 //   SAP HANA (hdb)               | github.com/SAP/go-hdb/driver
 //   SQLite3 (sqlite3)            | github.com/mattn/go-sqlite3
 //
-// Existence
+// Related Projects
 //
 // This package was written mainly to support xo (https://github.com/knq/xo)
 // and usql (https://github.com/knq/usql).
