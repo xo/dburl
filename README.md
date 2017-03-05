@@ -1,31 +1,76 @@
 # About dburl
 
-Package dburl provides a standardized way of processing database connection
-strings for PostgreSQL, MySQL, SQLite, Oracle, Microsoft SQL Server, and SAP
-HANA databases in the form of a URL.
+Package dburl provides a standard, URL style mechanism for parsing and
+opening SQL database connection strings for [Go](https://golang.org/project),
+and supports parsing and opening URL strings for PostgreSQL, MySQL, SQLite3,
+Oracle, Microsoft SQL Server, and SAP HANA databases.
 
-Standard URLs are of the form `protocol+transport://user:pass@host/dbname?opt1=a&opt2=b`.
+## Database URL Connection Strings
 
-For example, the following URLs are recognized by a call to `Parse` or `Open`:
+Supported database URLs are of the form:
+
 ```
-    postgres://user:pass@localhost/mydb
-    pgsql://user:pass@pg-server123.example.com/anotherdb?sslmode=disable
-    mysql://user:pass@localhost:8899/mydb
-    oracle://user:pass@somehost.com/someOtherDatabase
-    mssql://localhost/databaseName
-    sqlserver://localhost/databaseName
-    sqlite://path/to/mydatabase.sqlite3
-    file://mydb.sqlite3
-    saphana://user:pass@localhost:1442/adatabase
+   protocol+transport://user:pass@host/dbname?opt1=a&opt2=b
+   protocol:/path/to/file
 ```
 
-Additional driver aliases are provided for all of the databases in order to
-facilitate better handling of URLs from various sources. Please see the
-[GoDoc page](https://godoc.org/github.com/knq/dburl) for more information on
-the all the available aliases.
+Where:
 
-**Note**: you will still need to import the related database driver package
-into your code, as this package does not import any database drivers.
+| Component | Description                                                                          |
+|-----------|--------------------------------------------------------------------------------------|
+| protocol  | driver name or alias (see below)                                                     |
+| user      | the username to connect as                                                           |
+| pass      | the password to use                                                                  |
+| host      | the remote host                                                                      |
+| dbname    | the database or service name to connect to                                           |
+| ?opt1=... | additional database driver options (see respective SQL driver for available options) |
+
+## Quickstart
+
+Database connection URLs (as described below) can be parsed with `Parse` as such:
+
+```go
+u, err := dburl.Parse("postgresql://user:pass@localhost/mydatabase/?sslmode=disable")
+if err != nil { /* ... */ }
+```
+
+Additionally, a simple helper func `Open`, is available to simply parse,
+open, and return the SQL database connection:
+
+```go
+db, err := dburl.Open("sqlite:mydatabase.sqlite3?loc=auto")
+if err != nil { /* ... */ }
+```
+
+## Example URLs ##
+
+ The following are URLs that can be handled with a call to `Open` or `Parse`:
+
+```
+   postgres://user:pass@localhost/dbname
+   pg://user:pass@localhost/dbname?sslmode=disable
+   mysql://user:pass@localhost/dbname
+   mysql:/var/run/mysqld/mysqld.sock
+   sqlserver://user:pass@remote-host.com/dbname
+   oracle://user:pass@somehost.com/oracledb
+   sap://user:pass@localhost/dbname
+   sqlite:/path/to/file.db
+   file:myfile.sqlite3?loc=auto
+```
+
+## Driver Aliases
+
+The following protocol aliases are available, and any URL passed to `Parse` or
+`Open` will be handled the same as their respective driver:
+
+| Database (driver)            | Aliases                             |
+|------------------------------|-------------------------------------|
+| Microsoft SQL Server (mssql) | ms, sqlserver                       |
+| MySQL (mysql)                | my, mariadb, maria, percona, aurora |
+| Oracle (ora)                 | or, oracle, oci8, oci               |
+| PostgreSQL (postgres)        | pg, postgresql, pgsql               |
+| SAP HANA (hdb)               | sa, saphana, sap, hana              |
+| SQLite3 (sqlite3)            | sq, sqlite, file                    |
 
 ## Installation
 
@@ -37,36 +82,60 @@ go get -u github.com/knq/dburl
 
 ## Usage
 
+Please note that the dburl package does not import actual SQL drivers, and only
+provides a standard way to parse/open respective database connection URLs.
+
+For reference, these are the following "expected" SQL drivers that would need
+to be imported:
+
+| Database (driver)            | Package                                                                      |
+|------------------------------|------------------------------------------------------------------------------|
+| Microsoft SQL Server (mssql) | [github.com/denisenkom/go-mssqldb](https://github.com/denisenkom/go-mssqldb) |
+| MySQL (mysql)                | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)     |
+| Oracle (ora)                 | [gopkg.in/rana/ora.v4](https://gopkg.in/rana/ora.v4)                         |
+| PostgreSQL (postgres)        | [github.com/lib/pq](https://github.com/lib/pq)                               |
+| SAP HANA (hdb)               | [github.com/SAP/go-hdb/driver](https://github.com/SAP/go-hdb/driver)         |
+| SQLite3 (sqlite3)            | [github.com/mattn/go-sqlite3](https://github.com/mattn/go-sqlite3)           |
+
 Please see [the GoDoc API page](http://godoc.org/github.com/knq/dburl) for a
 full API listing.
 
-The dburl package can be used similarly to the following:
+### URL Parsing Rules
+
+`Parse` and `Open` rely heavily on the standard net/url/URL type, as such
+parsing rules have the same conventions/semantics as any URL parsed by the
+standard library's `net/url.Parse`.
+
+
+## Full Example
+
+A full example for reference:
 
 ```go
 // example/example.go
 package main
 
 import (
-	"fmt"
-	"log"
+    "fmt"
+    "log"
 
-	_ "github.com/denisenkom/go-mssqldb"
-	"github.com/knq/dburl"
+    _ "github.com/denisenkom/go-mssqldb"
+    "github.com/knq/dburl"
 )
 
 func main() {
-	db, err := dburl.Open("sqlserver://user:pass@localhost/dbname")
-	if err != nil {
-		log.Fatal(err)
-	}
+    db, err := dburl.Open("sqlserver://user:pass@localhost/dbname")
+    if err != nil {
+        log.Fatal(err)
+    }
 
-	var name string
-	err = db.QueryRow(`SELECT name FROM mytable WHERE id=10`).Scan(&name)
-	if err != nil {
-		log.Fatal(err)
-	}
+    var name string
+    err = db.QueryRow(`SELECT name FROM mytable WHERE id=10`).Scan(&name)
+    if err != nil {
+        log.Fatal(err)
+    }
 
-	fmt.Println(">> got: %s\n", name)
+    fmt.Println(">> got: %s\n", name)
 }
 ```
 

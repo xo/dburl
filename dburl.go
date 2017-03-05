@@ -1,5 +1,5 @@
-// Package dburl provides a standard, URL style mechanism for of parsing, and
-// opening database connection strings (in the form of a URL).
+// Package dburl provides a standard, URL style mechanism for parsing and
+// opening SQL database connection strings.
 //
 // Database URL Connection Strings
 //
@@ -19,9 +19,22 @@
 //   ?opt1=... - additional database driver options
 //                 (see respective SQL driver for available options)
 //
-// Example URLs for Open or Parse
+// Quickstart
 //
-// The following are URLs that can be processed using Parse or Open:
+// URLs in the above format can be parsed with Parse as such:
+//
+//   u, err := dburl.Parse("postgresql://user:pass@localhost/mydatabase/?sslmode=disable")
+//   if err != nil { /* ... */ }
+//
+// Additionally, a simple helper func, Open, is available to simply parse,
+// open, and return the SQL database connection:
+//
+//   db, err := dburl.Open("sqlite:mydatabase.sqlite3?loc=auto")
+//   if err != nil { /* ... */ }
+//
+// Example URLs
+//
+// The following are URLs that can be handled with a call to Open or Parse:
 //
 //   postgres://user:pass@localhost/dbname
 //   pg://user:pass@localhost/dbname?sslmode=disable
@@ -33,19 +46,13 @@
 //   sqlite:/path/to/file.db
 //   file:myfile.sqlite3?loc=auto
 //
-// Parsing Rules
+// Driver Aliases
 //
-// Parse relies heavily on the standard net/url/URL type, as such it has the
-// same parsing conventions/semantics as any URL parsed by the standard
-// library's net/url/Parse.
-//
-// SQL Driver Aliases
-//
-// The following protocol aliases are available, and any URL passed to Open or
-// Parse will be processed the same as their respective driver:
+// The following protocol aliases are available, and any URL passed to Parse or
+// Open will be handled the same as their respective driver:
 //
 //   Database (driver)            | Aliases
-//   ------------------------------------------------------------------
+//   -----------------------------|------------------------------------
 //   Microsoft SQL Server (mssql) | ms, sqlserver
 //   MySQL (mysql)                | my, mariadb, maria, percona, aurora
 //   Oracle (ora)                 | or, oracle, oci8, oci
@@ -53,22 +60,28 @@
 //   SAP HANA (hdb)               | sa, saphana, sap, hana
 //   SQLite3 (sqlite3)            | sq, sqlite, file
 //
-// Usage Notes
+// Usage
 //
-// Please note that this package does not import actual SQL drivers, and only
-// provides a standard mechanism to parse their respective URL string.
+// Please note that the dburl package does not import actual SQL drivers, and
+// only provides a standard way to parse/open respective database connection URLs.
 //
 // For reference, these are the following "expected" SQL drivers that would need
 // to be imported:
 //
 //   Database (driver)            | Package
-//   ------------------------------------------------------------------
+//   -----------------------------|------------------------------------
 //   Microsoft SQL Server (mssql) | github.com/denisenkom/go-mssqldb
 //   MySQL (mysql)                | github.com/go-sql-driver/mysql
 //   Oracle (ora)                 | gopkg.in/rana/ora.v4
 //   PostgreSQL (postgres)        | github.com/lib/pq
 //   SAP HANA (hdb)               | github.com/SAP/go-hdb/driver
 //   SQLite3 (sqlite3)            | github.com/mattn/go-sqlite3
+//
+// URL Parsing Rules
+//
+// Parse and Open rely heavily on the standard net/url/URL type, as such
+// parsing rules have the same conventions/semantics as any URL parsed by the
+// standard library's net/url.Parse.
 //
 // Related Projects
 //
