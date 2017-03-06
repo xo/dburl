@@ -92,7 +92,6 @@ package dburl
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"net/url"
 	"path"
 	"strconv"
@@ -111,10 +110,6 @@ var (
 
 	// ErrInvalidPort is the invalid port error.
 	ErrInvalidPort = errors.New("invalid port")
-
-	// ErrOraMustProvideUsernameAndPassword is the ora (Oracle) must provide
-	// username and password error.
-	ErrOraMustProvideUsernameAndPassword = errors.New("ora: must provide username and password")
 )
 
 // URL wraps the standard net/url.URL type, adding OriginalScheme, Proto,
@@ -204,14 +199,15 @@ func Parse(rawurl string) (*URL, error) {
 
 	// create url
 	v := &URL{URL: *u, OriginalScheme: u.Scheme, Proto: "tcp"}
-	v.Scheme = strings.ToLower(v.Scheme)
 
-	// check if +protocol is in scheme
-	if strings.Contains(v.Scheme, "+") {
-		p := strings.SplitN(v.Scheme, "+", 2)
-		v.Scheme = p[0]
-		v.Proto = p[1]
+	// check if scheme has +protocol
+	if i := strings.IndexRune(v.Scheme, '+'); i != -1 {
+		v.Proto = strings.ToLower(v.Scheme[i+1:])
+		v.Scheme = v.Scheme[:i]
 	}
+
+	// force scheme to lowercase
+	v.Scheme = strings.ToLower(v.Scheme)
 
 	// check protocol
 	if v.Proto != "tcp" && v.Proto != "udp" && v.Proto != "unix" {
@@ -231,7 +227,10 @@ func Parse(rawurl string) (*URL, error) {
 	}
 
 	if v.Driver != "sqlite3" && v.Opaque != "" {
-		return Parse(v.OriginalScheme + "://" + v.Opaque)
+		v, err = Parse(v.OriginalScheme + "://" + v.Opaque)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return v, nil
@@ -275,7 +274,7 @@ func mssqlProcess(u *URL) (string, string, error) {
 	}
 
 	// format dsn
-	dsn := fmt.Sprintf("server=%s;port=%d", host, port)
+	dsn := "server=" + host + ";port=" + strconv.Itoa(port)
 	if dbname != "" {
 		dsn += ";database=" + dbname
 	}
@@ -302,11 +301,7 @@ func mssqlProcess(u *URL) (string, string, error) {
 func mysqlProcess(u *URL) (string, string, error) {
 	// build host or domain socket
 	host := u.Host
-	dbname := u.Path
-
-	if strings.HasPrefix(dbname, "/") {
-		dbname = dbname[1:]
-	}
+	dbname := strings.TrimPrefix(u.Path, "/")
 
 	if u.Proto == "unix" {
 		if u.Opaque != "" {
@@ -327,7 +322,7 @@ func mysqlProcess(u *URL) (string, string, error) {
 	}
 
 	// create dsn
-	dsn := fmt.Sprintf("%s(%s)", u.Proto, host)
+	dsn := u.Proto + "(" + host + ")"
 
 	// build user/pass
 	if u.User != nil {
@@ -354,30 +349,21 @@ func mysqlProcess(u *URL) (string, string, error) {
 
 // oracleProcess processes a ora (Oracle) url and protocol.
 func oracleProcess(u *URL) (string, string, error) {
-	if u.User == nil {
-		return "", "", ErrOraMustProvideUsernameAndPassword
-	}
-
-	// build host or domain socket
-	host := u.Host
-	dbname := u.Path[1:]
+	// create dsn
+	dsn := u.Host + u.Path
 
 	// build user/pass
-	userinfo := ""
-	if un := u.User.Username(); len(un) > 0 {
-		userinfo = un
-		if up, ok := u.User.Password(); ok {
-			userinfo = userinfo + "/" + up
+	if u.User != nil {
+		if un := u.User.Username(); len(un) > 0 {
+			if up, ok := u.User.Password(); ok {
+				un += ":" + up
+			}
+			dsn = un + "@" + dsn
 		}
 	}
 
 	// format
-	return "ora", fmt.Sprintf(
-		"%s@%s/%s",
-		userinfo,
-		host,
-		dbname,
-	), nil
+	return "ora", dsn, nil
 }
 
 // postgresProcess processes a postgres url and protocol.
