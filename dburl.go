@@ -353,17 +353,16 @@ func oracleProcess(u *URL) (string, string, error) {
 	dsn := u.Host + u.Path
 
 	// build user/pass
+	var un string
 	if u.User != nil {
-		if un := u.User.Username(); len(un) > 0 {
+		if un = u.User.Username(); len(un) > 0 {
 			if up, ok := u.User.Password(); ok {
-				un += ":" + up
+				un += "/" + up
 			}
-			dsn = un + "@" + dsn
 		}
 	}
 
-	// format
-	return "ora", dsn, nil
+	return "ora", un + "@" + dsn, nil
 }
 
 // postgresProcess processes a postgres url and protocol.
