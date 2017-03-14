@@ -15,9 +15,13 @@
 //   user      - the username to connect as
 //   pass      - the password to use
 //   host      - the remote host
-//   dbname    - the database or service name to connect to
+//   dbname*    - the database, instance, or service name/id to connect to
 //   ?opt1=... - additional database driver options
 //                 (see respective SQL driver for available options)
+//
+// * for Microsoft SQL Server, the syntax to supply an instance and database
+// name is /instance/dbname, where /instance is optional. For Oracle databases,
+// /dbname is the unique database ID (SID). Please see below for examples.
 //
 // Quickstart
 //

@@ -16,14 +16,19 @@ Supported database URLs are of the form:
 
 Where:
 
-| Component | Description                                                                          |
-|-----------|--------------------------------------------------------------------------------------|
-| protocol  | driver name or alias (see below)                                                     |
-| user      | the username to connect as                                                           |
-| pass      | the password to use                                                                  |
-| host      | the remote host                                                                      |
-| dbname    | the database or service name to connect to                                           |
-| ?opt1=... | additional database driver options (see respective SQL driver for available options) |
+| Component          | Description                                                                          |
+|--------------------|--------------------------------------------------------------------------------------|
+| protocol           | driver name or alias (see below)                                                     |
+| user               | the username to connect as                                                           |
+| pass               | the password to use                                                                  |
+| host               | the remote host                                                                      |
+| dbname<sup>*</sup> | the database, instance, or service name/ID to connect to                             |
+| ?opt1=...          | additional database driver options (see respective SQL driver for available options) |
+
+<i><sup><b>*</b></sup> for Microsoft SQL Server, the syntax to supply an
+instance and database name is `/instance/dbname`, where `/instance` is
+optional. For Oracle databases, `/dbname` is the unique database ID (SID).
+Please see below for examples.</i>
 
 ## Quickstart
 
