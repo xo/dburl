@@ -41,6 +41,8 @@
 //   mysql://user:pass@localhost/dbname
 //   mysql:/var/run/mysqld/mysqld.sock
 //   sqlserver://user:pass@remote-host.com/dbname
+//   mssql://user:pass@remote-host.com/instance/dbname
+//   ms://user:pass@remote-host.com:port/instance/dbname?keepAlive=10
 //   oracle://user:pass@somehost.com/oracledb
 //   sap://user:pass@localhost/dbname
 //   sqlite:/path/to/file.db
@@ -264,13 +266,18 @@ func mssqlProcess(u *URL) (string, string, error) {
 	}
 
 	// extract port if present
-	pos := strings.Index(host, ":")
-	if pos != -1 {
-		port, err = strconv.Atoi(host[pos+1:])
+	if i := strings.Index(host, ":"); i != -1 {
+		port, err = strconv.Atoi(host[i+1:])
 		if err != nil {
 			return "", "", ErrInvalidPort
 		}
-		host = host[:pos]
+		host = host[:i]
+	}
+
+	// extract instance name
+	if i := strings.Index(dbname, "/"); i != -1 {
+		host = host + `\` + dbname[:i]
+		dbname = dbname[i+1:]
 	}
 
 	// format dsn

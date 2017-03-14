@@ -52,6 +52,8 @@ if err != nil { /* ... */ }
    mysql://user:pass@localhost/dbname
    mysql:/var/run/mysqld/mysqld.sock
    sqlserver://user:pass@remote-host.com/dbname
+   mssql://user:pass@remote-host.com/instance/dbname
+   ms://user:pass@remote-host.com:port/instance/dbname?keepAlive=10
    oracle://user:pass@somehost.com/oracledb
    sap://user:pass@localhost/dbname
    sqlite:/path/to/file.db
