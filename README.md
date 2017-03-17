@@ -65,19 +65,31 @@ if err != nil { /* ... */ }
    file:myfile.sqlite3?loc=auto
 ```
 
-## Driver Aliases
+## Protocol Schemes and Aliases
 
-The following protocol aliases are available, and any URL passed to `Parse` or
-`Open` will be handled the same as their respective driver:
+The following protocols schemes (ie, driver) and their associated aliases are
+supported out of the box:
 
-| Database (driver)            | Aliases                             |
-|------------------------------|-------------------------------------|
-| Microsoft SQL Server (mssql) | ms, sqlserver                       |
-| MySQL (mysql)                | my, mariadb, maria, percona, aurora |
-| Oracle (ora)                 | or, oracle, oci8, oci               |
-| PostgreSQL (postgres)        | pg, postgresql, pgsql               |
-| SAP HANA (hdb)               | sa, saphana, sap, hana              |
-| SQLite3 (sqlite3)            | sq, sqlite, file                    |
+| Database (driver)             | Protocol (scheme) Aliases            |
+|-------------------------------|--------------------------------------|
+| Microsoft SQL Server (mssql)  | ms, sqlserver                        |
+| MySQL (mysql)                 | my, mariadb, maria, percona, aurora  |
+| Oracle (ora)                  | or, oracle, oci8, oci                |
+| PostgreSQL (postgres)         | pg, postgresql, pgsql                |
+| SQLite3 (sqlite3)             | sq, sqlite, file                     |
+| ----------------------------- | ------------------------------------ |
+| Google Spanner (spanner)      | gs, google                           |
+| ----------------------------- | ------------------------------------ |
+| Apache Avatica (avatica)      | av, phoenix                          |
+| ClickHouse (clickhouse)       | ch                                   |
+| Couchbase (n1ql)              | n1, couchbase                        |
+| Firebird SQL (firebirdsql)    | fb, firebird                         |
+| Microsoft ADODB (adodb)       | ad, ado                              |
+| SAP HANA (hdb)                | sa, saphana, sap, hana               |
+| Sybase SQL Anywhere (sqlany)  | sy, sybase, any                      |
+
+Any protocol scheme `alias://` can be used in place of `protocol://`, and will work
+identically with `Parse`/`Open`.
 
 ## Installation
 
@@ -95,24 +107,32 @@ provides a standard way to parse/open respective database connection URLs.
 For reference, these are the following "expected" SQL drivers that would need
 to be imported:
 
-| Database (driver)            | Package                                                                      |
-|------------------------------|------------------------------------------------------------------------------|
-| Microsoft SQL Server (mssql) | [github.com/denisenkom/go-mssqldb](https://github.com/denisenkom/go-mssqldb) |
-| MySQL (mysql)                | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)     |
-| Oracle (ora)                 | [gopkg.in/rana/ora.v4](https://gopkg.in/rana/ora.v4)                         |
-| PostgreSQL (postgres)        | [github.com/lib/pq](https://github.com/lib/pq)                               |
-| SAP HANA (hdb)               | [github.com/SAP/go-hdb/driver](https://github.com/SAP/go-hdb/driver)         |
-| SQLite3 (sqlite3)            | [github.com/mattn/go-sqlite3](https://github.com/mattn/go-sqlite3)           |
+| Database (driver)             | Package                                                                      |
+|-------------------------------|------------------------------------------------------------------------------|
+| Microsoft SQL Server (mssql)  | [github.com/denisenkom/go-mssqldb](https://github.com/denisenkom/go-mssqldb) |
+| MySQL (mysql)                 | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)     |
+| Oracle (ora)                  | [gopkg.in/rana/ora.v4](https://gopkg.in/rana/ora.v4)                         |
+| PostgreSQL (postgres)         | [github.com/lib/pq](https://github.com/lib/pq)                               |
+| SQLite3 (sqlite3)             | [github.com/mattn/go-sqlite3](https://github.com/mattn/go-sqlite3)           |
+| ----------------------------- | ------------------------------------                                         |
+| Google Spanner (spanner)      | github.com/knq/spanner (not yet public)                                      |
+| ----------------------------- | ------------------------------------                                         |
+| Apache Avatica (avatica)      | [github.com/Boostport/avatica](https://github.com/Boostport/avatica)         |
+| ClickHouse (clickhouse)       | [github.com/kshvakov/clickhouse](https://github.com/kshvakov/clickhouse)     |
+| Couchbase (n1ql)              | [github.com/couchbase/go_n1ql](https://github.com/couchbase/go_n1ql)         |
+| Firebird SQL (firebirdsql)    | [github.com/nakagami/firebirdsql](https://github.com/nakagami/firebirdsql)   |
+| Microsoft ADODB (adodb)       | [github.com/mattn/go-adodb](https://github.com/mattn/go-adodb)               |
+| SAP HANA (hdb)                | [github.com/SAP/go-hdb/driver](https://github.com/SAP/go-hdb/driver)         |
+| Sybase SQL Anywhere (sqlany)  | [github.com/a-palchikov/sqlago](https://github.com/a-palchikov/sqlago)       |
 
 Please see [the GoDoc API page](http://godoc.org/github.com/knq/dburl) for a
 full API listing.
 
 ### URL Parsing Rules
 
-`Parse` and `Open` rely heavily on the standard net/url/URL type, as such
+`Parse` and `Open` rely heavily on the standard `net/url.URL` type, as such
 parsing rules have the same conventions/semantics as any URL parsed by the
 standard library's `net/url.Parse`.
-
 
 ## Full Example
 
