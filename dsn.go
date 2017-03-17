@@ -234,9 +234,9 @@ func GenFirebird(u *URL) (string, error) {
 // GenADODB generates a adodb DSN from the passed URL.
 func GenADODB(u *URL) (string, error) {
 	// grab dbname
-	dbname := "."
-	if u.Path != "" {
-		dbname = u.Path[1:]
+	dbname := strings.TrimPrefix(u.Path, "/")
+	if dbname == "" {
+		dbname = "."
 	}
 
 	// format dsn
