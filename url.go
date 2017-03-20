@@ -52,7 +52,7 @@ func Parse(urlstr string) (*URL, error) {
 	var checkProto bool
 
 	// check if scheme has +protocol
-	if i := strings.LastIndex(v.Scheme, "+"); i != -1 {
+	if i := strings.IndexRune(v.Scheme, '+'); i != -1 {
 		v.Proto = v.Scheme[i+1:]
 		v.Scheme = v.Scheme[:i]
 		checkProto = true
@@ -66,21 +66,30 @@ func Parse(urlstr string) (*URL, error) {
 
 	// check proto
 	if checkProto {
-		if v.Proto != "tcp" && scheme.Proto&ProtoTCP == 0 {
+		if scheme.Proto == ProtoNone {
 			return nil, ErrInvalidTransportProtocol
 		}
 
-		if v.Proto != "udp" && scheme.Proto&ProtoUDP == 0 {
-			return nil, ErrInvalidTransportProtocol
-		}
+		if scheme.Proto&ProtoAny == 0 {
+			if v.Proto != "tcp" && scheme.Proto&ProtoTCP == 0 {
+				return nil, ErrInvalidTransportProtocol
+			}
 
-		if v.Proto != "unix" && scheme.Proto&ProtoUnix == 0 {
-			return nil, ErrInvalidTransportProtocol
+			if v.Proto != "udp" && scheme.Proto&ProtoUDP == 0 {
+				return nil, ErrInvalidTransportProtocol
+			}
+
+			if v.Proto != "unix" && scheme.Proto&ProtoUnix == 0 {
+				return nil, ErrInvalidTransportProtocol
+			}
 		}
 	}
 
 	// set driver
 	v.Driver = scheme.Driver
+	if scheme.Override != "" {
+		v.Driver = scheme.Override
+	}
 
 	// generate dsn
 	v.DSN, err = scheme.Generator(v)
@@ -88,6 +97,7 @@ func Parse(urlstr string) (*URL, error) {
 		return nil, err
 	}
 
+	// if opaque is allowed
 	if !scheme.Opaque && v.Opaque != "" {
 		v, err = Parse(v.OriginalScheme + "://" + v.Opaque)
 		if err != nil {
@@ -116,9 +126,15 @@ func (u *URL) String() string {
 
 // Short provides a short description of the user, host, and database.
 func (u *URL) Short() string {
-	s := schemeMap[u.Driver].Aliases[0]
+	s := schemeMap[u.Scheme].Aliases[0]
 
-	if u.Proto != "tcp" {
+	if u.Scheme == "odbc" || u.Scheme == "oleodbc" {
+		n := u.Proto
+		if v, ok := schemeMap[n]; ok {
+			n = v.Aliases[0]
+		}
+		s += "+" + n
+	} else if u.Proto != "tcp" {
 		s += "+" + u.Proto
 	}
 

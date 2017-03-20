@@ -2,8 +2,9 @@
 
 Package dburl provides a standard, URL style mechanism for parsing and
 opening SQL database connection strings for [Go](https://golang.org/project),
-supporting standard URLs for PostgreSQL, MySQL, SQLite3, Oracle, Microsoft SQL
-Server, and SAP HANA databases.
+supporting standard URLs for the standard databases PostgreSQL, MySQL, SQLite3,
+Oracle, Microsoft SQL Server, and most other databases with a publicly
+available Go driver.
 
 ## Database URL Connection Strings
 
@@ -63,6 +64,7 @@ if err != nil { /* ... */ }
    sap://user:pass@localhost/dbname
    sqlite:/path/to/file.db
    file:myfile.sqlite3?loc=auto
+   odbc+postgres://user:pass@localhost:port/dbname?option1=
 ```
 
 ## Protocol Schemes and Aliases
@@ -70,23 +72,30 @@ if err != nil { /* ... */ }
 The following protocols schemes (ie, driver) and their associated aliases are
 supported out of the box:
 
-| Database (driver)             | Protocol (scheme) Aliases            |
-|-------------------------------|--------------------------------------|
-| Microsoft SQL Server (mssql)  | ms, sqlserver                        |
-| MySQL (mysql)                 | my, mariadb, maria, percona, aurora  |
-| Oracle (ora)                  | or, oracle, oci8, oci                |
-| PostgreSQL (postgres)         | pg, postgresql, pgsql                |
-| SQLite3 (sqlite3)             | sq, sqlite, file                     |
-| ----------------------------- | ------------------------------------ |
-| Google Spanner (spanner)      | gs, google                           |
-| ----------------------------- | ------------------------------------ |
-| Apache Avatica (avatica)      | av, phoenix                          |
-| ClickHouse (clickhouse)       | ch                                   |
-| Couchbase (n1ql)              | n1, couchbase                        |
-| Firebird SQL (firebirdsql)    | fb, firebird                         |
-| Microsoft ADODB (adodb)       | ad, ado                              |
-| SAP HANA (hdb)                | sa, saphana, sap, hana               |
-| Sybase SQL Anywhere (sqlany)  | sy, sybase, any                      |
+| Database (driver)              | Protocol (scheme) Aliases           |
+|--------------------------------|-------------------------------------|
+| Microsoft SQL Server (mssql)   | ms, sqlserver                       |
+| MySQL (mysql)                  | my, mariadb, maria, percona, aurora |
+| Oracle (ora)                   | or, oracle, oci8, oci               |
+| PostgreSQL (postgres)          | pg, postgresql, pgsql               |
+| SQLite3 (sqlite3)              | sq, sqlite, file                    |
+|                                |                                     |
+| Google Spanner (spanner)       | gs, google, span (not yet public)   |
+|                                |                                     |
+| Apache Avatica (avatica)       | av, phoenix                         |
+| ClickHouse (clickhouse)        | ch                                  |
+| CockroachDB (cockroachdb)      | cr, cockroach, crdb, cdb            |
+| Couchbase (n1ql)               | n1, couchbase                       |
+| Firebird SQL (firebirdsql)     | fb, firebird                        |
+| MemSQL (memsql)                | me                                  |
+| Microsoft ADODB (adodb)        | ad, ado                             |
+| ODBC (odbc)                    | od                                  |
+| OLE ODBC (oleodbc)<sup>*</sup> | oo, ole, oleodbc                    |
+| Cznic QL (ql)                  | ql                                  |
+| SAP HANA (hdb)                 | sa, saphana, sap, hana              |
+| Sybase SQL Anywhere (sqlany)   | sy, sybase, any                     |
+| VoltDB (voltdb)                | vo, volt, vdb                       |
+| YQL (yql)                      | yq                                  |
 
 Any protocol scheme `alias://` can be used in place of `protocol://`, and will work
 identically with `Parse`/`Open`.
@@ -107,23 +116,39 @@ provides a standard way to parse/open respective database connection URLs.
 For reference, these are the following "expected" SQL drivers that would need
 to be imported:
 
-| Database (driver)             | Package                                                                      |
-|-------------------------------|------------------------------------------------------------------------------|
-| Microsoft SQL Server (mssql)  | [github.com/denisenkom/go-mssqldb](https://github.com/denisenkom/go-mssqldb) |
-| MySQL (mysql)                 | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)     |
-| Oracle (ora)                  | [gopkg.in/rana/ora.v4](https://gopkg.in/rana/ora.v4)                         |
-| PostgreSQL (postgres)         | [github.com/lib/pq](https://github.com/lib/pq)                               |
-| SQLite3 (sqlite3)             | [github.com/mattn/go-sqlite3](https://github.com/mattn/go-sqlite3)           |
-| ----------------------------- | ------------------------------------                                         |
-| Google Spanner (spanner)      | github.com/knq/spanner (not yet public)                                      |
-| ----------------------------- | ------------------------------------                                         |
-| Apache Avatica (avatica)      | [github.com/Boostport/avatica](https://github.com/Boostport/avatica)         |
-| ClickHouse (clickhouse)       | [github.com/kshvakov/clickhouse](https://github.com/kshvakov/clickhouse)     |
-| Couchbase (n1ql)              | [github.com/couchbase/go_n1ql](https://github.com/couchbase/go_n1ql)         |
-| Firebird SQL (firebirdsql)    | [github.com/nakagami/firebirdsql](https://github.com/nakagami/firebirdsql)   |
-| Microsoft ADODB (adodb)       | [github.com/mattn/go-adodb](https://github.com/mattn/go-adodb)               |
-| SAP HANA (hdb)                | [github.com/SAP/go-hdb/driver](https://github.com/SAP/go-hdb/driver)         |
-| Sybase SQL Anywhere (sqlany)  | [github.com/a-palchikov/sqlago](https://github.com/a-palchikov/sqlago)       |
+| Database (driver)              | Package                                                                                             |
+|--------------------------------|-----------------------------------------------------------------------------------------------------|
+| Microsoft SQL Server (mssql)   | [github.com/denisenkom/go-mssqldb](https://github.com/denisenkom/go-mssqldb)                        |
+| MySQL (mysql)                  | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)                            |
+| Oracle (ora)                   | [gopkg.in/rana/ora.v4](https://gopkg.in/rana/ora.v4)                                                |
+| PostgreSQL (postgres)          | [github.com/lib/pq](https://github.com/lib/pq)                                                      |
+| SQLite3 (sqlite3)              | [github.com/mattn/go-sqlite3](https://github.com/mattn/go-sqlite3)                                  |
+|                                |                                                                                                     |
+| Google Spanner (spanner)       | github.com/knq/spanner (not yet public)                                                             |
+|                                |                                                                                                     |
+| Apache Avatica (avatica)       | [github.com/Boostport/avatica](https://github.com/Boostport/avatica)                                |
+| ClickHouse (clickhouse)        | [github.com/kshvakov/clickhouse](https://github.com/kshvakov/clickhouse)                            |
+| CockroachDB (cockroachdb)      | [github.com/lib/pq](https://github.com/lib/pq)                                                      |
+| Couchbase (n1ql)               | [github.com/couchbase/go_n1ql](https://github.com/couchbase/go_n1ql)                                |
+| Firebird SQL (firebirdsql)     | [github.com/nakagami/firebirdsql](https://github.com/nakagami/firebirdsql)                          |
+| MemSQL (memsql)                | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)                            |
+| Microsoft ADODB (adodb)        | [github.com/mattn/go-adodb](https://github.com/mattn/go-adodb)                                      |
+| ODBC (odbc)                    | [github.com/alexbrainman/odbc](https://github.com/alexbrainman/odbc)                                |
+| OLE ODBC (oleodbc)<sup>*</sup> | [github.com/mattn/go-adodb](https://github.com/mattn/go-adodb)                                      |
+| Cznic QL (ql)                  | [github.com/cznic/ql](https://github.com/cznic/ql)                                                  |
+| SAP HANA (hdb)                 | [github.com/SAP/go-hdb/driver](https://github.com/SAP/go-hdb/driver)                                |
+| Sybase SQL Anywhere (sqlany)   | [github.com/a-palchikov/sqlago](https://github.com/a-palchikov/sqlago)                              |
+| VoltDB (voltdb)                | [github.com/VoltDB/voltdb-client-go/voltdbclient](github.com/VoltDB/voltdb-client-go/voltdbclient]) |
+| YQL (yql)                      | [github.com/mattn/go-yql](https://github.com/mattn/go-yql)                                          |
+
+<i><b><sup>*</sup></b> OLE ODBC is not an actual protocol, but instead is an alias
+for using the "MSDASQL.1" OLE provider with the ADODB driver, and the DSN will
+be an ADODB DSN, but with "Extended Properties" for the respective ODBC
+parameters, including the underlying transport prootocol. As such,
+`oleodbc+protocol://user:pass@host/dbname` URLs are equivalent to
+`adodb://MSDASQL.1/?Extended+Properties=...`. Please see the documentation for
+`GenOLEODBC` for information regarding how URL components are mapped/passed to
+ADODB's Extended Properties parameter.</i>
 
 Please see [the GoDoc API page](http://godoc.org/github.com/knq/dburl) for a
 full API listing.

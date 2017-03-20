@@ -5,7 +5,7 @@ import (
 	"sort"
 )
 
-// Proto
+// Proto are the allowed transport protocol types in a database URL scheme.
 type Proto uint
 
 // Proto types.
@@ -13,7 +13,8 @@ const (
 	ProtoNone Proto = 0
 	ProtoTCP  Proto = 1
 	ProtoUDP  Proto = 2
-	ProtoUnix Proto = 3
+	ProtoUnix Proto = 4
+	ProtoAny  Proto = 8
 )
 
 // Scheme wraps information used for registering a URL scheme with
@@ -42,35 +43,43 @@ type Scheme struct {
 
 	// Aliases are any additional aliases for the scheme.
 	Aliases []string
-}
 
-// generic scheme generators
-var (
-	genTCP  = GenScheme("tcp")
-	genHTTP = GenScheme("http")
-)
+	// Override is the Go SQL driver to use instead of Driver.
+	Override string
+}
 
 // BaseSchemes returns the supported base schemes.
 func BaseSchemes() []Scheme {
 	return []Scheme{
 		// core databases
-		{"mssql", GenSQLServer, 0, false, []string{"sqlserver"}},
-		{"mysql", GenMySQL, ProtoTCP | ProtoUDP | ProtoUnix, false, []string{"mariadb", "maria", "percona", "aurora"}},
-		{"ora", GenOracle, 0, false, []string{"oracle", "oci8", "oci"}},
-		{"postgres", nil, 0, false, []string{"pg", "postgresql", "pgsql"}},
-		{"sqlite3", GenSQLite3, 0, true, []string{"sqlite", "file"}},
+		{"mssql", GenSQLServer, 0, false, []string{"sqlserver"}, ""},
+		{"mysql", GenMySQL, ProtoTCP | ProtoUDP | ProtoUnix, true, []string{"mariadb", "maria", "percona", "aurora"}, ""},
+		{"ora", GenOracle, 0, false, []string{"oracle", "oci8", "oci"}, ""},
+		{"postgres", nil, ProtoUnix, false, []string{"pg", "postgresql", "pgsql"}, ""},
+		{"sqlite3", GenSQLite3, 0, true, []string{"sqlite", "file"}, ""},
+
+		// wire compatibles
+		{"cockroachdb", GenFromURL("postgres://localhost:26257/?sslmode=disable"), 0, false, []string{"cr", "cockroach", "crdb", "cdb"}, "postgres"},
+		{"memsql", GenMySQL, 0, false, nil, "mysql"},
+		{"tidb", GenMySQL, 0, false, nil, "mysql"},
+		{"vitess", GenMySQL, 0, false, []string{"vt"}, "mysql"},
 
 		// testing
-		{"spanner", nil, 0, false, []string{"gs", "google"}},
+		{"spanner", nil, 0, false, []string{"gs", "google", "span"}, ""},
 
-		// other sql databases
-		{"avatica", genTCP, 0, false, []string{"phoenix"}},
-		{"adodb", GenADODB, 0, false, []string{"ado"}},
-		{"clickhouse", genHTTP, 0, false, []string{"ch"}},
-		{"firebirdsql", GenFirebird, 0, false, []string{"fb", "firebird"}},
-		{"hdb", nil, 0, false, []string{"sa", "saphana", "sap", "hana"}},
-		{"n1ql", genHTTP, 0, false, []string{"couchbase"}},
-		{"sqlany", GenSybase, 0, false, []string{"sy", "sybase", "any"}},
+		// other databases
+		{"adodb", GenADODB, 0, false, []string{"ado"}, ""},
+		{"avatica", GenFromURL("http://localhost:8765/"), 0, false, []string{"phoenix"}, ""},
+		{"clickhouse", GenClickhouse, 0, false, []string{"ch"}, ""},
+		{"firebirdsql", GenFirebird, 0, false, []string{"fb", "firebird"}, ""},
+		{"hdb", nil, 0, false, []string{"sa", "saphana", "sap", "hana"}, ""},
+		{"n1ql", GenFromURL("http://localhost:9000/"), 0, false, []string{"couchbase"}, ""},
+		{"odbc", GenODBC, ProtoAny, true, nil, ""},
+		{"oleodbc", GenOLEODBC, ProtoAny, true, []string{"oo", "ole"}, "adodb"},
+		{"ql", GenSQLite3, 0, true, nil, ""},
+		{"sqlany", GenSybase, 0, false, []string{"sy", "sybase", "any"}, ""},
+		{"yql", GenYQL, 0, false, nil, ""},
+		{"voltdb", GenVoltDB, 0, false, []string{"volt", "vdb"}, ""},
 	}
 }
 
@@ -104,9 +113,7 @@ func registerAlias(name, alias string, doSort bool) {
 
 	scheme.Aliases = append(scheme.Aliases, alias)
 	if doSort {
-		s := ss(scheme.Aliases)
-		sort.Sort(s)
-		scheme.Aliases = []string(s)
+		sort.Sort(ss(scheme.Aliases))
 	}
 
 	schemeMap[alias] = scheme
@@ -122,7 +129,16 @@ func Register(scheme Scheme) {
 	if _, ok := schemeMap[scheme.Driver]; ok {
 		panic(fmt.Sprintf("scheme %s already registered", scheme.Driver))
 	}
-	schemeMap[scheme.Driver] = &scheme
+
+	sz := &Scheme{
+		Driver:    scheme.Driver,
+		Generator: scheme.Generator,
+		Proto:     scheme.Proto,
+		Opaque:    scheme.Opaque,
+		Override:  scheme.Override,
+	}
+
+	schemeMap[scheme.Driver] = sz
 
 	// add aliases
 	var hasShort bool
@@ -133,14 +149,16 @@ func Register(scheme Scheme) {
 		registerAlias(scheme.Driver, alias, false)
 	}
 
-	if !hasShort {
+	if !hasShort && len(scheme.Driver) > 2 {
 		registerAlias(scheme.Driver, scheme.Driver[:2], false)
 	}
 
+	if len(sz.Aliases) == 0 {
+		sz.Aliases = []string{scheme.Driver}
+	}
+
 	// sort
-	s := ss(scheme.Aliases)
-	sort.Sort(s)
-	scheme.Aliases = []string(s)
+	sort.Sort(ss(sz.Aliases))
 }
 
 // Unregister unregisters a Scheme and all associated aliases.
@@ -172,9 +190,35 @@ func has(a []string, b string) bool {
 	return false
 }
 
-// ss is a util type to provide sorting of a string slice (used for sorting aliases).
+// SchemeDriverAndAliases returns the registered driver and aliases for a
+// database scheme.
+func SchemeDriverAndAliases(name string) (string, []string) {
+	if scheme, ok := schemeMap[name]; ok {
+		driver := scheme.Driver
+		if scheme.Override != "" {
+			driver = scheme.Override
+		}
+
+		return driver, scheme.Aliases
+	}
+
+	return "", nil
+}
+
+// ss is a util type to provide sorting of a string slice (used for sorting
+// aliases).
 type ss []string
 
-func (s ss) Len() int           { return len(s) }
-func (s ss) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
-func (s ss) Less(i, j int) bool { return len(s[i]) < len(s[j]) }
+func (s ss) Len() int      { return len(s) }
+func (s ss) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
+func (s ss) Less(i, j int) bool {
+	if len(s[i]) <= len(s[j]) {
+		return true
+	}
+
+	if len(s[j]) < len(s[i]) {
+		return false
+	}
+
+	return s[i] < s[j]
+}
