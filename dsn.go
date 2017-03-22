@@ -196,7 +196,6 @@ func GenSybase(u *URL) (string, error) {
 }
 
 // GenMySQL generates a mysql DSN from the passed URL.
-// GenSQLServer generates a mssql DSN from the passed URL.
 func GenMySQL(u *URL) (string, error) {
 	// build host or domain socket
 	host := u.Host
@@ -243,6 +242,59 @@ func GenMySQL(u *URL) (string, error) {
 	}
 
 	return dsn, nil
+}
+
+// GenMyMySQL generates a MyMySQL MySQL DSN from the passed URL.
+func GenMyMySQL(u *URL) (string, error) {
+	var opts []string
+	for k, v := range u.Query() {
+		val := k
+		if v[0] != "true" {
+			val += "=" + v[0]
+		}
+
+		opts = append(opts, val)
+	}
+
+	// build host or domain socket
+	host := u.Host
+	dbname := strings.TrimPrefix(u.Path, "/")
+
+	if u.Proto == "unix" {
+		if u.Opaque != "" {
+			host = path.Dir(u.Opaque)
+			dbname = path.Base(u.Opaque)
+		} else {
+			host = path.Join(u.Host, path.Dir(u.Path))
+			dbname = path.Base(u.Path)
+		}
+
+		if o := strings.Join(opts, ","); o != "" {
+			host += "," + o
+		}
+
+		host += "*" + dbname
+		dbname = ""
+
+		u.Host = host
+		u.Path = ""
+	} else if !strings.Contains(host, ":") {
+		// append default port
+		host = host + ":3306"
+	}
+
+	dsn := u.Proto + ":" + host
+
+	if u.User != nil {
+		if user := u.User.Username(); len(user) > 0 {
+			dsn += "/" + user
+		}
+		if pass, ok := u.User.Password(); ok {
+			dsn += "/" + pass
+		}
+	}
+
+	return "", nil
 }
 
 // GenOracle generates a ora DSN from the passed URL.
@@ -430,4 +482,9 @@ func GenVoltDB(u *URL) (string, error) {
 		port = p
 	}
 	return host + ":" + port, nil
+}
+
+// GenPGX generates a PGX PostgreSQL DSN from the passed URL.
+func GenPGX(u *URL) (string, error) {
+	return "", nil
 }

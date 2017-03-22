@@ -58,26 +58,32 @@
 // The following protocols schemes (ie, driver) and their associated aliases
 // are supported out of the box:
 //
-//   Database (driver)            | Protocol (scheme) Aliases
-//   -----------------------------|------------------------------------
+//   Database (scheme/driver)     | Protocol Aliases [real driver]
+//   -----------------------------|-----------------------------------------
 //   Microsoft SQL Server (mssql) | ms, sqlserver
 //   MySQL (mysql)                | my, mariadb, maria, percona, aurora
 //   Oracle (ora)                 | or, oracle, oci8, oci
 //   PostgreSQL (postgres)        | pg, postgresql, pgsql
 //   SQLite3 (sqlite3)            | sq, sqlite, file
-//   -----------------------------|------------------------------------
+//   -----------------------------|-----------------------------------------
+//   CockroachDB (cockroachdb)    | cr, cockroach, crdb, cdb [postgres]
+//   MemSQL (memsql)              | me [mysql]
+//   TiDB (tidb)                  | ti [mysql]
+//   Vitess (vitess)              | vt [mysql]
+//   -----------------------------|-----------------------------------------
 //   Google Spanner (spanner)     | gs, google, span (not yet public)
-//   -----------------------------|------------------------------------
+//   -----------------------------|-----------------------------------------
+//   MySQL (mymysql)              | zm, mymy
+//   PostgreSQL (pgx)             | px
+//   -----------------------------|-----------------------------------------
 //   Apache Avatica (avatica)     | av, phoenix
 //   ClickHouse (clickhouse)      | ch
-//   CockroachDB (cockroachdb)    | cr, cockroach, crdb, cdb
 //   Couchbase (n1ql)             | n1, couchbase
+//   Cznic QL (ql)                | ql, cznic, cznicql
 //   Firebird SQL (firebirdsql)   | fb, firebird
-//   MemSQL (memsql)              | me
 //   Microsoft ADODB (adodb)      | ad, ado
 //   ODBC (odbc)                  | od
-//   OLE ODBC (oleodbc)*          | oo, ole, oleodbc
-//   Cznic QL (ql)                | ql
+//   OLE ODBC (oleodbc)           | oo, ole, oleodbc [adodb]
 //   SAP HANA (hdb)               | sa, saphana, sap, hana
 //   Sybase SQL Anywhere (sqlany) | sy, sybase, any
 //   VoltDB (voltdb)              | vo, volt, vdb
@@ -94,7 +100,7 @@
 // For reference, these are the following "expected" SQL drivers that would need
 // to be imported:
 //
-//   Database (driver)            | Package
+//   Database (scheme/driver)     | Package
 //   -----------------------------|-------------------------------------------------
 //   Microsoft SQL Server (mssql) | github.com/denisenkom/go-mssqldb
 //   MySQL (mysql)                | github.com/go-sql-driver/mysql
@@ -102,18 +108,24 @@
 //   PostgreSQL (postgres)        | github.com/lib/pq
 //   SQLite3 (sqlite3)            | github.com/mattn/go-sqlite3
 //   -----------------------------|-------------------------------------------------
+//   CockroachDB (cockroachdb)    | github.com/lib/pq
+//   MemSQL (memsql)              | github.com/go-sql-driver/mysql
+//   TiDB (tidb)                  | github.com/go-sql-driver/mysql
+//   Vitess (vitess)              | github.com/go-sql-driver/mysql
+//   -----------------------------|-------------------------------------------------
 //   Google Spanner (spanner)     | github.com/knq/spanner (not yet public)
+//   -----------------------------|-------------------------------------------------
+//   MySQL (mymysql)              | github.com/ziutek/mymysql/godrv
+//   PostgreSQL (pgx)             | github.com/jackc/pgx
 //   -----------------------------|-------------------------------------------------
 //   Apache Avatica (avatica)     | github.com/Boostport/avatica
 //   ClickHouse (clickhouse)      | github.com/kshvakov/clickhouse
-//   CockroachDB (cockroachdb)    | github.com/lib/pq
 //   Couchbase (n1ql)             | github.com/couchbase/go_n1ql
+//   Cznic QL (ql)                | github.com/cznic/ql
 //   Firebird SQL (firebirdsql)   | github.com/nakagami/firebirdsql
-//   MemSQL (memsql)              | github.com/go-sql-driver/mysql
 //   Microsoft ADODB (adodb)      | github.com/mattn/go-adodb
 //   ODBC (odbc)                  | github.com/alexbrainman/odbc
 //   OLE ODBC (oleodbc)*          | github.com/mattn/go-adodb
-//   Cznic QL (ql)                | github.com/cznic/ql
 //   SAP HANA (hdb)               | github.com/SAP/go-hdb/driver
 //   Sybase SQL Anywhere (sqlany) | github.com/a-palchikov/sqlago
 //   VoltDB (voltdb)              | github.com/VoltDB/voltdb-client-go/voltdbclient

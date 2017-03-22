@@ -67,6 +67,10 @@ func BaseSchemes() []Scheme {
 		// testing
 		{"spanner", nil, 0, false, []string{"gs", "google", "span"}, ""},
 
+		// alternates implementations
+		{"mymysql", GenMyMySQL, ProtoTCP | ProtoUnix, false, []string{"zm", "mymy"}, ""},
+		{"pgx", GenScheme("postgres"), 0, false, []string{"px"}, ""},
+
 		// other databases
 		{"adodb", GenADODB, 0, false, []string{"ado"}, ""},
 		{"avatica", GenFromURL("http://localhost:8765/"), 0, false, []string{"phoenix"}, ""},
@@ -76,7 +80,7 @@ func BaseSchemes() []Scheme {
 		{"n1ql", GenFromURL("http://localhost:9000/"), 0, false, []string{"couchbase"}, ""},
 		{"odbc", GenODBC, ProtoAny, true, nil, ""},
 		{"oleodbc", GenOLEODBC, ProtoAny, true, []string{"oo", "ole"}, "adodb"},
-		{"ql", GenSQLite3, 0, true, nil, ""},
+		{"ql", GenSQLite3, 0, true, []string{"ql", "cznic", "cznicql"}, ""},
 		{"sqlany", GenSybase, 0, false, []string{"sy", "sybase", "any"}, ""},
 		{"yql", GenYQL, 0, false, nil, ""},
 		{"voltdb", GenVoltDB, 0, false, []string{"volt", "vdb"}, ""},
@@ -146,15 +150,19 @@ func Register(scheme Scheme) {
 		if len(alias) == 2 {
 			hasShort = true
 		}
-		registerAlias(scheme.Driver, alias, false)
+		if scheme.Driver != alias {
+			registerAlias(scheme.Driver, alias, false)
+		}
 	}
 
 	if !hasShort && len(scheme.Driver) > 2 {
 		registerAlias(scheme.Driver, scheme.Driver[:2], false)
 	}
 
-	if len(sz.Aliases) == 0 {
-		sz.Aliases = []string{scheme.Driver}
+	// ensure always at least one alias, and that if Driver is 2 characters,
+	// that it gets added as well
+	if len(sz.Aliases) == 0 || len(scheme.Driver) == 2 {
+		sz.Aliases = append(sz.Aliases, scheme.Driver)
 	}
 
 	// sort
@@ -199,7 +207,17 @@ func SchemeDriverAndAliases(name string) (string, []string) {
 			driver = scheme.Override
 		}
 
-		return driver, scheme.Aliases
+		var aliases []string
+		for _, alias := range scheme.Aliases {
+			if alias == driver {
+				continue
+			}
+			aliases = append(aliases, alias)
+		}
+
+		sort.Sort(ss(aliases))
+
+		return driver, aliases
 	}
 
 	return "", nil

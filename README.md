@@ -72,30 +72,36 @@ if err != nil { /* ... */ }
 The following protocols schemes (ie, driver) and their associated aliases are
 supported out of the box:
 
-| Database (driver)              | Protocol (scheme) Aliases           |
-|--------------------------------|-------------------------------------|
-| Microsoft SQL Server (mssql)   | ms, sqlserver                       |
-| MySQL (mysql)                  | my, mariadb, maria, percona, aurora |
-| Oracle (ora)                   | or, oracle, oci8, oci               |
-| PostgreSQL (postgres)          | pg, postgresql, pgsql               |
-| SQLite3 (sqlite3)              | sq, sqlite, file                    |
-|                                |                                     |
-| Google Spanner (spanner)       | gs, google, span (not yet public)   |
-|                                |                                     |
-| Apache Avatica (avatica)       | av, phoenix                         |
-| ClickHouse (clickhouse)        | ch                                  |
-| CockroachDB (cockroachdb)      | cr, cockroach, crdb, cdb            |
-| Couchbase (n1ql)               | n1, couchbase                       |
-| Firebird SQL (firebirdsql)     | fb, firebird                        |
-| MemSQL (memsql)                | me                                  |
-| Microsoft ADODB (adodb)        | ad, ado                             |
-| ODBC (odbc)                    | od                                  |
-| OLE ODBC (oleodbc)<sup>*</sup> | oo, ole, oleodbc                    |
-| Cznic QL (ql)                  | ql                                  |
-| SAP HANA (hdb)                 | sa, saphana, sap, hana              |
-| Sybase SQL Anywhere (sqlany)   | sy, sybase, any                     |
-| VoltDB (voltdb)                | vo, volt, vdb                       |
-| YQL (yql)                      | yq                                  |
+| Database (scheme/driver)     | Protocol Aliases [real driver]      |
+|------------------------------|-------------------------------------|
+| Microsoft SQL Server (mssql) | ms, sqlserver                       |
+| MySQL (mysql)                | my, mariadb, maria, percona, aurora |
+| Oracle (ora)                 | or, oracle, oci8, oci               |
+| PostgreSQL (postgres)        | pg, postgresql, pgsql               |
+| SQLite3 (sqlite3)            | sq, sqlite, file                    |
+|                              |                                     |
+| CockroachDB (cockroachdb)    | cr, cockroach, crdb, cdb [postgres] |
+| MemSQL (memsql)              | me [mysql]                          |
+| TiDB (tidb)                  | ti [mysql]                          |
+| Vitess (vitess)              | vt [mysql]                          |
+|                              |                                     |
+| Google Spanner (spanner)     | gs, google, span (not yet public)   |
+|                              |                                     |
+| MySQL (mymysql)              | zm, mymy                            |
+| PostgreSQL (pgx)             | px                                  |
+|                              |                                     |
+| Apache Avatica (avatica)     | av, phoenix                         |
+| ClickHouse (clickhouse)      | ch                                  |
+| Couchbase (n1ql)             | n1, couchbase                       |
+| Cznic QL (ql)                | ql, cznic, cznicql                  |
+| Firebird SQL (firebirdsql)   | fb, firebird                        |
+| Microsoft ADODB (adodb)      | ad, ado                             |
+| ODBC (odbc)                  | od                                  |
+| OLE ODBC (oleodbc)           | oo, ole, oleodbc [adodb]            |
+| SAP HANA (hdb)               | sa, saphana, sap, hana              |
+| Sybase SQL Anywhere (sqlany) | sy, sybase, any                     |
+| VoltDB (voltdb)              | vo, volt, vdb                       |
+| YQL (yql)                    | yq                                  |
 
 Any protocol scheme `alias://` can be used in place of `protocol://`, and will work
 identically with `Parse`/`Open`.
@@ -124,31 +130,28 @@ to be imported:
 | PostgreSQL (postgres)          | [github.com/lib/pq](https://github.com/lib/pq)                                                      |
 | SQLite3 (sqlite3)              | [github.com/mattn/go-sqlite3](https://github.com/mattn/go-sqlite3)                                  |
 |                                |                                                                                                     |
+| CockroachDB (cockroachdb)      | [github.com/lib/pq](https://github.com/lib/pq)                                                      |
+| MemSQL (memsql)                | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)                            |
+| TiDB (tidb)                    | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)                            |
+| Vitess (vitess)                | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)                            |
+|                                |                                                                                                     |
 | Google Spanner (spanner)       | github.com/knq/spanner (not yet public)                                                             |
+|                                |                                                                                                     |
+| MySQL (mymysql)                | [github.com/ziutek/mymysql/godrv](https://github.com/ziutek/mymysql/godrv)                          |
+| PostgreSQL (pgx)               | [github.com/jackc/pgx](https://github.com/jackc/pgx)                                                |
 |                                |                                                                                                     |
 | Apache Avatica (avatica)       | [github.com/Boostport/avatica](https://github.com/Boostport/avatica)                                |
 | ClickHouse (clickhouse)        | [github.com/kshvakov/clickhouse](https://github.com/kshvakov/clickhouse)                            |
-| CockroachDB (cockroachdb)      | [github.com/lib/pq](https://github.com/lib/pq)                                                      |
 | Couchbase (n1ql)               | [github.com/couchbase/go_n1ql](https://github.com/couchbase/go_n1ql)                                |
+| Cznic QL (ql)                  | [github.com/cznic/ql](https://github.com/cznic/ql)                                                  |
 | Firebird SQL (firebirdsql)     | [github.com/nakagami/firebirdsql](https://github.com/nakagami/firebirdsql)                          |
-| MemSQL (memsql)                | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)                            |
 | Microsoft ADODB (adodb)        | [github.com/mattn/go-adodb](https://github.com/mattn/go-adodb)                                      |
 | ODBC (odbc)                    | [github.com/alexbrainman/odbc](https://github.com/alexbrainman/odbc)                                |
-| OLE ODBC (oleodbc)<sup>*</sup> | [github.com/mattn/go-adodb](https://github.com/mattn/go-adodb)                                      |
-| Cznic QL (ql)                  | [github.com/cznic/ql](https://github.com/cznic/ql)                                                  |
+| OLE ODBC (oleodbc)             | [github.com/mattn/go-adodb](https://github.com/mattn/go-adodb)                                      |
 | SAP HANA (hdb)                 | [github.com/SAP/go-hdb/driver](https://github.com/SAP/go-hdb/driver)                                |
 | Sybase SQL Anywhere (sqlany)   | [github.com/a-palchikov/sqlago](https://github.com/a-palchikov/sqlago)                              |
 | VoltDB (voltdb)                | [github.com/VoltDB/voltdb-client-go/voltdbclient](github.com/VoltDB/voltdb-client-go/voltdbclient]) |
 | YQL (yql)                      | [github.com/mattn/go-yql](https://github.com/mattn/go-yql)                                          |
-
-<i><b><sup>*</sup></b> OLE ODBC is not an actual protocol, but instead is an alias
-for using the "MSDASQL.1" OLE provider with the ADODB driver, and the DSN will
-be an ADODB DSN, but with "Extended Properties" for the respective ODBC
-parameters, including the underlying transport prootocol. As such,
-`oleodbc+protocol://user:pass@host/dbname` URLs are equivalent to
-`adodb://MSDASQL.1/?Extended+Properties=...`. Please see the documentation for
-`GenOLEODBC` for information regarding how URL components are mapped/passed to
-ADODB's Extended Properties parameter.</i>
 
 Please see [the GoDoc API page](http://godoc.org/github.com/knq/dburl) for a
 full API listing.
