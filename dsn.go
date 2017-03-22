@@ -246,6 +246,7 @@ func GenMySQL(u *URL) (string, error) {
 
 // GenMyMySQL generates a MyMySQL MySQL DSN from the passed URL.
 func GenMyMySQL(u *URL) (string, error) {
+	// build opts
 	var opts []string
 	for k, v := range u.Query() {
 		val := k
@@ -285,6 +286,14 @@ func GenMyMySQL(u *URL) (string, error) {
 
 	dsn := u.Proto + ":" + host
 
+	if dbname != "" {
+		if o := strings.Join(opts, ","); o != "" {
+			dsn += "," + o
+		}
+
+		dsn += "*" + dbname
+	}
+
 	if u.User != nil {
 		if user := u.User.Username(); len(user) > 0 {
 			dsn += "/" + user
@@ -294,7 +303,7 @@ func GenMyMySQL(u *URL) (string, error) {
 		}
 	}
 
-	return "", nil
+	return dsn, nil
 }
 
 // GenOracle generates a ora DSN from the passed URL.
@@ -482,9 +491,4 @@ func GenVoltDB(u *URL) (string, error) {
 		port = p
 	}
 	return host + ":" + port, nil
-}
-
-// GenPGX generates a PGX PostgreSQL DSN from the passed URL.
-func GenPGX(u *URL) (string, error) {
-	return "", nil
 }
