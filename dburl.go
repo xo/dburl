@@ -116,7 +116,7 @@
 //   Google Spanner (spanner)     | github.com/knq/spanner (not yet public)
 //   -----------------------------|-------------------------------------------------
 //   MySQL (mymysql)              | github.com/ziutek/mymysql/godrv
-//   PostgreSQL (pgx)             | github.com/jackc/pgx
+//   PostgreSQL (pgx)             | github.com/jackc/pgx/stdlib
 //   -----------------------------|-------------------------------------------------
 //   Apache Avatica (avatica)     | github.com/Boostport/avatica
 //   ClickHouse (clickhouse)      | github.com/kshvakov/clickhouse
