@@ -205,17 +205,19 @@ func GenMySQL(u *URL) (string, error) {
 	}
 
 	// if host or proto is not empty
-	if u.Proto != "tcp" || host != "" {
-		proto := u.Proto
-		if proto == "" {
-			proto = "tcp"
+	if u.Proto != "unix" {
+		if host == "" {
+			host = "127.0.0.1"
 		}
-
-		if port != "" {
-			port = ":" + port
+		if port == "" {
+			port = "3306"
 		}
-		dsn += proto + "(" + host + port + ")"
 	}
+	if port != "" {
+		port = ":" + port
+	}
+
+	dsn += u.Proto + "(" + host + port + ")"
 
 	// add database name
 	dsn += "/" + dbname
@@ -236,22 +238,20 @@ func GenMyMySQL(u *URL) (string, error) {
 		port = ""
 	}
 
-	// create dsn
-	dsn := ""
-
 	// if host or proto is not empty
-	if u.Proto != "tcp" || host != "" {
-		proto := u.Proto
-		if proto == "" {
-			proto = "tcp"
+	if u.Proto != "unix" {
+		if host == "" {
+			host = "127.0.0.1"
 		}
-
-		if port != "" {
-			port = ":" + port
+		if port == "" {
+			port = "3306"
 		}
-
-		dsn = proto + ":" + host + port
 	}
+	if port != "" {
+		port = ":" + port
+	}
+
+	dsn := u.Proto + ":" + host + port
 
 	// add opts
 	dsn += genOptions(

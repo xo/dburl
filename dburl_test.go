@@ -45,16 +45,16 @@ func TestParse(t *testing.T) {
 		{`pg:user:pass@/var/run/postgresql/mydb`, `postgres`, `dbname=mydb host=/var/run/postgresql password=pass user=user`},
 		{`pg:user:pass@/really/bad/path`, `postgres`, `host=/really/bad/path password=pass user=user`},
 
-		{`my:`, `mysql`, `/`}, // 10
-		{`my://`, `mysql`, `/`},
-		{`my:booktest:booktest@localhost/booktest`, `mysql`, `booktest:booktest@tcp(localhost)/booktest`},
+		{`my:`, `mysql`, `tcp(127.0.0.1:3306)/`}, // 10
+		{`my://`, `mysql`, `tcp(127.0.0.1:3306)/`},
+		{`my:booktest:booktest@localhost/booktest`, `mysql`, `booktest:booktest@tcp(localhost:3306)/booktest`},
 		{`my:/var/run/mysqld/mysqld.sock/mydb?timeout=90`, `mysql`, `unix(/var/run/mysqld/mysqld.sock)/mydb?timeout=90`},
 		{`my:///var/run/mysqld/mysqld.sock/mydb?timeout=90`, `mysql`, `unix(/var/run/mysqld/mysqld.sock)/mydb?timeout=90`},
 		{`my+unix:user:pass@mysqld.sock?timeout=90`, `mysql`, `user:pass@unix(mysqld.sock)/?timeout=90`},
 
-		{`mymy:`, `mymysql`, ``}, // 16
-		{`mymy://`, `mymysql`, ``},
-		{`mymy:user:pass@localhost/booktest`, `mymysql`, `tcp:localhost*booktest/user/pass`},
+		{`mymy:`, `mymysql`, `tcp:127.0.0.1:3306*`}, // 16
+		{`mymy://`, `mymysql`, `tcp:127.0.0.1:3306*`},
+		{`mymy:user:pass@localhost/booktest`, `mymysql`, `tcp:localhost:3306*booktest/user/pass`},
 		{`mymy:/var/run/mysqld/mysqld.sock/mydb?timeout=90&test=true`, `mymysql`, `unix:/var/run/mysqld/mysqld.sock,test,timeout=90*mydb`},
 		{`mymy:///var/run/mysqld/mysqld.sock/mydb?timeout=90`, `mymysql`, `unix:/var/run/mysqld/mysqld.sock,timeout=90*mydb`},
 		{`mymy+unix:user:pass@mysqld.sock?timeout=90`, `mymysql`, `unix:mysqld.sock,timeout=90*/user/pass`},
