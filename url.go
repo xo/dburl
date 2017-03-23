@@ -130,6 +130,10 @@ func (u *URL) String() string {
 
 // Short provides a short description of the user, host, and database.
 func (u *URL) Short() string {
+	if u.Scheme == "" {
+		return ""
+	}
+
 	s := schemeMap[u.Scheme].Aliases[0]
 
 	if u.Scheme == "odbc" || u.Scheme == "oleodbc" {
