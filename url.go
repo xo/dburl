@@ -49,7 +49,7 @@ func Parse(urlstr string) (*URL, error) {
 	// check for +protocol in scheme
 	var checkProto bool
 	if i := strings.IndexRune(v.Scheme, '+'); i != -1 {
-		v.Proto = strings.Replace(urlstr[i+1:len(u.Scheme)], "+", " ", -1)
+		v.Proto = urlstr[i+1 : len(u.Scheme)]
 		v.Scheme = v.Scheme[:i]
 		checkProto = true
 	}

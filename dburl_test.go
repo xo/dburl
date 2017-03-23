@@ -17,6 +17,7 @@ func TestBadParse(t *testing.T) {
 		{`mssql+aoeu://`},
 		{`mssql+unix:/var/run/mssql.sock`},
 		{`mssql+udp:localhost:155`},
+		{`adodb+foo+bar://provider/database`},
 	}
 
 	for i, test := range tests {

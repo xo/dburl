@@ -351,7 +351,7 @@ func GenADODB(u *URL) (string, error) {
 func GenODBC(u *URL) (string, error) {
 	q := u.Query()
 
-	q.Set("Driver", "{"+u.Proto+"}")
+	q.Set("Driver", "{"+strings.Replace(u.Proto, "+", " ", -1)+"}")
 	q.Set("Server", u.Hostname())
 
 	port := u.Port()
