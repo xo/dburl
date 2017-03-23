@@ -53,9 +53,9 @@ func BaseSchemes() []Scheme {
 	return []Scheme{
 		// core databases
 		{"mssql", GenSQLServer, 0, false, []string{"sqlserver"}, ""},
-		{"mysql", GenMySQL, ProtoTCP | ProtoUDP | ProtoUnix, true, []string{"mariadb", "maria", "percona", "aurora"}, ""},
+		{"mysql", GenMySQL, ProtoTCP | ProtoUDP | ProtoUnix, false, []string{"mariadb", "maria", "percona", "aurora"}, ""},
 		{"ora", GenOracle, 0, false, []string{"oracle", "oci8", "oci"}, ""},
-		{"postgres", nil, ProtoUnix, false, []string{"pg", "postgresql", "pgsql"}, ""},
+		{"postgres", GenPostgres, ProtoUnix, false, []string{"pg", "postgresql", "pgsql"}, ""},
 		{"sqlite3", GenSQLite3, 0, true, []string{"sqlite", "file"}, ""},
 
 		// wire compatibles
@@ -65,18 +65,18 @@ func BaseSchemes() []Scheme {
 		{"vitess", GenMySQL, 0, false, []string{"vt"}, "mysql"},
 
 		// testing
-		{"spanner", nil, 0, false, []string{"gs", "google", "span"}, ""},
+		{"spanner", GenScheme("spanner"), 0, false, []string{"gs", "google", "span"}, ""},
 
 		// alternates implementations
-		{"mymysql", GenMyMySQL, ProtoTCP | ProtoUnix, false, []string{"zm", "mymy"}, ""},
-		{"pgx", GenScheme("postgres"), 0, false, []string{"px"}, ""},
+		{"mymysql", GenMyMySQL, ProtoTCP | ProtoUDP | ProtoUnix, false, []string{"zm", "mymy"}, ""},
+		{"pgx", GenScheme("postgres"), ProtoUnix, false, []string{"px"}, ""},
 
 		// other databases
 		{"adodb", GenADODB, 0, false, []string{"ado"}, ""},
 		{"avatica", GenFromURL("http://localhost:8765/"), 0, false, []string{"phoenix"}, ""},
 		{"clickhouse", GenClickhouse, 0, false, []string{"ch"}, ""},
 		{"firebirdsql", GenFirebird, 0, false, []string{"fb", "firebird"}, ""},
-		{"hdb", nil, 0, false, []string{"sa", "saphana", "sap", "hana"}, ""},
+		{"hdb", GenScheme("hdb"), 0, false, []string{"sa", "saphana", "sap", "hana"}, ""},
 		{"n1ql", GenFromURL("http://localhost:9000/"), 0, false, []string{"couchbase"}, ""},
 		{"odbc", GenODBC, ProtoAny, true, nil, ""},
 		{"oleodbc", GenOLEODBC, ProtoAny, true, []string{"oo", "ole"}, "adodb"},
@@ -126,7 +126,7 @@ func registerAlias(name, alias string, doSort bool) {
 // Register registers a Scheme.
 func Register(scheme Scheme) {
 	if scheme.Generator == nil {
-		scheme.Generator = GenScheme(scheme.Driver)
+		panic("must specify Generator when registering Scheme")
 	}
 
 	// register

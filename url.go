@@ -44,16 +44,12 @@ func Parse(urlstr string) (*URL, error) {
 	}
 
 	// create url
-	v := &URL{URL: *u, OriginalScheme: u.Scheme, Proto: "tcp"}
+	v := &URL{URL: *u, OriginalScheme: urlstr[:len(u.Scheme)], Proto: "tcp"}
 
-	// force scheme to lowercase
-	v.Scheme = strings.ToLower(v.Scheme)
-
+	// check for +protocol in scheme
 	var checkProto bool
-
-	// check if scheme has +protocol
 	if i := strings.IndexRune(v.Scheme, '+'); i != -1 {
-		v.Proto = v.Scheme[i+1:]
+		v.Proto = strings.Replace(urlstr[i+1:len(u.Scheme)], "+", " ", -1)
 		v.Scheme = v.Scheme[:i]
 		checkProto = true
 	}
@@ -64,25 +60,41 @@ func Parse(urlstr string) (*URL, error) {
 		return nil, ErrUnknownDatabaseScheme
 	}
 
+	// if scheme does not understand opaque URLs, retry parsing after making a fully
+	// qualified URL
+	if !scheme.Opaque && v.Opaque != "" {
+		q := ""
+		if v.RawQuery != "" {
+			q = "?" + v.RawQuery
+		}
+		f := ""
+		if v.Fragment != "" {
+			f = "#" + v.Fragment
+		}
+
+		return Parse(v.OriginalScheme + "://" + v.Opaque + q + f)
+	}
+
 	// check proto
 	if checkProto {
 		if scheme.Proto == ProtoNone {
 			return nil, ErrInvalidTransportProtocol
 		}
 
-		if scheme.Proto&ProtoAny == 0 {
-			if v.Proto != "tcp" && scheme.Proto&ProtoTCP == 0 {
-				return nil, ErrInvalidTransportProtocol
-			}
+		switch {
+		case scheme.Proto&ProtoAny != 0 && v.Proto != "":
+		case scheme.Proto&ProtoTCP != 0 && v.Proto == "tcp":
+		case scheme.Proto&ProtoUDP != 0 && v.Proto == "udp":
+		case scheme.Proto&ProtoUnix != 0 && v.Proto == "unix":
 
-			if v.Proto != "udp" && scheme.Proto&ProtoUDP == 0 {
-				return nil, ErrInvalidTransportProtocol
-			}
-
-			if v.Proto != "unix" && scheme.Proto&ProtoUnix == 0 {
-				return nil, ErrInvalidTransportProtocol
-			}
+		default:
+			return nil, ErrInvalidTransportProtocol
 		}
+	}
+
+	// force unix proto
+	if host, dbname := v.Host, strings.TrimPrefix(v.Path, "/"); !scheme.Opaque && scheme.Proto&ProtoUnix != 0 && host == "" && dbname != "" {
+		v.Proto = "unix"
 	}
 
 	// set driver
@@ -95,14 +107,6 @@ func Parse(urlstr string) (*URL, error) {
 	v.DSN, err = scheme.Generator(v)
 	if err != nil {
 		return nil, err
-	}
-
-	// if opaque is allowed
-	if !scheme.Opaque && v.Opaque != "" {
-		v, err = Parse(v.OriginalScheme + "://" + v.Opaque)
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	return v, nil

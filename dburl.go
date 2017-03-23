@@ -167,8 +167,8 @@ var (
 	// ErrUnknownDatabaseScheme is the unknown database type error.
 	ErrUnknownDatabaseScheme = errors.New("unknown database scheme")
 
-	// ErrInvalidPort is the invalid port error.
-	ErrInvalidPort = errors.New("invalid port")
+	// ErrInvalidHost is the invalid host error.
+	ErrInvalidHost = errors.New("invalid host")
 )
 
 // Open takes a urlstr like "protocol+transport://user:pass@host/dbname?option1=a&option2=b"
