@@ -78,18 +78,20 @@ func TestParse(t *testing.T) {
 		{`mssql://user@localhost/service/dbname`, `mssql`, `Database=dbname;Server=localhost\service;User ID=user`},
 		{`mssql://user:!234%23$@localhost:1580/dbname`, `mssql`, `Database=dbname;Password=!234#$;Port=1580;Server=localhost;User ID=user`},
 
-		{`adodb://Microsoft.ACE.OLEDB.12.0?Extended+Properties=%22Text%3BHDR%3DNO%3BFMT%3DDelimited%22`, `adodb`,
-			`Data Source=.;Extended Properties="Text;HDR=NO;FMT=Delimited";Provider=Microsoft.ACE.OLEDB.12.0`}, // 30
-		{`adodb://user:pass@Provider.Name:1542/dbname`, `adodb`, `Database=dbname;Password=pass;Port=1542;Provider=Provider.Name;User ID=user`},
-
+		{`adodb://Microsoft.ACE.OLEDB.12.0?Extended+Properties=%22Text%3BHDR%3DNO%3BFMT%3DDelimited%22`, `adodb`, // 30
+			`Data Source=.;Extended Properties="Text;HDR=NO;FMT=Delimited";Provider=Microsoft.ACE.OLEDB.12.0`},
+		{`adodb://user:pass@Provider.Name:1542/Oracle8i/dbname`, `adodb`,
+			`Data Source=Oracle8i;Database=dbname;Password=pass;Port=1542;Provider=Provider.Name;User ID=user`},
 		{`oo+Postgres+Unicode://user:pass@host:5432/dbname`, `adodb`,
-			`Provider=MSDASQL.1;Extended Properties="Database=dbname;Driver={Postgres Unicode};PWD=pass;Port=5432;Server=host;UID=user"`}, // 31
+			`Provider=MSDASQL.1;Extended Properties="Database=dbname;Driver={Postgres Unicode};PWD=pass;Port=5432;Server=host;UID=user"`},
 
 		{`file:/path/to/file.sqlite3`, `sqlite3`, `/path/to/file.sqlite3`}, // 33
 		{`sqlite:///path/to/file.sqlite3`, `sqlite3`, `/path/to/file.sqlite3`},
 		{`sq://path/to/file.sqlite3`, `sqlite3`, `path/to/file.sqlite3`},
 		{`sq:path/to/file.sqlite3`, `sqlite3`, `path/to/file.sqlite3`},
 		{`sq:./path/to/file.sqlite3`, `sqlite3`, `./path/to/file.sqlite3`},
+
+		{`oracle://user:pass@localhost/xe.oracle.docker`, `ora`, `user/pass@localhost/xe.oracle.docker`}, // 38
 	}
 
 	for i, test := range tests {

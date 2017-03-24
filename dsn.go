@@ -335,16 +335,21 @@ func GenADODB(u *URL) (string, error) {
 	q.Set("Port", u.Port())
 
 	// grab dbname
-	dbname := strings.TrimPrefix(u.Path, "/")
-	if dbname == "" {
-		dbname = "."
+	dsname, dbname := strings.TrimPrefix(u.Path, "/"), ""
+	if dsname == "" {
+		dsname = "."
 	}
 
-	if dbname == "." {
-		q.Set("Data Source", dbname)
-	} else {
-		q.Set("Database", dbname)
+	// check if data source is not a path on disk
+	if mode(dsname) == 0 {
+		if i := strings.IndexAny(dsname, `\/`); i != -1 {
+			dbname = dsname[i+1:]
+			dsname = dsname[:i]
+		}
 	}
+
+	q.Set("Data Source", dsname)
+	q.Set("Database", dbname)
 
 	// add user/pass
 	if u.User != nil {
