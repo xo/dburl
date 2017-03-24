@@ -20,10 +20,11 @@ Where:
 | Component          | Description                                                                          |
 |--------------------|--------------------------------------------------------------------------------------|
 | protocol           | driver name or alias (see below)                                                     |
-| user               | the username to connect as                                                           |
-| pass               | the password to use                                                                  |
-| host               | the remote host                                                                      |
-| dbname<sup>*</sup> | the database, instance, or service name/ID to connect to                             |
+| transport          | "tcp", "udp", "unix" or driver name (odbc/oleodbc)                                   |
+| user               | username                                                                             |
+| pass               | password                                                                             |
+| host               | host                                                                                 |
+| dbname<sup>*</sup> | database, instance, or service name/ID to connect to                                 |
 | ?opt1=...          | additional database driver options (see respective SQL driver for available options) |
 
 <i><sup><b>*</b></sup> for Microsoft SQL Server, the syntax to supply an
@@ -40,8 +41,8 @@ u, err := dburl.Parse("postgresql://user:pass@localhost/mydatabase/?sslmode=disa
 if err != nil { /* ... */ }
 ```
 
-Additionally, a simple helper func `Open`, is available to simply parse,
-open, and return the SQL database connection:
+Additionally, a simple helper func `Open`, is available to quickly parse, open,
+and return a standard SQL database connection:
 
 ```go
 db, err := dburl.Open("sqlite:mydatabase.sqlite3?loc=auto")

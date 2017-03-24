@@ -75,8 +75,16 @@ func Parse(urlstr string) (*URL, error) {
 		return Parse(v.OriginalScheme + "://" + v.Opaque + q + f)
 	}
 
+	if scheme.Opaque && v.Opaque == "" {
+		// force Opaque
+		v.Opaque, v.Host, v.Path, v.RawPath = v.Host+v.Path, "", "", ""
+	} else if v.Host == "." || (v.Host == "" && strings.TrimPrefix(v.Path, "/") != "") {
+		// force unix proto
+		v.Proto = "unix"
+	}
+
 	// check proto
-	if checkProto {
+	if checkProto || v.Proto != "tcp" {
 		if scheme.Proto == ProtoNone {
 			return nil, ErrInvalidTransportProtocol
 		}
@@ -90,11 +98,6 @@ func Parse(urlstr string) (*URL, error) {
 		default:
 			return nil, ErrInvalidTransportProtocol
 		}
-	}
-
-	// force unix proto
-	if host, dbname := v.Host, strings.TrimPrefix(v.Path, "/"); !scheme.Opaque && scheme.Proto&ProtoUnix != 0 && host == "" && dbname != "" {
-		v.Proto = "unix"
 	}
 
 	// set driver

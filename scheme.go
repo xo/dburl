@@ -56,7 +56,7 @@ func BaseSchemes() []Scheme {
 		{"mysql", GenMySQL, ProtoTCP | ProtoUDP | ProtoUnix, false, []string{"mariadb", "maria", "percona", "aurora"}, ""},
 		{"ora", GenOracle, 0, false, []string{"oracle", "oci8", "oci"}, ""},
 		{"postgres", GenPostgres, ProtoUnix, false, []string{"pg", "postgresql", "pgsql"}, ""},
-		{"sqlite3", GenSQLite3, 0, true, []string{"sqlite", "file"}, ""},
+		{"sqlite3", GenOpaque, 0, true, []string{"sqlite", "file"}, ""},
 
 		// wire compatibles
 		{"cockroachdb", GenFromURL("postgres://localhost:26257/?sslmode=disable"), 0, false, []string{"cr", "cockroach", "crdb", "cdb"}, "postgres"},
@@ -78,9 +78,9 @@ func BaseSchemes() []Scheme {
 		{"firebirdsql", GenFirebird, 0, false, []string{"fb", "firebird"}, ""},
 		{"hdb", GenScheme("hdb"), 0, false, []string{"sa", "saphana", "sap", "hana"}, ""},
 		{"n1ql", GenFromURL("http://localhost:9000/"), 0, false, []string{"couchbase"}, ""},
-		{"odbc", GenODBC, ProtoAny, true, nil, ""},
-		{"oleodbc", GenOLEODBC, ProtoAny, true, []string{"oo", "ole"}, "adodb"},
-		{"ql", GenSQLite3, 0, true, []string{"ql", "cznic", "cznicql"}, ""},
+		{"odbc", GenODBC, ProtoAny, false, nil, ""},
+		{"oleodbc", GenOLEODBC, ProtoAny, false, []string{"oo", "ole"}, "adodb"},
+		{"ql", GenOpaque, 0, true, []string{"ql", "cznic", "cznicql"}, ""},
 		{"sqlany", GenSybase, 0, false, []string{"sy", "sybase", "any"}, ""},
 		{"yql", GenYQL, 0, false, nil, ""},
 		{"voltdb", GenVoltDB, 0, false, []string{"volt", "vdb"}, ""},
@@ -127,6 +127,10 @@ func registerAlias(name, alias string, doSort bool) {
 func Register(scheme Scheme) {
 	if scheme.Generator == nil {
 		panic("must specify Generator when registering Scheme")
+	}
+
+	if scheme.Opaque && scheme.Proto&ProtoUnix != 0 {
+		panic("scheme must support only Opaque or Unix protocols, not both")
 	}
 
 	// register

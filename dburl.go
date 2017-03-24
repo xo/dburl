@@ -11,11 +11,11 @@
 // Where:
 //
 //   protocol  - driver name or alias (see below)
-//   transport - the transport protocol [tcp, udp, unix] (only mysql for now)
-//   user      - the username to connect as
-//   pass      - the password to use
-//   host      - the remote host
-//   dbname*    - the database, instance, or service name/id to connect to
+//   transport - "tcp", "udp", "unix" or driver name (odbc/oleodbc)                                  |
+//   user      - username
+//   pass      - password
+//   host      - host
+//   dbname*   - database, instance, or service name/id to connect to
 //   ?opt1=... - additional database driver options
 //                 (see respective SQL driver for available options)
 //
@@ -30,8 +30,8 @@
 //   u, err := dburl.Parse("postgresql://user:pass@localhost/mydatabase/?sslmode=disable")
 //   if err != nil { /* ... */ }
 //
-// Additionally, a simple helper func, Open, is available to simply parse,
-// open, and return the SQL database connection:
+// Additionally, a simple helper func, Open, is available to quickly parse,
+// open, and return a standard SQL database connection:
 //
 //   db, err := dburl.Open("sqlite:mydatabase.sqlite3?loc=auto")
 //   if err != nil { /* ... */ }
@@ -169,6 +169,9 @@ var (
 
 	// ErrInvalidHost is the invalid host error.
 	ErrInvalidHost = errors.New("invalid host")
+
+	// ErrPostgresDoesNotSupportRelativePath is the postgres does not support relative path error.
+	ErrPostgresDoesNotSupportRelativePath = errors.New("postgres does not support relative path")
 )
 
 // Open takes a urlstr like "protocol+transport://user:pass@host/dbname?option1=a&option2=b"

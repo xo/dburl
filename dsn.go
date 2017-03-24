@@ -98,6 +98,9 @@ func GenPostgres(u *URL) (string, error) {
 	q := u.Query()
 
 	host, port, dbname := u.Hostname(), u.Port(), strings.TrimPrefix(u.Path, "/")
+	if host == "." {
+		return "", ErrPostgresDoesNotSupportRelativePath
+	}
 
 	// resolve path
 	if u.Proto == "unix" {
@@ -114,12 +117,9 @@ func GenPostgres(u *URL) (string, error) {
 
 	// add user/pass
 	if u.User != nil {
-		if user := u.User.Username(); user != "" {
-			q.Set("user", user)
-			if pass, ok := u.User.Password(); ok {
-				q.Set("password", pass)
-			}
-		}
+		q.Set("user", u.User.Username())
+		pass, _ := u.User.Password()
+		q.Set("password", pass)
 	}
 
 	return genOptions(q, "", "=", " ", ",", true), nil
@@ -298,15 +298,11 @@ func GenOracle(u *URL) (string, error) {
 	return un + "@" + dsn, nil
 }
 
-// GenSQLite3 generates a sqlite3 DSN from the passed URL.
-func GenSQLite3(u *URL) (string, error) {
+// GenOpaque generates a opaque file path DSN from the passed URL.
+func GenOpaque(u *URL) (string, error) {
 	dsn := u.Opaque
-	if u.Path != "" {
-		dsn = u.Path
-	}
-
-	if u.Host != "" && u.Host != "localhost" {
-		dsn = stdpath.Join(u.Host, dsn)
+	if u.Host != "" {
+		dsn = u.Host + u.Path
 	}
 
 	// add params
@@ -335,14 +331,27 @@ func GenFirebird(u *URL) (string, error) {
 // GenADODB generates a adodb DSN from the passed URL.
 func GenADODB(u *URL) (string, error) {
 	q := u.Query()
-	q.Set("Provider", u.Host)
+	q.Set("Provider", u.Hostname())
+	q.Set("Port", u.Port())
 
 	// grab dbname
 	dbname := strings.TrimPrefix(u.Path, "/")
 	if dbname == "" {
 		dbname = "."
 	}
-	q.Set("Data Source", dbname)
+
+	if dbname == "." {
+		q.Set("Data Source", dbname)
+	} else {
+		q.Set("Database", dbname)
+	}
+
+	// add user/pass
+	if u.User != nil {
+		q.Set("User ID", u.User.Username())
+		pass, _ := u.User.Password()
+		q.Set("Password", pass)
+	}
 
 	return genOptionsODBC(q, true), nil
 }
