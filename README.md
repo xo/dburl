@@ -191,7 +191,7 @@ func main() {
         log.Fatal(err)
     }
 
-    fmt.Println(">> got: %s\n", name)
+    fmt.Printf(">> got: %s\n", name)
 }
 ```
 

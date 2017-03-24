@@ -93,10 +93,13 @@ func GenFromURL(urlstr string) func(*URL) (string, error) {
 	}
 }
 
+// GenOpaque generates a opaque file path DSN from the passed URL.
+func GenOpaque(u *URL) (string, error) {
+	return u.Opaque + genQueryOptions(u.Query()), nil
+}
+
 // GenPostgres generates a postgres DSN from the passed URL.
 func GenPostgres(u *URL) (string, error) {
-	q := u.Query()
-
 	host, port, dbname := u.Hostname(), u.Port(), strings.TrimPrefix(u.Path, "/")
 	if host == "." {
 		return "", ErrPostgresDoesNotSupportRelativePath
@@ -111,6 +114,7 @@ func GenPostgres(u *URL) (string, error) {
 		host, port, dbname = resolveDir(stdpath.Join(host, dbname))
 	}
 
+	q := u.Query()
 	q.Set("host", host)
 	q.Set("port", port)
 	q.Set("dbname", dbname)
@@ -298,22 +302,6 @@ func GenOracle(u *URL) (string, error) {
 	return un + "@" + dsn, nil
 }
 
-// GenOpaque generates a opaque file path DSN from the passed URL.
-func GenOpaque(u *URL) (string, error) {
-	dsn := u.Opaque
-	if u.Host != "" {
-		dsn = u.Host + u.Path
-	}
-
-	// add params
-	params := u.Query().Encode()
-	if len(params) > 0 {
-		dsn += "?" + params
-	}
-
-	return dsn, nil
-}
-
 // GenFirebird generates a firebirdsql DSN from the passed URL.
 func GenFirebird(u *URL) (string, error) {
 	z := &url.URL{
@@ -330,11 +318,7 @@ func GenFirebird(u *URL) (string, error) {
 
 // GenADODB generates a adodb DSN from the passed URL.
 func GenADODB(u *URL) (string, error) {
-	q := u.Query()
-	q.Set("Provider", u.Hostname())
-	q.Set("Port", u.Port())
-
-	// grab dbname
+	// grab data source
 	dsname, dbname := strings.TrimPrefix(u.Path, "/"), ""
 	if dsname == "" {
 		dsname = "."
@@ -348,6 +332,9 @@ func GenADODB(u *URL) (string, error) {
 		}
 	}
 
+	q := u.Query()
+	q.Set("Provider", u.Hostname())
+	q.Set("Port", u.Port())
 	q.Set("Data Source", dsname)
 	q.Set("Database", dbname)
 
@@ -364,7 +351,6 @@ func GenADODB(u *URL) (string, error) {
 // GenODBC generates a odbc DSN from the passed URL.
 func GenODBC(u *URL) (string, error) {
 	q := u.Query()
-
 	q.Set("Driver", "{"+strings.Replace(u.Proto, "+", " ", -1)+"}")
 	q.Set("Server", u.Hostname())
 
@@ -525,7 +511,7 @@ func genOptionsODBC(q url.Values, skipWhenEmpty bool, ignore ...string) string {
 	return genOptions(q, "", "=", ";", ",", skipWhenEmpty, ignore...)
 }
 
-// genQueryOptions generatens standard query options.
+// genQueryOptions generates standard query options.
 func genQueryOptions(q url.Values) string {
 	if s := q.Encode(); s != "" {
 		return "?" + s
