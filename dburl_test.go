@@ -91,8 +91,10 @@ func TestParse(t *testing.T) {
 		{`sq:path/to/file.sqlite3`, `sqlite3`, `path/to/file.sqlite3`},
 		{`sq:./path/to/file.sqlite3`, `sqlite3`, `./path/to/file.sqlite3`},
 		{`sq://./path/to/file.sqlite3?loc=auto`, `sqlite3`, `./path/to/file.sqlite3?loc=auto`},
+		{`sq::memory:?loc=auto`, `sqlite3`, `:memory:?loc=auto`},
+		{`sq://:memory:?loc=auto`, `sqlite3`, `:memory:?loc=auto`},
 
-		{`oracle://user:pass@localhost/xe.oracle.docker`, `ora`, `user/pass@localhost/xe.oracle.docker`}, // 39
+		{`oracle://user:pass@localhost/xe.oracle.docker`, `ora`, `user/pass@localhost/xe.oracle.docker`}, // 41
 	}
 
 	for i, test := range tests {
