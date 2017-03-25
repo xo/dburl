@@ -1,39 +1,51 @@
 package dburl
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestBadParse(t *testing.T) {
 	tests := []struct {
-		s string
+		s   string
+		exp error
 	}{
-		{``},
-		{`pgsqlx://`},
-		{`m`},
-		{`pg+udp://user:pass@localhost/dbname`},
-		{`sqlite+unix://`},
-		{`sqlite+tcp://`},
-		{`file+tcp://`},
-		{`mssql+tcp://user:pass@host/dbname`},
-		{`mssql+aoeu://`},
-		{`mssql+unix:/var/run/mssql.sock`},
-		{`mssql+udp:localhost:155`},
-		{`adodb+foo+bar://provider/database`},
-		{`memsql:/var/run/mysqld/mysqld.sock`},
-		{`tidb:/var/run/mysqld/mysqld.sock`},
-		{`vitess:/var/run/mysqld/mysqld.sock`},
-		{`memsql+unix:///var/run/mysqld/mysqld.sock`},
-		{`tidb+unix:///var/run/mysqld/mysqld.sock`},
-		{`vitess+unix:///var/run/mysqld/mysqld.sock`},
-		{`cockroach:/var/run/postgresql`},
-		{`cockroach+unix:/var/run/postgresql`},
-		{`pg:./path/to/socket`}, // relative paths are not possible for postgres sockets
-		{`pg+unix:./path/to/socket`},
+		{``, ErrInvalidDatabaseScheme},
+		{` `, ErrInvalidDatabaseScheme},
+		{`pgsqlx://`, ErrUnknownDatabaseScheme},
+		{`m`, ErrInvalidDatabaseScheme},
+		{`pg+udp://user:pass@localhost/dbname`, ErrInvalidTransportProtocol},
+		{`sqlite+unix://`, ErrInvalidTransportProtocol},
+		{`sqlite+tcp://`, ErrInvalidTransportProtocol},
+		{`file+tcp://`, ErrInvalidTransportProtocol},
+		{`file://`, ErrMissingPath},
+		{`ql://`, ErrMissingPath},
+		{`mssql+tcp://user:pass@host/dbname`, ErrInvalidTransportProtocol},
+		{`mssql+aoeu://`, ErrInvalidTransportProtocol},
+		{`mssql+unix:/var/run/mssql.sock`, ErrInvalidTransportProtocol},
+		{`mssql+udp:localhost:155`, ErrInvalidTransportProtocol},
+		{`adodb+foo+bar://provider/database`, ErrInvalidTransportProtocol},
+		{`memsql:/var/run/mysqld/mysqld.sock`, ErrInvalidTransportProtocol},
+		{`tidb:/var/run/mysqld/mysqld.sock`, ErrInvalidTransportProtocol},
+		{`vitess:/var/run/mysqld/mysqld.sock`, ErrInvalidTransportProtocol},
+		{`memsql+unix:///var/run/mysqld/mysqld.sock`, ErrInvalidTransportProtocol},
+		{`tidb+unix:///var/run/mysqld/mysqld.sock`, ErrInvalidTransportProtocol},
+		{`vitess+unix:///var/run/mysqld/mysqld.sock`, ErrInvalidTransportProtocol},
+		{`cockroach:/var/run/postgresql`, ErrInvalidTransportProtocol},
+		{`cockroach+unix:/var/run/postgresql`, ErrInvalidTransportProtocol},
+		{`cockroach:./path`, ErrInvalidTransportProtocol},
+		{`cockroach+unix:./path`, ErrInvalidTransportProtocol},
+		{`pg:./path/to/socket`, ErrRelativePathNotSupported}, // relative paths are not possible for postgres sockets
+		{`pg+unix:./path/to/socket`, ErrRelativePathNotSupported},
 	}
 
 	for i, test := range tests {
 		_, err := Parse(test.s)
 		if err == nil {
 			t.Errorf("test %d expected error parsing `%s`, got: nil", i, test.s)
+			continue
+		}
+		if err != test.exp {
+			t.Errorf("test %d expected error parsing `%s`: `%v`, got: `%v`", i, test.s, test.exp, err)
 		}
 	}
 }

@@ -95,6 +95,10 @@ func GenFromURL(urlstr string) func(*URL) (string, error) {
 
 // GenOpaque generates a opaque file path DSN from the passed URL.
 func GenOpaque(u *URL) (string, error) {
+	if u.Opaque == "" {
+		return "", ErrMissingPath
+	}
+
 	return u.Opaque + genQueryOptions(u.Query()), nil
 }
 
@@ -102,7 +106,7 @@ func GenOpaque(u *URL) (string, error) {
 func GenPostgres(u *URL) (string, error) {
 	host, port, dbname := u.Hostname(), u.Port(), strings.TrimPrefix(u.Path, "/")
 	if host == "." {
-		return "", ErrPostgresDoesNotSupportRelativePath
+		return "", ErrRelativePathNotSupported
 	}
 
 	// resolve path

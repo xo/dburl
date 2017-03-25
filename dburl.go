@@ -161,17 +161,17 @@ var (
 	// ErrInvalidDatabaseScheme is the invalid database scheme error.
 	ErrInvalidDatabaseScheme = errors.New("invalid database scheme")
 
-	// ErrInvalidTransportProtocol is the invalid transport protocol error.
-	ErrInvalidTransportProtocol = errors.New("invalid transport protocol")
-
 	// ErrUnknownDatabaseScheme is the unknown database type error.
 	ErrUnknownDatabaseScheme = errors.New("unknown database scheme")
 
-	// ErrInvalidHost is the invalid host error.
-	ErrInvalidHost = errors.New("invalid host")
+	// ErrInvalidTransportProtocol is the invalid transport protocol error.
+	ErrInvalidTransportProtocol = errors.New("invalid transport protocol")
 
-	// ErrPostgresDoesNotSupportRelativePath is the postgres does not support relative path error.
-	ErrPostgresDoesNotSupportRelativePath = errors.New("postgres does not support relative path")
+	// ErrRelativePathNotSupported is the relative paths not supported error.
+	ErrRelativePathNotSupported = errors.New("relative path not supported")
+
+	// ErrMissingPath is the missing path error.
+	ErrMissingPath = errors.New("missing path")
 )
 
 // Open takes a urlstr like "protocol+transport://user:pass@host/dbname?option1=a&option2=b"
