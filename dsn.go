@@ -267,22 +267,15 @@ func GenMyMySQL(u *URL) (string, error) {
 		",", "=", ",", " ", false,
 	)
 
-	// add asterisk
-	if dsn != "" {
-		dsn += "*"
-	}
-
-	// add database
-	dsn += dbname
+	// add dbname
+	dsn += "*" + dbname
 
 	// add user/pass
 	if u.User != nil {
-		if user := u.User.Username(); user != "" {
-			dsn += "/" + user
-			if pass, ok := u.User.Password(); ok {
-				dsn += "/" + pass
-			}
-		}
+		pass, _ := u.User.Password()
+		dsn += "/" + u.User.Username() + "/" + pass
+	} else if strings.HasSuffix(dsn, "*") {
+		dsn += "//"
 	}
 
 	return dsn, nil
