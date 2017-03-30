@@ -7,12 +7,12 @@ import (
 // contains code taken from go1.8, for purposes of backwards compatability with
 // older go versions.
 
-// hostname returns u.Host, without any port number.
+// Hostname returns u.Host, without any port number.
 //
 // If Host is an IPv6 literal with a port number, Hostname returns the
 // IPv6 literal without the square brackets. IPv6 literals may include
 // a zone identifier.
-func hostname(hostport string) string {
+func Hostname(hostport string) string {
 	colon := strings.IndexByte(hostport, ':')
 	if colon == -1 {
 		return hostport
@@ -23,9 +23,9 @@ func hostname(hostport string) string {
 	return hostport[:colon]
 }
 
-// hostport returns the port part of u.Host, without the leading colon.
+// Hostport returns the port part of u.Host, without the leading colon.
 // If u.Host doesn't contain a port, Port returns an empty string.
-func hostport(hostport string) string {
+func Hostport(hostport string) string {
 	colon := strings.IndexByte(hostport, ':')
 	if colon == -1 {
 		return ""

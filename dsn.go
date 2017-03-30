@@ -47,11 +47,11 @@ func GenFromURL(urlstr string) func(*URL) (string, error) {
 			user = u.User
 		}
 
-		host, port := hostname(z.Host), hostport(z.Host)
-		if h := hostname(u.Host); h != "" {
+		host, port := Hostname(z.Host), Hostport(z.Host)
+		if h := Hostname(u.Host); h != "" {
 			host = h
 		}
-		if p := hostport(u.Host); p != "" {
+		if p := Hostport(u.Host); p != "" {
 			port = p
 		}
 		if port != "" {
@@ -104,7 +104,7 @@ func GenOpaque(u *URL) (string, error) {
 
 // GenPostgres generates a postgres DSN from the passed URL.
 func GenPostgres(u *URL) (string, error) {
-	host, port, dbname := hostname(u.Host), hostport(u.Host), strings.TrimPrefix(u.Path, "/")
+	host, port, dbname := Hostname(u.Host), Hostport(u.Host), strings.TrimPrefix(u.Path, "/")
 	if host == "." {
 		return "", ErrRelativePathNotSupported
 	}
@@ -135,7 +135,7 @@ func GenPostgres(u *URL) (string, error) {
 
 // GenSQLServer generates a mssql DSN from the passed URL.
 func GenSQLServer(u *URL) (string, error) {
-	host, port, dbname := hostname(u.Host), hostport(u.Host), strings.TrimPrefix(u.Path, "/")
+	host, port, dbname := Hostname(u.Host), Hostport(u.Host), strings.TrimPrefix(u.Path, "/")
 
 	// add instance name to host if present
 	if i := strings.Index(dbname, "/"); i != -1 {
@@ -161,7 +161,7 @@ func GenSQLServer(u *URL) (string, error) {
 // GenSybase generates a sqlany DSN from the passed URL.
 func GenSybase(u *URL) (string, error) {
 	// of format "UID=DBA;PWD=sql;Host=demo12;DatabaseName=demo;ServerName=myserver"
-	host, port, dbname := hostname(u.Host), hostport(u.Host), strings.TrimPrefix(u.Path, "/")
+	host, port, dbname := Hostname(u.Host), Hostport(u.Host), strings.TrimPrefix(u.Path, "/")
 
 	// add instance name to host if present
 	if i := strings.Index(dbname, "/"); i != -1 {
@@ -188,7 +188,7 @@ func GenSybase(u *URL) (string, error) {
 
 // GenMySQL generates a mysql DSN from the passed URL.
 func GenMySQL(u *URL) (string, error) {
-	host, port, dbname := hostname(u.Host), hostport(u.Host), strings.TrimPrefix(u.Path, "/")
+	host, port, dbname := Hostname(u.Host), Hostport(u.Host), strings.TrimPrefix(u.Path, "/")
 
 	// create dsn
 	dsn := ""
@@ -235,7 +235,7 @@ func GenMySQL(u *URL) (string, error) {
 
 // GenMyMySQL generates a MyMySQL MySQL DSN from the passed URL.
 func GenMyMySQL(u *URL) (string, error) {
-	host, port, dbname := hostname(u.Host), hostport(u.Host), strings.TrimPrefix(u.Path, "/")
+	host, port, dbname := Hostname(u.Host), Hostport(u.Host), strings.TrimPrefix(u.Path, "/")
 
 	// resolve path
 	if u.Proto == "unix" {
@@ -330,8 +330,8 @@ func GenADODB(u *URL) (string, error) {
 	}
 
 	q := u.Query()
-	q.Set("Provider", hostname(u.Host))
-	q.Set("Port", hostport(u.Host))
+	q.Set("Provider", Hostname(u.Host))
+	q.Set("Port", Hostport(u.Host))
 	q.Set("Data Source", dsname)
 	q.Set("Database", dbname)
 
@@ -349,9 +349,9 @@ func GenADODB(u *URL) (string, error) {
 func GenODBC(u *URL) (string, error) {
 	q := u.Query()
 	q.Set("Driver", "{"+strings.Replace(u.Proto, "+", " ", -1)+"}")
-	q.Set("Server", hostname(u.Host))
+	q.Set("Server", Hostname(u.Host))
 
-	port := hostport(u.Host)
+	port := Hostport(u.Host)
 	if port == "" {
 		proto := strings.ToLower(u.Proto)
 		switch {
@@ -399,7 +399,7 @@ func GenClickhouse(u *URL) (string, error) {
 		Fragment: u.Fragment,
 	}
 
-	if hostport(z.Host) == "" {
+	if Hostport(z.Host) == "" {
 		z.Host += ":9000"
 	}
 
@@ -446,10 +446,10 @@ func GenYQL(u *URL) (string, error) {
 // GenVoltDB generates a VoltDB DSN from the passed URL.
 func GenVoltDB(u *URL) (string, error) {
 	host, port := "localhost", "21212"
-	if h := hostname(u.Host); h != "" {
+	if h := Hostname(u.Host); h != "" {
 		host = h
 	}
-	if p := hostport(u.Host); p != "" {
+	if p := Hostport(u.Host); p != "" {
 		port = p
 	}
 	return host + ":" + port, nil
