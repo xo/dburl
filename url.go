@@ -21,9 +21,19 @@ type URL struct {
 	// to sql/Open.
 	Driver string
 
+	// Unaliased is the unaliased driver name.
+	Unaliased string
+
 	// DSN is the built connection "data source name" that can be used in a
 	// call to sql/Open.
 	DSN string
+
+	// hostPortDB will be set by Gen*() funcs after determining the host, port,
+	// database.
+	//
+	// when empty, indicates that these values are not special, and can be
+	// retrieved as the host, port, and path[1:] as usual.
+	hostPortDB []string
 }
 
 // Parse parses urlstr, returning a URL with the OriginalScheme, Proto, Driver,
@@ -102,6 +112,7 @@ func Parse(urlstr string) (*URL, error) {
 
 	// set driver
 	v.Driver = scheme.Driver
+	v.Unaliased = scheme.Driver
 	if scheme.Override != "" {
 		v.Driver = scheme.Override
 	}
@@ -170,4 +181,55 @@ func (u *URL) Short() string {
 	}
 
 	return s
+}
+
+// Normalize returns the driver, host, port, database, and user name of a URL,
+// joined with sep, populating blank fields with empty.
+func (u *URL) Normalize(sep, empty string, cut int) string {
+	s := make([]string, 5)
+
+	s[0] = u.Unaliased
+	if u.Proto != "tcp" && u.Proto != "unix" {
+		s[0] += "+" + u.Proto
+	}
+
+	// set host port dbname fields
+	if u.hostPortDB == nil {
+		if u.Opaque != "" {
+			u.hostPortDB = []string{u.Opaque, "", ""}
+		} else {
+			u.hostPortDB = []string{
+				hostname(u.Host),
+				hostport(u.Host),
+				strings.TrimPrefix(u.Path, "/"),
+			}
+		}
+	}
+	copy(s[1:], u.hostPortDB)
+
+	// set user
+	if u.User != nil {
+		s[4] = u.User.Username()
+	}
+
+	// replace blank entries ...
+	for i := 0; i < len(s); i++ {
+		if s[i] == "" {
+			s[i] = empty
+		}
+	}
+
+	if cut > 0 {
+		// cut to only populated fields
+		i := len(s) - 1
+		for ; i > cut; i-- {
+			if s[i] != "" {
+				break
+			}
+		}
+		s = s[:i]
+	}
+
+	// join
+	return strings.Join(s, sep)
 }
