@@ -115,7 +115,7 @@ func GenPostgres(u *URL) (string, error) {
 			dbname = "/" + dbname
 		}
 
-		host, port, dbname = resolveDir(stdpath.Join(host, dbname))
+		host, port, dbname = ResolveDir(stdpath.Join(host, dbname))
 	}
 
 	q := u.Query()
@@ -208,7 +208,7 @@ func GenMySQL(u *URL) (string, error) {
 		if host == "" {
 			dbname = "/" + dbname
 		}
-		host, dbname = resolveSocket(stdpath.Join(host, dbname))
+		host, dbname = ResolveSocket(stdpath.Join(host, dbname))
 		port = ""
 	}
 
@@ -242,7 +242,7 @@ func GenMyMySQL(u *URL) (string, error) {
 		if host == "" {
 			dbname = "/" + dbname
 		}
-		host, dbname = resolveSocket(stdpath.Join(host, dbname))
+		host, dbname = ResolveSocket(stdpath.Join(host, dbname))
 		port = ""
 	}
 
@@ -544,12 +544,13 @@ func mode(path string) os.FileMode {
 	return 0
 }
 
-// resolveSocket tries to resolve a path to a unix domain socket
-// based on the actual file path of the form "/path/to/socket/dbname" returning
-// either the original path and the empty string, or the components
-// "/path/to/socket" and "dbname", when /path/to/socket/dbname is reported by
-// os.Stat as a unix socket.
-func resolveSocket(path string) (string, string) {
+// ResolveSocket tries to resolve a path to a Unix domain socket based on the
+// form "/path/to/socket/dbname" returning either the original path and the
+// empty string, or the components "/path/to/socket" and "dbname", when
+// /path/to/socket/dbname is reported by os.Stat as a socket.
+//
+// Used for MySQL DSNs.
+func ResolveSocket(path string) (string, string) {
 	dir, dbname := path, ""
 	for dir != "" && dir != "/" && dir != "." {
 		if m := mode(dir); m&os.ModeSocket != 0 {
@@ -561,8 +562,10 @@ func resolveSocket(path string) (string, string) {
 	return path, ""
 }
 
-// resolveDir resolves a directory with a :port list.
-func resolveDir(path string) (string, string, string) {
+// ResolveDir resolves a directory with a :port list.
+//
+// Used for PostgreSQL DSNs.
+func ResolveDir(path string) (string, string, string) {
 	dir := path
 	for dir != "" && dir != "/" && dir != "." {
 		port := ""
