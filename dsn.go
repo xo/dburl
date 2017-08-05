@@ -1,7 +1,6 @@
 package dburl
 
 import (
-	"errors"
 	"net/url"
 	stdpath "path"
 	"strings"
@@ -456,31 +455,6 @@ func GenClickhouse(u *URL) (string, error) {
 	z.RawQuery = q.Encode()
 
 	return z.String(), nil
-}
-
-// GenYQL generates a YQL DSN from the passed URL.
-func GenYQL(u *URL) (string, error) {
-	dsn := ""
-
-	if u.User != nil {
-		if user := u.User.Username(); len(user) > 0 {
-			dsn += user
-		}
-		if pass, ok := u.User.Password(); ok {
-			dsn += "|" + pass
-		} else {
-			return "", errors.New("missing password")
-		}
-	}
-
-	if u.Host != "" {
-		if dsn == "" {
-			dsn = "|"
-		}
-		dsn += "|store://" + u.Host + u.Path
-	}
-
-	return dsn, nil
 }
 
 // GenVoltDB generates a VoltDB DSN from the passed URL.

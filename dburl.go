@@ -87,7 +87,6 @@
 //   SAP HANA (hdb)               | sa, saphana, sap, hana
 //   Sybase SQL Anywhere (sqlany) | sy, sybase, any
 //   VoltDB (voltdb)              | vo, volt, vdb
-//   YQL (yql)                    | yq
 //
 // Any protocol scheme alias:// can be used in place of protocol://, and will
 // work identically with Parse/Open.
@@ -129,7 +128,6 @@
 //   SAP HANA (hdb)               | github.com/SAP/go-hdb/driver
 //   Sybase SQL Anywhere (sqlany) | github.com/a-palchikov/sqlago
 //   VoltDB (voltdb)              | github.com/VoltDB/voltdb-client-go/voltdbclient
-//   YQL (yql)                    | github.com/mattn/go-yql
 //
 // * OLE ODBC is not an actual protocol, but instead is an alias for using the
 //   "MSDASQL.1" OLE provider with the ADODB driver, and the DSN will be an

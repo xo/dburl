@@ -102,7 +102,6 @@ supported out of the box:
 | SAP HANA (hdb)               | sa, saphana, sap, hana              |
 | Sybase SQL Anywhere (sqlany) | sy, sybase, any                     |
 | VoltDB (voltdb)              | vo, volt, vdb                       |
-| YQL (yql)                    | yq                                  |
 
 Any protocol scheme `alias://` can be used in place of `protocol://`, and will work
 identically with `Parse`/`Open`.
@@ -152,7 +151,6 @@ to be imported:
 | SAP HANA (hdb)               | [github.com/SAP/go-hdb/driver](https://github.com/SAP/go-hdb)                          |
 | Sybase SQL Anywhere (sqlany) | [github.com/a-palchikov/sqlago](https://github.com/a-palchikov/sqlago)                 |
 | VoltDB (voltdb)              | [github.com/VoltDB/voltdb-client-go/voltdbclient](github.com/VoltDB/voltdb-client-go]) |
-| YQL (yql)                    | [github.com/mattn/go-yql](https://github.com/mattn/go-yql)                             |
 
 Please see [the GoDoc API page](http://godoc.org/github.com/knq/dburl) for a
 full API listing.

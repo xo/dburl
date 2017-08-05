@@ -82,7 +82,6 @@ func BaseSchemes() []Scheme {
 		{"oleodbc", GenOLEODBC, ProtoAny, false, []string{"oo", "ole"}, "adodb"},
 		{"ql", GenOpaque, 0, true, []string{"ql", "cznic", "cznicql"}, ""},
 		{"sqlany", GenSybase, 0, false, []string{"sy", "sybase", "any"}, ""},
-		{"yql", GenYQL, 0, false, nil, ""},
 		{"voltdb", GenVoltDB, 0, false, []string{"volt", "vdb"}, ""},
 	}
 }
