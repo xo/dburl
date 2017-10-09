@@ -6,7 +6,7 @@ import (
 	"log"
 
 	_ "github.com/denisenkom/go-mssqldb"
-	"github.com/knq/dburl"
+	"github.com/xo/dburl"
 )
 
 func main() {

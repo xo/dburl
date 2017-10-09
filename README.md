@@ -111,7 +111,7 @@ identically with `Parse`/`Open`.
 Install in the usual Go fashion:
 
 ```sh
-go get -u github.com/knq/dburl
+go get -u github.com/xo/dburl
 ```
 
 ## Usage
@@ -135,7 +135,7 @@ to be imported:
 | TiDB (tidb)                  | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)               |
 | Vitess (vitess)              | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)               |
 |                              |                                                                                        |
-| Google Spanner (spanner)     | github.com/knq/spanner (not yet public)                                                |
+| Google Spanner (spanner)     | github.com/xo/spanner (not yet public)                                                |
 |                              |                                                                                        |
 | MySQL (mymysql)              | [github.com/ziutek/mymysql/godrv](https://github.com/ziutek/mymysql)                   |
 | PostgreSQL (pgx)             | [github.com/jackc/pgx/stdlib](https://github.com/jackc/pgx)                            |
@@ -152,7 +152,7 @@ to be imported:
 | Sybase SQL Anywhere (sqlany) | [github.com/a-palchikov/sqlago](https://github.com/a-palchikov/sqlago)                 |
 | VoltDB (voltdb)              | [github.com/VoltDB/voltdb-client-go/voltdbclient](github.com/VoltDB/voltdb-client-go]) |
 
-Please see [the GoDoc API page](http://godoc.org/github.com/knq/dburl) for a
+Please see [the GoDoc API page](http://godoc.org/github.com/xo/dburl) for a
 full API listing.
 
 ### URL Parsing Rules
@@ -174,7 +174,7 @@ import (
     "log"
 
     _ "github.com/denisenkom/go-mssqldb"
-    "github.com/knq/dburl"
+    "github.com/xo/dburl"
 )
 
 func main() {
@@ -197,5 +197,5 @@ func main() {
 
 The dburl package was built primarily to support these projects:
 
-* [usql](https://github.com/knq/usql) - a universal command-line interface for SQL databases
-* [xo](https://github.com/knq/xo) - a command-line tool to generate Go code from a database schema
+* [usql](https://github.com/xo/usql) - a universal command-line interface for SQL databases
+* [xo](https://github.com/xo/xo) - a command-line tool to generate Go code from a database schema

@@ -112,7 +112,7 @@
 //   TiDB (tidb)                  | github.com/go-sql-driver/mysql
 //   Vitess (vitess)              | github.com/go-sql-driver/mysql
 //   -----------------------------|-------------------------------------------------
-//   Google Spanner (spanner)     | github.com/knq/spanner (not yet public)
+//   Google Spanner (spanner)     | github.com/xo/spanner (not yet public)
 //   -----------------------------|-------------------------------------------------
 //   MySQL (mymysql)              | github.com/ziutek/mymysql/godrv
 //   PostgreSQL (pgx)             | github.com/jackc/pgx/stdlib
@@ -146,8 +146,8 @@
 //
 // Related Projects
 //
-// This package was written mainly to support xo (https://github.com/knq/xo)
-// and usql (https://github.com/knq/usql).
+// This package was written mainly to support xo (https://github.com/xo/xo)
+// and usql (https://github.com/xo/usql).
 package dburl
 
 import (
