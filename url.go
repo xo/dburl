@@ -37,7 +37,7 @@ type URL struct {
 }
 
 // Parse parses urlstr, returning a URL with the OriginalScheme, Proto, Driver,
-// and DSN fields populated.
+// Unaliased, and DSN fields populated.
 //
 // Note: if urlstr has a Opaque component (ie, URLs not specified as "scheme://"
 // but "scheme:"), and the database scheme does not support opaque components,

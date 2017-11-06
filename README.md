@@ -99,6 +99,7 @@ supported out of the box:
 | Microsoft ADODB (adodb)      | ad, ado                             |
 | ODBC (odbc)                  | od                                  |
 | OLE ODBC (oleodbc)           | oo, ole, oleodbc [adodb]            |
+| Presto (presto)              | pr, prestodb                        |
 | SAP HANA (hdb)               | sa, saphana, sap, hana              |
 | Sybase SQL Anywhere (sqlany) | sy, sybase, any                     |
 | VoltDB (voltdb)              | vo, volt, vdb                       |
@@ -122,35 +123,36 @@ provides a standard way to parse/open respective database connection URLs.
 For reference, these are the following "expected" SQL drivers that would need
 to be imported:
 
-| Database (driver)            | Package                                                                                |
-|------------------------------|----------------------------------------------------------------------------------------|
-| Microsoft SQL Server (mssql) | [github.com/denisenkom/go-mssqldb](https://github.com/denisenkom/go-mssqldb)           |
-| MySQL (mysql)                | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)               |
-| Oracle (ora)                 | [gopkg.in/rana/ora.v4](https://gopkg.in/rana/ora.v4)                                   |
-| PostgreSQL (postgres)        | [github.com/lib/pq](https://github.com/lib/pq)                                         |
-| SQLite3 (sqlite3)            | [github.com/mattn/go-sqlite3](https://github.com/mattn/go-sqlite3)                     |
-|                              |                                                                                        |
-| CockroachDB (cockroachdb)    | [github.com/lib/pq](https://github.com/lib/pq)                                         |
-| MemSQL (memsql)              | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)               |
-| TiDB (tidb)                  | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)               |
-| Vitess (vitess)              | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)               |
-|                              |                                                                                        |
-| Google Spanner (spanner)     | github.com/xo/spanner (not yet public)                                                |
-|                              |                                                                                        |
-| MySQL (mymysql)              | [github.com/ziutek/mymysql/godrv](https://github.com/ziutek/mymysql)                   |
-| PostgreSQL (pgx)             | [github.com/jackc/pgx/stdlib](https://github.com/jackc/pgx)                            |
-|                              |                                                                                        |
-| Apache Avatica (avatica)     | [github.com/Boostport/avatica](https://github.com/Boostport/avatica)                   |
-| ClickHouse (clickhouse)      | [github.com/kshvakov/clickhouse](https://github.com/kshvakov/clickhouse)               |
-| Couchbase (n1ql)             | [github.com/couchbase/go_n1ql](https://github.com/couchbase/go_n1ql)                   |
-| Cznic QL (ql)                | [github.com/cznic/ql](https://github.com/cznic/ql)                                     |
-| Firebird SQL (firebirdsql)   | [github.com/nakagami/firebirdsql](https://github.com/nakagami/firebirdsql)             |
-| Microsoft ADODB (adodb)      | [github.com/mattn/go-adodb](https://github.com/mattn/go-adodb)                         |
-| ODBC (odbc)                  | [github.com/alexbrainman/odbc](https://github.com/alexbrainman/odbc)                   |
-| OLE ODBC (oleodbc)           | [github.com/mattn/go-adodb](https://github.com/mattn/go-adodb)                         |
-| SAP HANA (hdb)               | [github.com/SAP/go-hdb/driver](https://github.com/SAP/go-hdb)                          |
-| Sybase SQL Anywhere (sqlany) | [github.com/a-palchikov/sqlago](https://github.com/a-palchikov/sqlago)                 |
-| VoltDB (voltdb)              | [github.com/VoltDB/voltdb-client-go/voltdbclient](github.com/VoltDB/voltdb-client-go]) |
+| Database (driver)            | Package                                                                                     |
+|------------------------------|---------------------------------------------------------------------------------------------|
+| Microsoft SQL Server (mssql) | [github.com/denisenkom/go-mssqldb](https://github.com/denisenkom/go-mssqldb)                |
+| MySQL (mysql)                | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)                    |
+| Oracle (ora)                 | [gopkg.in/rana/ora.v4](https://gopkg.in/rana/ora.v4)                                        |
+| PostgreSQL (postgres)        | [github.com/lib/pq](https://github.com/lib/pq)                                              |
+| SQLite3 (sqlite3)            | [github.com/mattn/go-sqlite3](https://github.com/mattn/go-sqlite3)                          |
+|                              |                                                                                             |
+| CockroachDB (cockroachdb)    | [github.com/lib/pq](https://github.com/lib/pq)                                              |
+| MemSQL (memsql)              | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)                    |
+| TiDB (tidb)                  | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)                    |
+| Vitess (vitess)              | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)                    |
+|                              |                                                                                             |
+| Google Spanner (spanner)     | github.com/xo/spanner (not yet public)                                                      |
+|                              |                                                                                             |
+| MySQL (mymysql)              | [github.com/ziutek/mymysql/godrv](https://github.com/ziutek/mymysql)                        |
+| PostgreSQL (pgx)             | [github.com/jackc/pgx/stdlib](https://github.com/jackc/pgx)                                 |
+|                              |                                                                                             |
+| Apache Avatica (avatica)     | [github.com/Boostport/avatica](https://github.com/Boostport/avatica)                        |
+| ClickHouse (clickhouse)      | [github.com/kshvakov/clickhouse](https://github.com/kshvakov/clickhouse)                    |
+| Couchbase (n1ql)             | [github.com/couchbase/go_n1ql](https://github.com/couchbase/go_n1ql)                        |
+| Cznic QL (ql)                | [github.com/cznic/ql](https://github.com/cznic/ql)                                          |
+| Firebird SQL (firebirdsql)   | [github.com/nakagami/firebirdsql](https://github.com/nakagami/firebirdsql)                  |
+| Microsoft ADODB (adodb)      | [github.com/mattn/go-adodb](https://github.com/mattn/go-adodb)                              |
+| ODBC (odbc)                  | [github.com/alexbrainman/odbc](https://github.com/alexbrainman/odbc)                        |
+| OLE ODBC (oleodbc)           | [github.com/mattn/go-adodb](https://github.com/mattn/go-adodb)                              |
+| Presto (presto)              | [github.com/prestodb/presto-go-client/presto](https://github.com/prestodb/presto-go-client) |
+| SAP HANA (hdb)               | [github.com/SAP/go-hdb/driver](https://github.com/SAP/go-hdb)                               |
+| Sybase SQL Anywhere (sqlany) | [github.com/a-palchikov/sqlago](https://github.com/a-palchikov/sqlago)                      |
+| VoltDB (voltdb)              | [github.com/VoltDB/voltdb-client-go/voltdbclient](github.com/VoltDB/voltdb-client-go])      |
 
 Please see [the GoDoc API page](http://godoc.org/github.com/xo/dburl) for a
 full API listing.

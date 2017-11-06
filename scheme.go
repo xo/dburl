@@ -80,6 +80,7 @@ func BaseSchemes() []Scheme {
 		{"n1ql", GenFromURL("http://localhost:9000/"), 0, false, []string{"couchbase"}, ""},
 		{"odbc", GenODBC, ProtoAny, false, nil, ""},
 		{"oleodbc", GenOLEODBC, ProtoAny, false, []string{"oo", "ole"}, "adodb"},
+		{"presto", GenScheme("http"), 0, false, []string{"pr", "prestodb"}, ""},
 		{"ql", GenOpaque, 0, true, []string{"ql", "cznic", "cznicql"}, ""},
 		{"sqlany", GenSybase, 0, false, []string{"sy", "sybase", "any"}, ""},
 		{"voltdb", GenVoltDB, 0, false, []string{"volt", "vdb"}, ""},

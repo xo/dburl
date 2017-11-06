@@ -84,6 +84,7 @@
 //   Microsoft ADODB (adodb)      | ad, ado
 //   ODBC (odbc)                  | od
 //   OLE ODBC (oleodbc)           | oo, ole, oleodbc [adodb]
+//   Presto (presto)              | pr, prestodb
 //   SAP HANA (hdb)               | sa, saphana, sap, hana
 //   Sybase SQL Anywhere (sqlany) | sy, sybase, any
 //   VoltDB (voltdb)              | vo, volt, vdb
@@ -125,6 +126,7 @@
 //   Microsoft ADODB (adodb)      | github.com/mattn/go-adodb
 //   ODBC (odbc)                  | github.com/alexbrainman/odbc
 //   OLE ODBC (oleodbc)*          | github.com/mattn/go-adodb
+//   Presto (presto)              | github.com/prestodb/presto-go-client
 //   SAP HANA (hdb)               | github.com/SAP/go-hdb/driver
 //   Sybase SQL Anywhere (sqlany) | github.com/a-palchikov/sqlago
 //   VoltDB (voltdb)              | github.com/VoltDB/voltdb-client-go/voltdbclient
