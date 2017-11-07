@@ -490,6 +490,12 @@ func GenPresto(u *URL) (string, error) {
 		z.User = url.User("user")
 	}
 
+	// force host
+	if z.Host == "" {
+		z.Host = "localhost"
+	}
+
+	// force port
 	if hostport(z.Host) == "" {
 		if z.Scheme == "http" {
 			z.Host += ":8080"
