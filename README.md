@@ -73,36 +73,36 @@ if err != nil { /* ... */ }
 The following protocols schemes (ie, driver) and their associated aliases are
 supported out of the box:
 
-| Database (scheme/driver)     | Protocol Aliases [real driver]      |
-|------------------------------|-------------------------------------|
-| Microsoft SQL Server (mssql) | ms, sqlserver                       |
-| MySQL (mysql)                | my, mariadb, maria, percona, aurora |
-| Oracle (ora)                 | or, oracle, oci8, oci               |
-| PostgreSQL (postgres)        | pg, postgresql, pgsql               |
-| SQLite3 (sqlite3)            | sq, sqlite, file                    |
-|                              |                                     |
-| CockroachDB (cockroachdb)    | cr, cockroach, crdb, cdb [postgres] |
-| MemSQL (memsql)              | me [mysql]                          |
-| TiDB (tidb)                  | ti [mysql]                          |
-| Vitess (vitess)              | vt [mysql]                          |
-|                              |                                     |
-| Google Spanner (spanner)     | gs, google, span (not yet public)   |
-|                              |                                     |
-| MySQL (mymysql)              | zm, mymy                            |
-| PostgreSQL (pgx)             | px                                  |
-|                              |                                     |
-| Apache Avatica (avatica)     | av, phoenix                         |
-| ClickHouse (clickhouse)      | ch                                  |
-| Couchbase (n1ql)             | n1, couchbase                       |
-| Cznic QL (ql)                | ql, cznic, cznicql                  |
-| Firebird SQL (firebirdsql)   | fb, firebird                        |
-| Microsoft ADODB (adodb)      | ad, ado                             |
-| ODBC (odbc)                  | od                                  |
-| OLE ODBC (oleodbc)           | oo, ole, oleodbc [adodb]            |
-| Presto (presto)              | pr, prestodb                        |
-| SAP HANA (hdb)               | sa, saphana, sap, hana              |
-| Sybase SQL Anywhere (sqlany) | sy, sybase, any                     |
-| VoltDB (voltdb)              | vo, volt, vdb                       |
+| Database (scheme/driver)     | Protocol Aliases [real driver]        |
+|------------------------------|---------------------------------------|
+| Microsoft SQL Server (mssql) | ms, sqlserver                         |
+| MySQL (mysql)                | my, mariadb, maria, percona, aurora   |
+| Oracle (ora)                 | or, oracle, oci8, oci                 |
+| PostgreSQL (postgres)        | pg, postgresql, pgsql                 |
+| SQLite3 (sqlite3)            | sq, sqlite, file                      |
+|                              |                                       |
+| CockroachDB (cockroachdb)    | cr, cockroach, crdb, cdb [postgres]   |
+| MemSQL (memsql)              | me [mysql]                            |
+| TiDB (tidb)                  | ti [mysql]                            |
+| Vitess (vitess)              | vt [mysql]                            |
+|                              |                                       |
+| Google Spanner (spanner)     | gs, google, span (not yet public)     |
+|                              |                                       |
+| MySQL (mymysql)              | zm, mymy                              |
+| PostgreSQL (pgx)             | px                                    |
+|                              |                                       |
+| Apache Avatica (avatica)     | av, phoenix                           |
+| ClickHouse (clickhouse)      | ch                                    |
+| Couchbase (n1ql)             | n1, couchbase                         |
+| Cznic QL (ql)                | ql, cznic, cznicql                    |
+| Firebird SQL (firebirdsql)   | fb, firebird                          |
+| Microsoft ADODB (adodb)      | ad, ado                               |
+| ODBC (odbc)                  | od                                    |
+| OLE ODBC (oleodbc)           | oo, ole, oleodbc [adodb]              |
+| Presto (presto)              | pr, prestodb, prestos, prs, prestodbs |
+| SAP HANA (hdb)               | sa, saphana, sap, hana                |
+| Sybase SQL Anywhere (sqlany) | sy, sybase, any                       |
+| VoltDB (voltdb)              | vo, volt, vdb                         |
 
 Any protocol scheme `alias://` can be used in place of `protocol://`, and will work
 identically with `Parse`/`Open`.
