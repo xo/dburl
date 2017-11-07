@@ -468,3 +468,49 @@ func GenVoltDB(u *URL) (string, error) {
 	}
 	return host + ":" + port, nil
 }
+
+// GenPresto generates a Presto DSN from the passed URL.
+func GenPresto(u *URL) (string, error) {
+	z := &url.URL{
+		Scheme:   "http",
+		Opaque:   u.Opaque,
+		User:     u.User,
+		Host:     u.Host,
+		RawQuery: u.RawQuery,
+		Fragment: u.Fragment,
+	}
+
+	// change to https
+	if strings.HasSuffix(u.OriginalScheme, "s") {
+		z.Scheme = "https"
+	}
+
+	// force user
+	if z.User == nil {
+		z.User = url.User("user")
+	}
+
+	if hostport(z.Host) == "" {
+		if z.Scheme == "http" {
+			z.Host += ":8080"
+		} else if z.Scheme == "https" {
+			z.Host += ":8443"
+		}
+	}
+
+	// add parameters
+	q := z.Query()
+	dbname, schema := strings.TrimPrefix(u.Path, "/"), ""
+	if dbname == "" {
+		dbname = "default"
+	} else if i := strings.Index(dbname, "/"); i != -1 {
+		schema, dbname = dbname[i+1:], dbname[:i]
+	}
+	q.Set("catalog", dbname)
+	if schema != "" {
+		q.Set("schema", schema)
+	}
+	z.RawQuery = q.Encode()
+
+	return z.String(), nil
+}

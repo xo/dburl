@@ -107,6 +107,11 @@ func TestParse(t *testing.T) {
 		{`sq://:memory:?loc=auto`, `sqlite3`, `:memory:?loc=auto`},
 
 		{`oracle://user:pass@localhost/xe.oracle.docker`, `ora`, `user/pass@localhost/xe.oracle.docker`}, // 41
+
+		{`presto://host:8001/`, `presto`, `http://user@host:8001?catalog=default`},
+		{`presto://host/catalogname/schemaname`, `presto`, `http://user@host:8080?catalog=catalogname&schema=schemaname`},
+		{`prs://admin@host/catalogname`, `presto`, `https://admin@host:8443?catalog=catalogname`},
+		{`prestodbs://admin:pass@host:9998/catalogname`, `presto`, `https://admin:pass@host:9998?catalog=catalogname`},
 	}
 
 	for i, test := range tests {
