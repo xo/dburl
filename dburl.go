@@ -62,7 +62,7 @@
 //   -----------------------------|-------------------------------------------
 //   Microsoft SQL Server (mssql) | ms, sqlserver
 //   MySQL (mysql)                | my, mariadb, maria, percona, aurora
-//   Oracle (ora)                 | or, oracle, oci8, oci
+//   Oracle (goracle)             | or, oracle, oci8, ora, oci, goracle
 //   PostgreSQL (postgres)        | pg, postgresql, pgsql
 //   SQLite3 (sqlite3)            | sq, sqlite, file
 //   -----------------------------|-------------------------------------------
@@ -104,7 +104,7 @@
 //   -----------------------------|-------------------------------------------------
 //   Microsoft SQL Server (mssql) | github.com/denisenkom/go-mssqldb
 //   MySQL (mysql)                | github.com/go-sql-driver/mysql
-//   Oracle (ora)                 | gopkg.in/rana/ora.v4
+//   Oracle (goracle)             | gopkg.in/goracle.v2
 //   PostgreSQL (postgres)        | github.com/lib/pq
 //   SQLite3 (sqlite3)            | github.com/mattn/go-sqlite3
 //   -----------------------------|-------------------------------------------------
