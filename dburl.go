@@ -154,24 +154,31 @@ package dburl
 
 import (
 	"database/sql"
-	"errors"
 )
 
-var (
+// Error is a dburl error.
+type Error string
+
+// Error satisfies the error interface.
+func (err Error) Error() string {
+	return string(err)
+}
+
+const (
 	// ErrInvalidDatabaseScheme is the invalid database scheme error.
-	ErrInvalidDatabaseScheme = errors.New("invalid database scheme")
+	ErrInvalidDatabaseScheme Error = "invalid database scheme"
 
 	// ErrUnknownDatabaseScheme is the unknown database type error.
-	ErrUnknownDatabaseScheme = errors.New("unknown database scheme")
+	ErrUnknownDatabaseScheme Error = "unknown database scheme"
 
 	// ErrInvalidTransportProtocol is the invalid transport protocol error.
-	ErrInvalidTransportProtocol = errors.New("invalid transport protocol")
+	ErrInvalidTransportProtocol Error = "invalid transport protocol"
 
 	// ErrRelativePathNotSupported is the relative paths not supported error.
-	ErrRelativePathNotSupported = errors.New("relative path not supported")
+	ErrRelativePathNotSupported Error = "relative path not supported"
 
 	// ErrMissingPath is the missing path error.
-	ErrMissingPath = errors.New("missing path")
+	ErrMissingPath Error = "missing path"
 )
 
 // Open takes a urlstr like "protocol+transport://user:pass@host/dbname?option1=a&option2=b"
