@@ -165,38 +165,38 @@ func GenSQLServer(u *URL) (string, error) {
 	return genOptionsODBC(q, true), nil
 }
 
-// GenSybase generates a sqlany DSN from the passed URL.
-func GenSybase(u *URL) (string, error) {
-	// of format "UID=DBA;PWD=sql;Host=demo12;DatabaseName=demo;ServerName=myserver"
-	host, port, dbname := hostname(u.Host), hostport(u.Host), strings.TrimPrefix(u.Path, "/")
-
-	// add instance name to host if present
-	if i := strings.Index(dbname, "/"); i != -1 {
-		host = host + `\` + dbname[:i]
-		dbname = dbname[i+1:]
-	}
-
-	q := u.Query()
-	q.Set("Host", host)
-	if port != "" {
-		q.Set("LINKS", "tcpip(PORT="+port+")")
-	}
-	q.Set("DatabaseName", dbname)
-
-	// add user/pass
-	if u.User != nil {
-		q.Set("UID", u.User.Username())
-		pass, _ := u.User.Password()
-		q.Set("PWD", pass)
-	}
-
-	// save host, port, dbname
-	if u.hostPortDB == nil {
-		u.hostPortDB = []string{host, port, dbname}
-	}
-
-	return genOptionsODBC(q, true), nil
-}
+// // GenSybase generates a sqlany DSN from the passed URL.
+// func GenSybase(u *URL) (string, error) {
+// 	// of format "UID=DBA;PWD=sql;Host=demo12;DatabaseName=demo;ServerName=myserver"
+// 	host, port, dbname := hostname(u.Host), hostport(u.Host), strings.TrimPrefix(u.Path, "/")
+//
+// 	// add instance name to host if present
+// 	if i := strings.Index(dbname, "/"); i != -1 {
+// 		host = host + `\` + dbname[:i]
+// 		dbname = dbname[i+1:]
+// 	}
+//
+// 	q := u.Query()
+// 	q.Set("Host", host)
+// 	if port != "" {
+// 		q.Set("LINKS", "tcpip(PORT="+port+")")
+// 	}
+// 	q.Set("DatabaseName", dbname)
+//
+// 	// add user/pass
+// 	if u.User != nil {
+// 		q.Set("UID", u.User.Username())
+// 		pass, _ := u.User.Password()
+// 		q.Set("PWD", pass)
+// 	}
+//
+// 	// save host, port, dbname
+// 	if u.hostPortDB == nil {
+// 		u.hostPortDB = []string{host, port, dbname}
+// 	}
+//
+// 	return genOptionsODBC(q, true), nil
+// }
 
 // GenMySQL generates a mysql DSN from the passed URL.
 func GenMySQL(u *URL) (string, error) {
