@@ -92,7 +92,7 @@ supported out of the box:
 | PostgreSQL (pgx)             | px                                    |
 |                              |                                       |
 | Apache Avatica (avatica)     | av, phoenix                           |
-| Cassandra (cassandra)        | ca, cql, datastax, scy, scylla        |
+| Cassandra (cql)              | ca, cassandra, datastax, scy, scylla  |
 | ClickHouse (clickhouse)      | ch                                    |
 | Couchbase (n1ql)             | n1, couchbase                         |
 | Cznic QL (ql)                | ql, cznic, cznicql                    |
@@ -142,7 +142,7 @@ to be imported:
 | PostgreSQL (pgx)             | [github.com/jackc/pgx/stdlib](https://github.com/jackc/pgx)                                 |
 |                              |                                                                                             |
 | Apache Avatica (avatica)     | [github.com/Boostport/avatica](https://github.com/Boostport/avatica)                        |
-| Cassandra (cassandra)        | [github.com/MichaelS11/go-cql-driver](https://github.com/MichaelS11/go-cql-driver)          |
+| Cassandra (cql)              | [github.com/MichaelS11/go-cql-driver](https://github.com/MichaelS11/go-cql-driver)          |
 | ClickHouse (clickhouse)      | [github.com/kshvakov/clickhouse](https://github.com/kshvakov/clickhouse)                    |
 | Couchbase (n1ql)             | [github.com/couchbase/go_n1ql](https://github.com/couchbase/go_n1ql)                        |
 | Cznic QL (ql)                | [github.com/cznic/ql](https://github.com/cznic/ql)                                          |

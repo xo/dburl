@@ -74,7 +74,7 @@ func BaseSchemes() []Scheme {
 		// other databases
 		{"adodb", GenADODB, 0, false, []string{"ado"}, ""},
 		{"avatica", GenFromURL("http://localhost:8765/"), 0, false, []string{"phoenix"}, ""},
-		{"cassandra", GenCassandra, 0, false, []string{"ca", "cql", "datastax", "scy", "scylla"}, ""},
+		{"cql", GenCassandra, 0, false, []string{"ca", "cassandra", "datastax", "scy", "scylla"}, ""},
 		{"clickhouse", GenClickhouse, 0, false, []string{"ch"}, ""},
 		{"firebirdsql", GenFirebird, 0, false, []string{"fb", "firebird"}, ""},
 		{"hdb", GenScheme("hdb"), 0, false, []string{"sa", "saphana", "sap", "hana"}, ""},

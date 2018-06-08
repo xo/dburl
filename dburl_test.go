@@ -113,11 +113,11 @@ func TestParse(t *testing.T) {
 		{`prs://admin@host/catalogname`, `presto`, `https://admin@host:8443?catalog=catalogname`},
 		{`prestodbs://admin:pass@host:9998/catalogname`, `presto`, `https://admin:pass@host:9998?catalog=catalogname`},
 
-		{`ca://host`, `cassandra`, `host:7199`}, // 46
-		{`ca://host:9999`, `cassandra`, `host:9999`},
-		{`scy://user@host:9999`, `cassandra`, `host:9999?username=user`},
-		{`scylla://user@host:9999?timeout=1000`, `cassandra`, `host:9999?timeout=1000&username=user`},
-		{`datastax://user:pass@localhost:9999/?timeout=1000`, `cassandra`, `localhost:9999?password=pass&timeout=1000&username=user`},
+		{`ca://host`, `cql`, `host:7199`}, // 46
+		{`cassandra://host:9999`, `cql`, `host:9999`},
+		{`scy://user@host:9999`, `cql`, `host:9999?username=user`},
+		{`scylla://user@host:9999?timeout=1000`, `cql`, `host:9999?timeout=1000&username=user`},
+		{`datastax://user:pass@localhost:9999/?timeout=1000`, `cql`, `localhost:9999?password=pass&timeout=1000&username=user`},
 	}
 
 	for i, test := range tests {
