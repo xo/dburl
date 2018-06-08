@@ -523,7 +523,7 @@ func GenPresto(u *URL) (string, error) {
 
 // GenCassandra generates a cassandra DSN from the passed URL.
 func GenCassandra(u *URL) (string, error) {
-	host, port := "localhost", "7199"
+	host, port := "localhost", "9042"
 	if h := hostname(u.Host); h != "" {
 		host = h
 	}

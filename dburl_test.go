@@ -113,7 +113,7 @@ func TestParse(t *testing.T) {
 		{`prs://admin@host/catalogname`, `presto`, `https://admin@host:8443?catalog=catalogname`},
 		{`prestodbs://admin:pass@host:9998/catalogname`, `presto`, `https://admin:pass@host:9998?catalog=catalogname`},
 
-		{`ca://host`, `cql`, `host:7199`}, // 46
+		{`ca://host`, `cql`, `host:9042`}, // 46
 		{`cassandra://host:9999`, `cql`, `host:9999`},
 		{`scy://user@host:9999`, `cql`, `host:9999?username=user`},
 		{`scylla://user@host:9999?timeout=1000`, `cql`, `host:9999?timeout=1000&username=user`},
