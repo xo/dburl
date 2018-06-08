@@ -74,6 +74,7 @@ func BaseSchemes() []Scheme {
 		// other databases
 		{"adodb", GenADODB, 0, false, []string{"ado"}, ""},
 		{"avatica", GenFromURL("http://localhost:8765/"), 0, false, []string{"phoenix"}, ""},
+		{"cassandra", GenCassandra, 0, false, []string{"ca", "cql", "datastax", "scy", "scylla"}, ""},
 		{"clickhouse", GenClickhouse, 0, false, []string{"ch"}, ""},
 		{"firebirdsql", GenFirebird, 0, false, []string{"fb", "firebird"}, ""},
 		{"hdb", GenScheme("hdb"), 0, false, []string{"sa", "saphana", "sap", "hana"}, ""},
@@ -82,7 +83,6 @@ func BaseSchemes() []Scheme {
 		{"oleodbc", GenOLEODBC, ProtoAny, false, []string{"oo", "ole"}, "adodb"},
 		{"presto", GenPresto, 0, false, []string{"prestodb", "prestos", "prs", "prestodbs"}, ""},
 		{"ql", GenOpaque, 0, true, []string{"ql", "cznic", "cznicql"}, ""},
-		//{"sqlany", GenSybase, 0, false, []string{"sy", "sybase", "any"}, ""},
 		{"voltdb", GenVoltDB, 0, false, []string{"volt", "vdb"}, ""},
 	}
 }

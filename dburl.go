@@ -77,6 +77,7 @@
 //   PostgreSQL (pgx)             | px
 //   -----------------------------|-------------------------------------------
 //   Apache Avatica (avatica)     | av, phoenix
+//   Cassandra (cassandra)        | ca, cql, datastax scy, scylla
 //   ClickHouse (clickhouse)      | ch
 //   Couchbase (n1ql)             | n1, couchbase
 //   Cznic QL (ql)                | ql, cznic, cznicql
@@ -118,6 +119,7 @@
 //   PostgreSQL (pgx)             | github.com/jackc/pgx/stdlib
 //   -----------------------------|-------------------------------------------------
 //   Apache Avatica (avatica)     | github.com/Boostport/avatica
+//   Cassandra (cassandra)        | github.com/MichaelS11/go-cql-driver
 //   ClickHouse (clickhouse)      | github.com/kshvakov/clickhouse
 //   Couchbase (n1ql)             | github.com/couchbase/go_n1ql
 //   Cznic QL (ql)                | github.com/cznic/ql
