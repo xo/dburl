@@ -118,6 +118,7 @@ func TestParse(t *testing.T) {
 		{`scy://user@host:9999`, `cql`, `host:9999?username=user`},
 		{`scylla://user@host:9999?timeout=1000`, `cql`, `host:9999?timeout=1000&username=user`},
 		{`datastax://user:pass@localhost:9999/?timeout=1000`, `cql`, `localhost:9999?password=pass&timeout=1000&username=user`},
+		{`ca://user:pass@localhost:9999/dbname?timeout=1000`, `cql`, `localhost:9999?keyspace=dbname&password=pass&timeout=1000&username=user`},
 	}
 
 	for i, test := range tests {

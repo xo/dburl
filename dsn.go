@@ -202,8 +202,7 @@ func GenSQLServer(u *URL) (string, error) {
 func GenMySQL(u *URL) (string, error) {
 	host, port, dbname := hostname(u.Host), hostport(u.Host), strings.TrimPrefix(u.Path, "/")
 
-	// create dsn
-	dsn := ""
+	var dsn string
 
 	// build user/pass
 	if u.User != nil {
@@ -523,7 +522,7 @@ func GenPresto(u *URL) (string, error) {
 
 // GenCassandra generates a cassandra DSN from the passed URL.
 func GenCassandra(u *URL) (string, error) {
-	host, port := "localhost", "9042"
+	host, port, dbname := "localhost", "9042", strings.TrimPrefix(u.Path, "/")
 	if h := hostname(u.Host); h != "" {
 		host = h
 	}
@@ -537,6 +536,10 @@ func GenCassandra(u *URL) (string, error) {
 		if pass, _ := u.User.Password(); pass != "" {
 			q.Set("password", pass)
 		}
+	}
+	// add dbname
+	if dbname != "" {
+		q.Set("keyspace", dbname)
 	}
 	return host + ":" + port + genQueryOptions(q), nil
 }
