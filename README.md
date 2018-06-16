@@ -103,6 +103,7 @@ supported out of the box:
 | OLE ODBC (oleodbc)           | oo, ole, oleodbc [adodb]              |
 | Presto (presto)              | pr, prestodb, prestos, prs, prestodbs |
 | SAP HANA (hdb)               | sa, saphana, sap, hana                |
+| Snowflake (snowflake)        | sf                                    |
 | VoltDB (voltdb)              | vo, volt, vdb                         |
 
 Any protocol scheme `alias://` can be used in place of `protocol://`, and will work
@@ -154,6 +155,7 @@ to be imported:
 | OLE ODBC (oleodbc)           | [github.com/mattn/go-adodb](https://github.com/mattn/go-adodb)                              |
 | Presto (presto)              | [github.com/prestodb/presto-go-client/presto](https://github.com/prestodb/presto-go-client) |
 | SAP HANA (hdb)               | [github.com/SAP/go-hdb/driver](https://github.com/SAP/go-hdb)                               |
+| Snowflake (snowflake)        | [github.com/snowflakedb/gosnowflake](https://github.com/snowflakedb/gosnowflake)            |
 | VoltDB (voltdb)              | [github.com/VoltDB/voltdb-client-go/voltdbclient](github.com/VoltDB/voltdb-client-go])      |
 
 Please see [the GoDoc API page](http://godoc.org/github.com/xo/dburl) for a

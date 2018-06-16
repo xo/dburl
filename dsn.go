@@ -567,3 +567,29 @@ func GenIgnite(u *URL) (string, error) {
 	}
 	return "tcp://" + host + ":" + port + dbname + genQueryOptions(q), nil
 }
+
+// GenSnowflake generates a snowflake DSN from the passed URL.
+func GenSnowflake(u *URL) (string, error) {
+	host, port, dbname := hostname(u.Host), hostport(u.Host), strings.TrimPrefix(u.Path, "/")
+	if host == "" {
+		return "", ErrMissingHost
+	}
+	if dbname == "" {
+		return "", ErrMissingPath
+	}
+	if port != "" {
+		port = ":" + port
+	}
+
+	// add user/pass
+	var user string
+	if u.User != nil {
+		user = u.User.Username()
+		if pass, _ := u.User.Password(); pass != "" {
+			user += ":" + pass
+		}
+		user += "@"
+	}
+
+	return user + host + port + "/" + dbname + genQueryOptions(u.Query()), nil
+}

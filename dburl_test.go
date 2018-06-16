@@ -36,6 +36,10 @@ func TestBadParse(t *testing.T) {
 		{`cockroach+unix:./path`, ErrInvalidTransportProtocol},
 		{`pg:./path/to/socket`, ErrRelativePathNotSupported}, // relative paths are not possible for postgres sockets
 		{`pg+unix:./path/to/socket`, ErrRelativePathNotSupported},
+		{`snowflake://`, ErrMissingHost},
+		{`sf://`, ErrMissingHost},
+		{`snowflake://account`, ErrMissingPath},
+		{`sf://account`, ErrMissingPath},
 	}
 
 	for i, test := range tests {
@@ -126,6 +130,10 @@ func TestParse(t *testing.T) {
 		{`ig://user@host:9999?timeout=1000`, `ignite`, `tcp://host:9999?timeout=1000&username=user`},
 		{`ig://user:pass@localhost:9999/?timeout=1000`, `ignite`, `tcp://localhost:9999?password=pass&timeout=1000&username=user`},
 		{`ig://user:pass@localhost:9999/dbname?timeout=1000`, `ignite`, `tcp://localhost:9999/dbname?password=pass&timeout=1000&username=user`},
+
+		{`snowflake://host/dbname/schema`, `snowflake`, `host/dbname/schema`},
+		{`sf://user@host:9999/dbname/schema?timeout=1000`, `snowflake`, `user@host:9999/dbname/schema?timeout=1000`},
+		{`sf://user:pass@localhost:9999/dbname/schema?timeout=1000`, `snowflake`, `user:pass@localhost:9999/dbname/schema?timeout=1000`},
 	}
 
 	for i, test := range tests {

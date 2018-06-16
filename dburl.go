@@ -88,6 +88,7 @@
 //   OLE ODBC (oleodbc)           | oo, ole, oleodbc [adodb]
 //   Presto (presto)              | pr, prestodb, prestos, prs, prestodbs
 //   SAP HANA (hdb)               | sa, saphana, sap, hana
+//   Snowflake (snowflake)        | sf
 //   VoltDB (voltdb)              | vo, volt, vdb
 //
 // Any protocol scheme alias:// can be used in place of protocol://, and will
@@ -131,6 +132,7 @@
 //   OLE ODBC (oleodbc)*          | github.com/mattn/go-adodb
 //   Presto (presto)              | github.com/prestodb/presto-go-client
 //   SAP HANA (hdb)               | github.com/SAP/go-hdb/driver
+//   Snowflake (snowflake)        | github.com/snowflakedb/gosnowflake
 //   VoltDB (voltdb)              | github.com/VoltDB/voltdb-client-go/voltdbclient
 //
 // * OLE ODBC is not an actual protocol, but instead is an alias for using the
@@ -178,6 +180,9 @@ const (
 
 	// ErrRelativePathNotSupported is the relative paths not supported error.
 	ErrRelativePathNotSupported Error = "relative path not supported"
+
+	// ErrMissingHost is the missing host error.
+	ErrMissingHost Error = "missing host"
 
 	// ErrMissingPath is the missing path error.
 	ErrMissingPath Error = "missing path"
