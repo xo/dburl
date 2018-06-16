@@ -120,7 +120,7 @@
 //   PostgreSQL (pgx)             | github.com/jackc/pgx/stdlib
 //   -----------------------------|-------------------------------------------------
 //   Apache Avatica (avatica)     | github.com/Boostport/avatica
-//   Apache Ignite (ignite)       | github.com/amsokol/ignite-go-client
+//   Apache Ignite (ignite)       | github.com/amsokol/ignite-go-client/sql
 //   Cassandra (cql)              | github.com/MichaelS11/go-cql-driver
 //   ClickHouse (clickhouse)      | github.com/kshvakov/clickhouse
 //   Couchbase (n1ql)             | github.com/couchbase/go_n1ql

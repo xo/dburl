@@ -143,7 +143,7 @@ to be imported:
 | PostgreSQL (pgx)             | [github.com/jackc/pgx/stdlib](https://github.com/jackc/pgx)                                 |
 |                              |                                                                                             |
 | Apache Avatica (avatica)     | [github.com/Boostport/avatica](https://github.com/Boostport/avatica)                        |
-| Apache Ignite (ignite)       | [github.com/amsokol/ignite-go-client](https://github.com/amsokol/ignite-go-client)          |
+| Apache Ignite (ignite)       | [github.com/amsokol/ignite-go-client/sql](https://github.com/amsokol/ignite-go-client)      |
 | Cassandra (cql)              | [github.com/MichaelS11/go-cql-driver](https://github.com/MichaelS11/go-cql-driver)          |
 | ClickHouse (clickhouse)      | [github.com/kshvakov/clickhouse](https://github.com/kshvakov/clickhouse)                    |
 | Couchbase (n1ql)             | [github.com/couchbase/go_n1ql](https://github.com/couchbase/go_n1ql)                        |
