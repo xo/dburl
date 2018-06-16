@@ -543,3 +543,27 @@ func GenCassandra(u *URL) (string, error) {
 	}
 	return host + ":" + port + genQueryOptions(q), nil
 }
+
+// GenIgnite generates an ignite DSN from the passed URL.
+func GenIgnite(u *URL) (string, error) {
+	host, port, dbname := "localhost", "10800", strings.TrimPrefix(u.Path, "/")
+	if h := hostname(u.Host); h != "" {
+		host = h
+	}
+	if p := hostport(u.Host); p != "" {
+		port = p
+	}
+	q := u.Query()
+	// add user/pass
+	if u.User != nil {
+		q.Set("username", u.User.Username())
+		if pass, _ := u.User.Password(); pass != "" {
+			q.Set("password", pass)
+		}
+	}
+	// add dbname
+	if dbname != "" {
+		dbname = "/" + dbname
+	}
+	return "tcp://" + host + ":" + port + dbname + genQueryOptions(q), nil
+}

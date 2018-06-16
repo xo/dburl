@@ -78,6 +78,7 @@ func BaseSchemes() []Scheme {
 		{"clickhouse", GenClickhouse, 0, false, []string{"ch"}, ""},
 		{"firebirdsql", GenFirebird, 0, false, []string{"fb", "firebird"}, ""},
 		{"hdb", GenScheme("hdb"), 0, false, []string{"sa", "saphana", "sap", "hana"}, ""},
+		{"ignite", GenIgnite, 0, false, []string{"ig", "gridgain"}, ""},
 		{"n1ql", GenFromURL("http://localhost:9000/"), 0, false, []string{"couchbase"}, ""},
 		{"odbc", GenODBC, ProtoAny, false, nil, ""},
 		{"oleodbc", GenOLEODBC, ProtoAny, false, []string{"oo", "ole"}, "adodb"},
