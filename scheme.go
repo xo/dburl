@@ -61,6 +61,7 @@ func BaseSchemes() []Scheme {
 		// wire compatibles
 		{"cockroachdb", GenFromURL("postgres://localhost:26257/?sslmode=disable"), 0, false, []string{"cr", "cockroach", "crdb", "cdb"}, "postgres"},
 		{"memsql", GenMySQL, 0, false, nil, "mysql"},
+		{"redshift", GenFromURL("postgres://localhost:5439/"), 0, false, []string{"rs"}, "postgres"},
 		{"tidb", GenMySQL, 0, false, nil, "mysql"},
 		{"vitess", GenMySQL, 0, false, []string{"vt"}, "mysql"},
 

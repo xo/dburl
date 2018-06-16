@@ -66,6 +66,7 @@
 //   PostgreSQL (postgres)        | pg, postgresql, pgsql
 //   SQLite3 (sqlite3)            | sq, sqlite, file
 //   -----------------------------|-------------------------------------------
+//   Amazon Redshift (redshift)   | rs [postgres]
 //   CockroachDB (cockroachdb)    | cr, cockroach, crdb, cdb [postgres]
 //   MemSQL (memsql)              | me [mysql]
 //   TiDB (tidb)                  | ti [mysql]
@@ -110,6 +111,7 @@
 //   PostgreSQL (postgres)        | github.com/lib/pq
 //   SQLite3 (sqlite3)            | github.com/mattn/go-sqlite3
 //   -----------------------------|-------------------------------------------------
+//   Amazon Redshift (redshift)   | github.com/lib/pq
 //   CockroachDB (cockroachdb)    | github.com/lib/pq
 //   MemSQL (memsql)              | github.com/go-sql-driver/mysql
 //   TiDB (tidb)                  | github.com/go-sql-driver/mysql
