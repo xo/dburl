@@ -77,7 +77,7 @@ supported out of the box:
 |------------------------------|---------------------------------------|
 | Microsoft SQL Server (mssql) | ms, sqlserver                         |
 | MySQL (mysql)                | my, mariadb, maria, percona, aurora   |
-| Oracle (ora)                 | or, oracle, oci8, oci                 |
+| Oracle (goracle)             | or, oracle, oci8, ora, oci, goracle   |
 | PostgreSQL (postgres)        | pg, postgresql, pgsql                 |
 | SQLite3 (sqlite3)            | sq, sqlite, file                      |
 |                              |                                       |
@@ -126,11 +126,12 @@ provides a standard way to parse/open respective database connection URLs.
 For reference, these are the following "expected" SQL drivers that would need
 to be imported:
 
+<<<<<<< HEAD
 | Database (driver)            | Package                                                                                     |
 |------------------------------|---------------------------------------------------------------------------------------------|
 | Microsoft SQL Server (mssql) | [github.com/denisenkom/go-mssqldb](https://github.com/denisenkom/go-mssqldb)                |
 | MySQL (mysql)                | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)                    |
-| Oracle (ora)                 | [gopkg.in/rana/ora.v4](https://gopkg.in/rana/ora.v4)                                        |
+| Oracle (goracle)             | [gopkg.in/goracle.v2](https://gopkg.in/goracle.v2)                                          |
 | PostgreSQL (postgres)        | [github.com/lib/pq](https://github.com/lib/pq)                                              |
 | SQLite3 (sqlite3)            | [github.com/mattn/go-sqlite3](https://github.com/mattn/go-sqlite3)                          |
 |                              |                                                                                             |
