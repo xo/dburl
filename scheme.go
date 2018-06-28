@@ -64,6 +64,7 @@ func BaseSchemes() []Scheme {
 		{"redshift", GenFromURL("postgres://localhost:5439/"), 0, false, []string{"rs"}, "postgres"},
 		{"tidb", GenMySQL, 0, false, nil, "mysql"},
 		{"vitess", GenMySQL, 0, false, []string{"vt"}, "mysql"},
+		{"mylogin", GenMylogin, 0, true, []string{"ml"}, ""},
 
 		// testing
 		{"spanner", GenScheme("spanner"), 0, false, []string{"gs", "google", "span"}, ""},

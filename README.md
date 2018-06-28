@@ -86,6 +86,7 @@ supported out of the box:
 | MemSQL (memsql)              | me [mysql]                            |
 | TiDB (tidb)                  | ti [mysql]                            |
 | Vitess (vitess)              | vt [mysql]                            |
+| MySQL with ~/.mylogin.cnf (mylogin) | ml [mylogin]                     |
 |                              |                                       |
 | Google Spanner (spanner)     | gs, google, span (not yet public)     |
 |                              |                                       |
@@ -139,6 +140,7 @@ to be imported:
 | MemSQL (memsql)              | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)                    |
 | TiDB (tidb)                  | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)                    |
 | Vitess (vitess)              | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)                    |
+| MySQL with ~/.mylogin.cnf (mylogin) | [github.com/dolmen-go/mylogin-driver/register](https://github.com/dolmen-go/mylogin-driver) |
 |                              |                                                                                             |
 | Google Spanner (spanner)     | github.com/xo/spanner (not yet public)                                                      |
 |                              |                                                                                             |

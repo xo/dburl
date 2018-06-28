@@ -44,6 +44,7 @@ func TestBadParse(t *testing.T) {
 		{`sf://`, ErrMissingHost},
 		{`snowflake://account`, ErrMissingPath},
 		{`sf://account`, ErrMissingPath},
+		{`mylogin+tcp://`, ErrInvalidTransportProtocol},
 	}
 
 	for i, test := range tests {
@@ -140,6 +141,15 @@ func TestParse(t *testing.T) {
 		{`sf://user:pass@localhost:9999/dbname/schema?timeout=1000`, `snowflake`, `user:pass@localhost:9999/dbname/schema?timeout=1000`},
 
 		{`rs://user:pass@amazon.com/dbname`, `postgres`, `postgres://user:pass@amazon.com:5439/dbname`}, // 61
+
+		{`mylogin:/`, `mylogin`, `/`}, // 62
+		{`mylogin:client_prod/test`, `mylogin`, `client_prod/test`},
+		{`mylogin:/home/me/.mylogin.cnf//client_prod/test`, `mylogin`, `/home/me/.mylogin.cnf//client_prod/test`},
+		{`mylogin:/home/me/.mylogin.cnf//client_prod/test?loc=UTC&parseTime=true&time_zone=%27%2B0%3A00%27`, `mylogin`, `/home/me/.mylogin.cnf//client_prod/test?loc=UTC&parseTime=true&time_zone=%27%2B0%3A00%27`},
+		// Options are ordered
+		{`mylogin:/home/me/.mylogin.cnf//client_prod/test?parseTime=true&loc=UTC&time_zone=%27%2B0%3A00%27`, `mylogin`, `/home/me/.mylogin.cnf//client_prod/test?loc=UTC&parseTime=true&time_zone=%27%2B0%3A00%27`},
+		// ":" => "%3A"
+		{`mylogin:/home/me/.mylogin.cnf//client_prod/test?loc=UTC&parseTime=true&time_zone=%27%2B0:00%27`, `mylogin`, `/home/me/.mylogin.cnf//client_prod/test?loc=UTC&parseTime=true&time_zone=%27%2B0%3A00%27`},
 	}
 
 	for i, test := range tests {
