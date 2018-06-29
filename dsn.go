@@ -302,6 +302,18 @@ func GenMyMySQL(u *URL) (string, error) {
 	return dsn, nil
 }
 
+// GenMyMySQL generates a mylogin-driver DSN for MySQL from the passed URL.
+func GenMylogin(u *URL) (string, error) {
+	if len(u.URL.Opaque) > 0 {
+		// See GenOpaque
+		return u.Opaque + genQueryOptions(u.Query()), nil
+	}
+	if len(u.Path) > 0 {
+		return u.Path + genQueryOptions(u.Query()), nil
+	}
+	return "", ErrMissingPath
+}
+
 // GenOracle generates a ora DSN from the passed URL.
 func GenOracle(u *URL) (string, error) {
 	// create dsn
