@@ -48,6 +48,7 @@
 //   mssql://user:pass@remote-host.com/instance/dbname
 //   ms://user:pass@remote-host.com:port/instance/dbname?keepAlive=10
 //   oracle://user:pass@somehost.com/oracledb
+//   goracle://user:pass@somehost.com/oracledb
 //   sap://user:pass@localhost/dbname
 //   sqlite:/path/to/file.db
 //   file:myfile.sqlite3?loc=auto
@@ -63,6 +64,7 @@
 //   Microsoft SQL Server (mssql) | ms, sqlserver
 //   MySQL (mysql)                | my, mariadb, maria, percona, aurora
 //   Oracle (ora)                 | or, oracle, oci8, oci
+//   Oracle (goracle)             | goracle
 //   PostgreSQL (postgres)        | pg, postgresql, pgsql
 //   SQLite3 (sqlite3)            | sq, sqlite, file
 //   -----------------------------|-------------------------------------------
@@ -108,6 +110,7 @@
 //   Microsoft SQL Server (mssql) | github.com/denisenkom/go-mssqldb
 //   MySQL (mysql)                | github.com/go-sql-driver/mysql
 //   Oracle (ora)                 | gopkg.in/rana/ora.v4
+//   Oracle (goracle)             | gopkg.in/goracle.v2
 //   PostgreSQL (postgres)        | github.com/lib/pq
 //   SQLite3 (sqlite3)            | github.com/mattn/go-sqlite3
 //   -----------------------------|-------------------------------------------------

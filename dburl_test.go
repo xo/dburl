@@ -115,20 +115,21 @@ func TestParse(t *testing.T) {
 		{`sq://:memory:?loc=auto`, `sqlite3`, `:memory:?loc=auto`},
 
 		{`oracle://user:pass@localhost/xe.oracle.docker`, `ora`, `user/pass@localhost/xe.oracle.docker`}, // 41
+		{`goracle://user:pass@localhost/xe.oracle.docker`, `goracle`, `user/pass@localhost/xe.oracle.docker`},
 
-		{`presto://host:8001/`, `presto`, `http://user@host:8001?catalog=default`}, // 42
+		{`presto://host:8001/`, `presto`, `http://user@host:8001?catalog=default`}, // 43
 		{`presto://host/catalogname/schemaname`, `presto`, `http://user@host:8080?catalog=catalogname&schema=schemaname`},
 		{`prs://admin@host/catalogname`, `presto`, `https://admin@host:8443?catalog=catalogname`},
 		{`prestodbs://admin:pass@host:9998/catalogname`, `presto`, `https://admin:pass@host:9998?catalog=catalogname`},
 
-		{`ca://host`, `cql`, `host:9042`}, // 46
+		{`ca://host`, `cql`, `host:9042`}, // 47
 		{`cassandra://host:9999`, `cql`, `host:9999`},
 		{`scy://user@host:9999`, `cql`, `host:9999?username=user`},
 		{`scylla://user@host:9999?timeout=1000`, `cql`, `host:9999?timeout=1000&username=user`},
 		{`datastax://user:pass@localhost:9999/?timeout=1000`, `cql`, `localhost:9999?password=pass&timeout=1000&username=user`},
 		{`ca://user:pass@localhost:9999/dbname?timeout=1000`, `cql`, `localhost:9999?keyspace=dbname&password=pass&timeout=1000&username=user`},
 
-		{`ig://host`, `ignite`, `tcp://host:10800`}, // 52
+		{`ig://host`, `ignite`, `tcp://host:10800`}, // 53
 		{`ignite://host:9999`, `ignite`, `tcp://host:9999`},
 		{`gridgain://user@host:9999`, `ignite`, `tcp://host:9999?username=user`},
 		{`ig://user@host:9999?timeout=1000`, `ignite`, `tcp://host:9999?timeout=1000&username=user`},
@@ -139,7 +140,7 @@ func TestParse(t *testing.T) {
 		{`sf://user@host:9999/dbname/schema?timeout=1000`, `snowflake`, `user@host:9999/dbname/schema?timeout=1000`},
 		{`sf://user:pass@localhost:9999/dbname/schema?timeout=1000`, `snowflake`, `user:pass@localhost:9999/dbname/schema?timeout=1000`},
 
-		{`rs://user:pass@amazon.com/dbname`, `postgres`, `postgres://user:pass@amazon.com:5439/dbname`}, // 61
+		{`rs://user:pass@amazon.com/dbname`, `postgres`, `postgres://user:pass@amazon.com:5439/dbname`}, // 62
 	}
 
 	for i, test := range tests {
