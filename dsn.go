@@ -320,6 +320,26 @@ func GenOracle(u *URL) (string, error) {
 	return un + "@" + dsn, nil
 }
 
+// GenGoracle generates a goracle DSN from the passed URL.
+func GenGoracle(u *URL) (string, error) {
+	// Easy Connect Naming method enables clients to connect to a database server
+	// without any configuration. Clients use a connect string for a simple TCP/IP
+	// address, which includes a host name and optional port and service name:
+	// CONNECT username@[//]host[:port][/service_name][:server][/instance_name]
+
+	// build user/pass
+	var un string
+	if u.User != nil {
+		if un = u.User.Username(); len(un) > 0 {
+			if up, ok := u.User.Password(); ok {
+				un += "/" + up
+			}
+		}
+	}
+
+	return un + "@" + u.Host + u.Port() + u.Path, nil
+}
+
 // GenFirebird generates a firebirdsql DSN from the passed URL.
 func GenFirebird(u *URL) (string, error) {
 	z := &url.URL{
