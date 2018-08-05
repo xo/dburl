@@ -55,6 +55,7 @@ func BaseSchemes() []Scheme {
 		{"mssql", GenSQLServer, 0, false, []string{"sqlserver"}, ""},
 		{"mysql", GenMySQL, ProtoTCP | ProtoUDP | ProtoUnix, false, []string{"mariadb", "maria", "percona", "aurora"}, ""},
 		{"ora", GenOracle, 0, false, []string{"oracle", "oci8", "oci"}, ""},
+		{"goracle", GenOracle, 0, false, []string{"goracle"}, ""},
 		{"postgres", GenPostgres, ProtoUnix, false, []string{"pg", "postgresql", "pgsql"}, ""},
 		{"sqlite3", GenOpaque, 0, true, []string{"sqlite", "file"}, ""},
 
