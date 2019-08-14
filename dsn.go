@@ -165,39 +165,6 @@ func GenSQLServer(u *URL) (string, error) {
 	return genOptionsODBC(q, true), nil
 }
 
-// // GenSybase generates a sqlany DSN from the passed URL.
-// func GenSybase(u *URL) (string, error) {
-// 	// of format "UID=DBA;PWD=sql;Host=demo12;DatabaseName=demo;ServerName=myserver"
-// 	host, port, dbname := hostname(u.Host), hostport(u.Host), strings.TrimPrefix(u.Path, "/")
-//
-// 	// add instance name to host if present
-// 	if i := strings.Index(dbname, "/"); i != -1 {
-// 		host = host + `\` + dbname[:i]
-// 		dbname = dbname[i+1:]
-// 	}
-//
-// 	q := u.Query()
-// 	q.Set("Host", host)
-// 	if port != "" {
-// 		q.Set("LINKS", "tcpip(PORT="+port+")")
-// 	}
-// 	q.Set("DatabaseName", dbname)
-//
-// 	// add user/pass
-// 	if u.User != nil {
-// 		q.Set("UID", u.User.Username())
-// 		pass, _ := u.User.Password()
-// 		q.Set("PWD", pass)
-// 	}
-//
-// 	// save host, port, dbname
-// 	if u.hostPortDB == nil {
-// 		u.hostPortDB = []string{host, port, dbname}
-// 	}
-//
-// 	return genOptionsODBC(q, true), nil
-// }
-
 // GenMySQL generates a mysql DSN from the passed URL.
 func GenMySQL(u *URL) (string, error) {
 	host, port, dbname := hostname(u.Host), hostport(u.Host), strings.TrimPrefix(u.Path, "/")
@@ -302,22 +269,46 @@ func GenMyMySQL(u *URL) (string, error) {
 	return dsn, nil
 }
 
-// GenOracle generates a ora DSN from the passed URL.
+// GenOracle generates a goracle DSN from the passed URL.
 func GenOracle(u *URL) (string, error) {
-	// create dsn
-	dsn := u.Host + u.Path
+	// Easy Connect Naming method enables clients to connect to a database server
+	// without any configuration. Clients use a connect string for a simple TCP/IP
+	// address, which includes a host name and optional port and service name:
+	// CONNECT username[/password]@[//]host[:port][/service_name][:server][/instance_name]
+
+	host, port, service := hostname(u.Host), hostport(u.Host), strings.TrimPrefix(u.Path, "/")
+	var instance string
+
+	// grab instance name from service name
+	if i := strings.LastIndex(service, "/"); i != -1 {
+		instance = service[i+1:]
+		service = service[:i]
+	}
+
+	// build dsn
+	dsn := host
+	if port != "" {
+		dsn += ":" + port
+	}
 
 	// build user/pass
-	var un string
 	if u.User != nil {
-		if un = u.User.Username(); len(un) > 0 {
+		if un := u.User.Username(); len(un) > 0 {
 			if up, ok := u.User.Password(); ok {
 				un += "/" + up
 			}
+			dsn = un + "@//" + dsn
 		}
 	}
 
-	return un + "@" + dsn, nil
+	if service != "" {
+		dsn += "/" + service
+	}
+	if instance != "" {
+		dsn += "/" + instance
+	}
+
+	return dsn, nil
 }
 
 // GenFirebird generates a firebirdsql DSN from the passed URL.
