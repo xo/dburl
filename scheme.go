@@ -54,7 +54,7 @@ func BaseSchemes() []Scheme {
 		// core databases
 		{"mssql", GenSQLServer, 0, false, []string{"sqlserver"}, ""},
 		{"mysql", GenMySQL, ProtoTCP | ProtoUDP | ProtoUnix, false, []string{"mariadb", "maria", "percona", "aurora"}, ""},
-		{"goracle", GenScheme("oracle"), 0, false, []string{"or", "ora", "oracle", "oci", "oci8", "odpi", "odpi-c"}, ""},
+		{"goracle", GenOracle, 0, false, []string{"or", "ora", "oracle", "oci", "oci8", "odpi", "odpi-c"}, ""},
 		{"postgres", GenPostgres, ProtoUnix, false, []string{"pg", "postgresql", "pgsql"}, ""},
 		{"sqlite3", GenOpaque, 0, true, []string{"sqlite", "file"}, ""},
 

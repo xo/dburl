@@ -116,10 +116,10 @@ func TestParse(t *testing.T) {
 		{`sq::memory:?loc=auto`, `sqlite3`, `:memory:?loc=auto`, ``},
 		{`sq://:memory:?loc=auto`, `sqlite3`, `:memory:?loc=auto`, ``},
 
-		{`or://user:pass@localhost:3000/sidname`, `goracle`, `oracle://user:pass@localhost:3000/sidname`, ``}, // 41
-		{`oracle://user:pass@localhost`, `goracle`, `oracle://user:pass@localhost`, ``},
-		{`oracle://user:pass@localhost/service_name/instance_name`, `goracle`, `oracle://user:pass@localhost/service_name/instance_name`, ``},
-		{`oracle://user:pass@localhost:2000/xe.oracle.docker`, `goracle`, `oracle://user:pass@localhost:2000/xe.oracle.docker`, ``},
+		{`or://user:pass@localhost:3000/sidname`, `goracle`, `user/pass@localhost:3000/sidname`, ``}, // 41
+		{`oracle://user:pass@localhost`, `goracle`, `user/pass@localhost`, ``},
+		{`oracle://user:pass@localhost/service_name/instance_name`, `goracle`, `user/pass@localhost/service_name/instance_name`, ``},
+		{`oracle://user:pass@localhost:2000/xe.oracle.docker`, `goracle`, `user/pass@localhost:2000/xe.oracle.docker`, ``},
 
 		{`presto://host:8001/`, `presto`, `http://user@host:8001?catalog=default`, ``}, // 45
 		{`presto://host/catalogname/schemaname`, `presto`, `http://user@host:8080?catalog=catalogname&schema=schemaname`, ``},
