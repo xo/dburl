@@ -116,34 +116,35 @@ func TestParse(t *testing.T) {
 		{`sq::memory:?loc=auto`, `sqlite3`, `:memory:?loc=auto`, ``},
 		{`sq://:memory:?loc=auto`, `sqlite3`, `:memory:?loc=auto`, ``},
 
-		{`oracle://user:pass@localhost`, `goracle`, `oracle://user:pass@localhost`, ``}, // 41
+		{`or://user:pass@localhost:3000/sidname`, `goracle`, `oracle://user:pass@localhost:3000/sidname`, ``}, // 41
+		{`oracle://user:pass@localhost`, `goracle`, `oracle://user:pass@localhost`, ``},
 		{`oracle://user:pass@localhost/service_name/instance_name`, `goracle`, `oracle://user:pass@localhost/service_name/instance_name`, ``},
 		{`oracle://user:pass@localhost:2000/xe.oracle.docker`, `goracle`, `oracle://user:pass@localhost:2000/xe.oracle.docker`, ``},
 
-		{`presto://host:8001/`, `presto`, `http://user@host:8001?catalog=default`, ``}, // 44
+		{`presto://host:8001/`, `presto`, `http://user@host:8001?catalog=default`, ``}, // 45
 		{`presto://host/catalogname/schemaname`, `presto`, `http://user@host:8080?catalog=catalogname&schema=schemaname`, ``},
 		{`prs://admin@host/catalogname`, `presto`, `https://admin@host:8443?catalog=catalogname`, ``},
 		{`prestodbs://admin:pass@host:9998/catalogname`, `presto`, `https://admin:pass@host:9998?catalog=catalogname`, ``},
 
-		{`ca://host`, `cql`, `host:9042`, ``}, // 48
+		{`ca://host`, `cql`, `host:9042`, ``}, // 50
 		{`cassandra://host:9999`, `cql`, `host:9999`, ``},
 		{`scy://user@host:9999`, `cql`, `host:9999?username=user`, ``},
 		{`scylla://user@host:9999?timeout=1000`, `cql`, `host:9999?timeout=1000&username=user`, ``},
 		{`datastax://user:pass@localhost:9999/?timeout=1000`, `cql`, `localhost:9999?password=pass&timeout=1000&username=user`, ``},
 		{`ca://user:pass@localhost:9999/dbname?timeout=1000`, `cql`, `localhost:9999?keyspace=dbname&password=pass&timeout=1000&username=user`, ``},
 
-		{`ig://host`, `ignite`, `tcp://host:10800`, ``}, // 54
+		{`ig://host`, `ignite`, `tcp://host:10800`, ``}, // 55
 		{`ignite://host:9999`, `ignite`, `tcp://host:9999`, ``},
 		{`gridgain://user@host:9999`, `ignite`, `tcp://host:9999?username=user`, ``},
 		{`ig://user@host:9999?timeout=1000`, `ignite`, `tcp://host:9999?timeout=1000&username=user`, ``},
 		{`ig://user:pass@localhost:9999/?timeout=1000`, `ignite`, `tcp://localhost:9999?password=pass&timeout=1000&username=user`, ``},
 		{`ig://user:pass@localhost:9999/dbname?timeout=1000`, `ignite`, `tcp://localhost:9999/dbname?password=pass&timeout=1000&username=user`, ``},
 
-		{`snowflake://host/dbname/schema`, `snowflake`, `host/dbname/schema`, ``}, // 60
+		{`snowflake://host/dbname/schema`, `snowflake`, `host/dbname/schema`, ``}, // 61
 		{`sf://user@host:9999/dbname/schema?timeout=1000`, `snowflake`, `user@host:9999/dbname/schema?timeout=1000`, ``},
 		{`sf://user:pass@localhost:9999/dbname/schema?timeout=1000`, `snowflake`, `user:pass@localhost:9999/dbname/schema?timeout=1000`, ``},
 
-		{`rs://user:pass@amazon.com/dbname`, `postgres`, `postgres://user:pass@amazon.com:5439/dbname`, ``}, // 63
+		{`rs://user:pass@amazon.com/dbname`, `postgres`, `postgres://user:pass@amazon.com:5439/dbname`, ``}, // 64
 	}
 
 	for i, test := range tests {
