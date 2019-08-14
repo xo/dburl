@@ -188,7 +188,7 @@ to be imported:
 | Snowflake (snowflake)        | [github.com/snowflakedb/gosnowflake](https://github.com/snowflakedb/gosnowflake)            |
 | VoltDB (voltdb)              | [github.com/VoltDB/voltdb-client-go/voltdbclient](github.com/VoltDB/voltdb-client-go])      |
 
-Please see [the `dburl` GoDoc listing][godoc-dburl] for the full API
+Please see [the `dburl` GoDoc listing][godoc-link] for the full API
 documentation.
 
 ### URL Parsing Rules

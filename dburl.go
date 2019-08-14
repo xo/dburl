@@ -150,14 +150,13 @@
 //   Snowflake (snowflake)        | github.com/snowflakedb/gosnowflake
 //   VoltDB (voltdb)              | github.com/VoltDB/voltdb-client-go/voltdbclient
 //
-// * OLE ODBC is not an actual protocol, but instead is an alias for using the
-//   "MSDASQL.1" OLE provider with the ADODB driver, and the DSN will be an
-//   ADODB DSN, but with "Extended Properties" for the respective ODBC
-//   parameters, including the underlying transport prootocol. As such,
-//   "oleodbc+protocol://user:pass@host/dbname" URLs are equivalent to
-//   "adodb://MSDASQL.1/?Extended+Properties=...". Please see the
-//   documentation for GenOLEODBC for information regarding how URL components
-//   are mapped/passed to ADODB's Extended Properties parameter.
+// * OLE ODBC is a special alias for using the "MSDASQL.1" OLE provider with the
+// ADODB driver on Windows. oleodbc:// URLs will be converted to the equivalent
+// ADODB DSN with "Extended Properties" having the respective ODBC parameters,
+// including the underlying transport prootocol. As such, oleodbc+protocol://user:pass@host/dbname
+// URLs are equivalent to adodb://MSDASQL.1/?Extended+Properties=.... on
+// Windows. See GenOLEODBC for information regarding how URL components are
+// mapped and passed to ADODB's Extended Properties parameter.
 //
 // URL Parsing Rules
 //
