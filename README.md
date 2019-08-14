@@ -194,9 +194,9 @@ documentation.
 ### URL Parsing Rules
 
 [`dburl.Parse`][godoc-parse] and [`dburl.Open`][godoc-open] rely primarily on
-Go's standard [`net/url.URL`][godoc-net-url] type, and as such, `dburl`'s URL
-parsing shares/follows the same rules, conventions, and semantics for database
-connection URLs as Go's standard [`net/url.Parse` func][godoc-net-url-parse].
+Go's standard [`net/url.URL`][godoc-net-url] type, and as such, parsing or
+opening database connection URLs with `dburl` are subject to the same rules,
+conventions, and semantics as [Go's `net/url.Parse` func][godoc-net-url-parse].
 
 ## Example
 
