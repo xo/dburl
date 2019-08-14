@@ -1,14 +1,30 @@
-# About dburl
+# dburl [![GoDoc][godoc]][godoc-link] [![Build Status][travis-ci]][travis-ci-link]
 
-Package dburl provides a standard, URL style mechanism for parsing and
-opening SQL database connection strings for [Go](https://golang.org/project),
-supporting standard URLs for the standard databases PostgreSQL, MySQL, SQLite3,
-Oracle, Microsoft SQL Server, and most other databases with a publicly
-available Go driver.
+Package `dburl` provides a standard, URL style mechanism for parsing and
+opening SQL database connection strings for [Go][go-project]. Provides
+standardized way to [parse][godoc-parse] and [open][godoc-open] URLs for
+popular databases PostgreSQL, MySQL, SQLite3, Oracle Database, Microsoft SQL
+Server, in addition to most other SQL databases with a publicly available Go
+driver.
 
-## Database URL Connection Strings
+[godoc]: https://godoc.org/github.com/xo/dburl?status.svg (GoDoc)
+[travis-ci]: https://travis-ci.org/xo/dburl.svg?branch=master (Travis CI)
+[godoc-link]: https://godoc.org/github.com/xo/dburl
+[travis-ci-link]: https://travis-ci.org/xo/dburl
 
-Supported database URLs are of the form:
+[Overview][] | [Quickstart][] | [Examples][] | [Schemes][] | [Installing][] | [Using][] | [About][]
+
+[Overview]: #database-connection-url-overview (Database Connection URL Overview)
+[Quickstart]: #quickstart (Quickstart)
+[Examples]: #example-urls (Example URLs)
+[Schemes]: #protocol-schemes-and-aliases (Protocol Schemes and Aliases)
+[Installing]: #installing (Installing)
+[Using]: #using (Using)
+[About]: #about (About)
+
+## Database Connection URL Overview
+
+Supported database connection URLs are of the form:
 
 ```
    protocol+transport://user:pass@host/dbname?opt1=a&opt2=b
@@ -27,31 +43,40 @@ Where:
 | dbname<sup>*</sup> | database, instance, or service name/ID to connect to                                 |
 | ?opt1=...          | additional database driver options (see respective SQL driver for available options) |
 
-<i><sup><b>*</b></sup> for Microsoft SQL Server, the syntax to supply an
-instance and database name is `/instance/dbname`, where `/instance` is
-optional. For Oracle databases, `/dbname` is the unique database ID (SID).
-Please see below for examples.</i>
+<i><sup><b>*</b></sup> for Microsoft SQL Server, `/dbname` can be
+`/instance/dbname`, where `/instance` is optional. For Oracle Database,
+`/dbname` is of the form `/service/dbname` where `/service` is the service name
+or SID, and `/dbname` is optional. Please see below for examples.</i>
 
 ## Quickstart
 
-Database connection URLs (as described below) can be parsed with `Parse` as such:
+Database connection URLs in the above format can be parsed with the
+[`dburl.Parse` func][godoc-parse] as such:
 
 ```go
+import (
+    "github.com/xo/dburl"
+)
 u, err := dburl.Parse("postgresql://user:pass@localhost/mydatabase/?sslmode=disable")
 if err != nil { /* ... */ }
 ```
 
-Additionally, a simple helper func `Open`, is available to quickly parse, open,
-and return a standard SQL database connection:
+Additionally, a simple helper, [`dburl.Open`][godoc-open], is provided that
+will parse, open, and return a [standard `sql.DB` database][godoc-sql-db]
+connection:
 
 ```go
+import (
+    "github.com/xo/dburl"
+)
 db, err := dburl.Open("sqlite:mydatabase.sqlite3?loc=auto")
 if err != nil { /* ... */ }
 ```
 
-## Example URLs ##
+## Example URLs
 
- The following are URLs that can be handled with a call to `Open` or `Parse`:
+The following are example database connection URLs that can be handled by
+[`dburl.Parse`][godoc-parse] and [`dburl.Open`][godoc-open]:
 
 ```
    postgres://user:pass@localhost/dbname
@@ -61,7 +86,7 @@ if err != nil { /* ... */ }
    sqlserver://user:pass@remote-host.com/dbname
    mssql://user:pass@remote-host.com/instance/dbname
    ms://user:pass@remote-host.com:port/instance/dbname?keepAlive=10
-   oracle://user:pass@somehost.com/oracledb
+   oracle://user:pass@somehost.com/sid
    sap://user:pass@localhost/dbname
    sqlite:/path/to/file.db
    file:myfile.sqlite3?loc=auto
@@ -73,45 +98,45 @@ if err != nil { /* ... */ }
 The following protocols schemes (ie, driver) and their associated aliases are
 supported out of the box:
 
-| Database (scheme/driver)     | Protocol Aliases [real driver]        |
-|------------------------------|---------------------------------------|
-| Microsoft SQL Server (mssql) | ms, sqlserver                         |
-| MySQL (mysql)                | my, mariadb, maria, percona, aurora   |
-| Oracle (ora)                 | or, oracle, oci8, oci                 |
-| PostgreSQL (postgres)        | pg, postgresql, pgsql                 |
-| SQLite3 (sqlite3)            | sq, sqlite, file                      |
-|                              |                                       |
-| Amazon Redshift (redshift)   | rs [postgres]                         |
-| CockroachDB (cockroachdb)    | cr, cockroach, crdb, cdb [postgres]   |
-| MemSQL (memsql)              | me [mysql]                            |
-| TiDB (tidb)                  | ti [mysql]                            |
-| Vitess (vitess)              | vt [mysql]                            |
-|                              |                                       |
-| Google Spanner (spanner)     | gs, google, span (not yet public)     |
-|                              |                                       |
-| MySQL (mymysql)              | zm, mymy                              |
-| PostgreSQL (pgx)             | px                                    |
-|                              |                                       |
-| Apache Avatica (avatica)     | av, phoenix                           |
-| Apache Ignite (ignite)       | ig, gridgain                          |
-| Cassandra (cql)              | ca, cassandra, datastax, scy, scylla  |
-| ClickHouse (clickhouse)      | ch                                    |
-| Couchbase (n1ql)             | n1, couchbase                         |
-| Cznic QL (ql)                | ql, cznic, cznicql                    |
-| Firebird SQL (firebirdsql)   | fb, firebird                          |
-| Microsoft ADODB (adodb)      | ad, ado                               |
-| ODBC (odbc)                  | od                                    |
-| OLE ODBC (oleodbc)           | oo, ole, oleodbc [adodb]              |
-| Presto (presto)              | pr, prestodb, prestos, prs, prestodbs |
-| SAP ASE (tds)                | ax, ase, sapase                       |
-| SAP HANA (hdb)               | sa, saphana, sap, hana                |
-| Snowflake (snowflake)        | sf                                    |
-| VoltDB (voltdb)              | vo, volt, vdb                         |
+| Database (scheme/driver)     | Protocol Aliases [real driver]            |
+|------------------------------|-------------------------------------------|
+| Microsoft SQL Server (mssql) | ms, sqlserver                             |
+| MySQL (mysql)                | my, mariadb, maria, percona, aurora       |
+| Oracle (goracle)             | or, ora, oracle, oci, oci8, odpi, odpi-c  |
+| PostgreSQL (postgres)        | pg, postgresql, pgsql                     |
+| SQLite3 (sqlite3)            | sq, sqlite, file                          |
+|                              |                                           |
+| Amazon Redshift (redshift)   | rs [postgres]                             |
+| CockroachDB (cockroachdb)    | cr, cockroach, crdb, cdb [postgres]       |
+| MemSQL (memsql)              | me [mysql]                                |
+| TiDB (tidb)                  | ti [mysql]                                |
+| Vitess (vitess)              | vt [mysql]                                |
+|                              |                                           |
+| Google Spanner (spanner)     | gs, google, span (not yet public)         |
+|                              |                                           |
+| MySQL (mymysql)              | zm, mymy                                  |
+| PostgreSQL (pgx)             | px                                        |
+|                              |                                           |
+| Apache Avatica (avatica)     | av, phoenix                               |
+| Apache Ignite (ignite)       | ig, gridgain                              |
+| Cassandra (cql)              | ca, cassandra, datastax, scy, scylla      |
+| ClickHouse (clickhouse)      | ch                                        |
+| Couchbase (n1ql)             | n1, couchbase                             |
+| Cznic QL (ql)                | ql, cznic, cznicql                        |
+| Firebird SQL (firebirdsql)   | fb, firebird                              |
+| Microsoft ADODB (adodb)      | ad, ado                                   |
+| ODBC (odbc)                  | od                                        |
+| OLE ODBC (oleodbc)           | oo, ole, oleodbc [adodb]                  |
+| Presto (presto)              | pr, prestodb, prestos, prs, prestodbs     |
+| SAP ASE (tds)                | ax, ase, sapase                           |
+| SAP HANA (hdb)               | sa, saphana, sap, hana                    |
+| Snowflake (snowflake)        | sf                                        |
+| VoltDB (voltdb)              | vo, volt, vdb                             |
 
-Any protocol scheme `alias://` can be used in place of `protocol://`, and will work
-identically with `Parse`/`Open`.
+Any protocol scheme `alias://` can be used in place of `protocol://`, and will
+work identically with [`dburl.Parse`][godoc-parse] and [`dburl.Open`][godoc-open].
 
-## Installation
+## Installing
 
 Install in the usual Go fashion:
 
@@ -119,10 +144,11 @@ Install in the usual Go fashion:
 go get -u github.com/xo/dburl
 ```
 
-## Usage
+## Using
 
-Please note that the dburl package does not import actual SQL drivers, and only
-provides a standard way to parse/open respective database connection URLs.
+Please note that `dburl` does not import actual SQL drivers, and only provides
+a standard way to [parse][godoc-parse]/[open][godoc-open] respective database
+connection URLs.
 
 For reference, these are the following "expected" SQL drivers that would need
 to be imported:
@@ -131,7 +157,7 @@ to be imported:
 |------------------------------|---------------------------------------------------------------------------------------------|
 | Microsoft SQL Server (mssql) | [github.com/denisenkom/go-mssqldb](https://github.com/denisenkom/go-mssqldb)                |
 | MySQL (mysql)                | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)                    |
-| Oracle (ora)                 | [gopkg.in/rana/ora.v4](https://gopkg.in/rana/ora.v4)                                        |
+| Oracle (goracle)             | [gopkg.in/goracle.v2](https://gopkg.in/goracle.v2)                                          |
 | PostgreSQL (postgres)        | [github.com/lib/pq](https://github.com/lib/pq)                                              |
 | SQLite3 (sqlite3)            | [github.com/mattn/go-sqlite3](https://github.com/mattn/go-sqlite3)                          |
 |                              |                                                                                             |
@@ -162,18 +188,19 @@ to be imported:
 | Snowflake (snowflake)        | [github.com/snowflakedb/gosnowflake](https://github.com/snowflakedb/gosnowflake)            |
 | VoltDB (voltdb)              | [github.com/VoltDB/voltdb-client-go/voltdbclient](github.com/VoltDB/voltdb-client-go])      |
 
-Please see [the GoDoc API page](http://godoc.org/github.com/xo/dburl) for a
-full API listing.
+Please see [the `dburl` GoDoc listing][godoc-dburl] for the full API
+documentation.
 
 ### URL Parsing Rules
 
-`Parse` and `Open` rely heavily on the standard `net/url.URL` type, as such
-parsing rules have the same conventions/semantics as any URL parsed by the
-standard library's `net/url.Parse`.
+[`dburl.Parse`][godoc-parse] and [`dburl.Open`][godoc-open] rely primarily on
+Go's standard [`net/url.URL`][godoc-net-url] type, and as such, `dburl`'s URL
+parsing shares/follows the same rules, conventions, and semantics for database
+connection URLs as Go's standard [`net/url.Parse` func][godoc-net-url-parse].
 
-## Full Example
+## Example
 
-A full example for reference:
+A [full example](_example/example.go) for reference:
 
 ```go
 // _example/example.go
@@ -203,9 +230,19 @@ func main() {
 }
 ```
 
-## Related Projects
+## About
 
-The dburl package was built primarily to support these projects:
+`dburl` was built primarily to support these projects:
 
-* [usql](https://github.com/xo/usql) - a universal command-line interface for SQL databases
-* [xo](https://github.com/xo/xo) - a command-line tool to generate Go code from a database schema
+* [usql][usql] - a universal command-line interface for SQL databases
+* [xo][xo] - a command-line tool to generate Go code from a database schema
+
+[go-project]: https://golang.org/project
+[godoc-open]: https://godoc.org/github.com/xo/dburl#Open
+[godoc-parse]: https://godoc.org/github.com/xo/dburl#Parse
+[godoc-sql-db]: https://godoc.org/database/sql#DB
+[godoc-net-url]: https://godoc.org/net/url#URL
+[godoc-net-url-parse]: https://godoc.org/net/url#URL.Parse
+
+[usql]: https://github.com/xo/usql
+[xo]: https://github.com/xo/xo

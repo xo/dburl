@@ -1,6 +1,7 @@
 package dburl
 
 import (
+	"os"
 	"testing"
 )
 
@@ -60,86 +61,89 @@ func TestBadParse(t *testing.T) {
 
 func TestParse(t *testing.T) {
 	tests := []struct {
-		s   string
-		d   string
-		exp string
+		s    string
+		d    string
+		exp  string
+		path string
 	}{
-		{`pg:`, `postgres`, ``},
-		{`pg://`, `postgres`, ``},
-		{`pg:user:pass@localhost/booktest`, `postgres`, `dbname=booktest host=localhost password=pass user=user`},
-		{`pg:/var/run/postgresql`, `postgres`, `host=/var/run/postgresql`},
-		{`pg:/var/run/postgresql:6666/mydb`, `postgres`, `dbname=mydb host=/var/run/postgresql port=6666`},
-		{`pg:/var/run/postgresql/mydb`, `postgres`, `dbname=mydb host=/var/run/postgresql`},
-		{`pg:/var/run/postgresql:7777`, `postgres`, `host=/var/run/postgresql port=7777`},
-		{`pg+unix:/var/run/postgresql:4444/booktest`, `postgres`, `dbname=booktest host=/var/run/postgresql port=4444`},
-		{`pg:user:pass@/var/run/postgresql/mydb`, `postgres`, `dbname=mydb host=/var/run/postgresql password=pass user=user`},
-		{`pg:user:pass@/really/bad/path`, `postgres`, `host=/really/bad/path password=pass user=user`},
+		{`pg:`, `postgres`, ``, ``},
+		{`pg://`, `postgres`, ``, ``},
+		{`pg:user:pass@localhost/booktest`, `postgres`, `dbname=booktest host=localhost password=pass user=user`, ``},
+		{`pg:/var/run/postgresql`, `postgres`, `host=/var/run/postgresql`, `/var/run/postgresql`},
+		{`pg:/var/run/postgresql:6666/mydb`, `postgres`, `dbname=mydb host=/var/run/postgresql port=6666`, `/var/run/postgresql`},
+		{`pg:/var/run/postgresql/mydb`, `postgres`, `dbname=mydb host=/var/run/postgresql`, `/var/run/postgresql`},
+		{`pg:/var/run/postgresql:7777`, `postgres`, `host=/var/run/postgresql port=7777`, `/var/run/postgresql`},
+		{`pg+unix:/var/run/postgresql:4444/booktest`, `postgres`, `dbname=booktest host=/var/run/postgresql port=4444`, `/var/run/postgresql`},
+		{`pg:user:pass@/var/run/postgresql/mydb`, `postgres`, `dbname=mydb host=/var/run/postgresql password=pass user=user`, `/var/run/postgresql`},
+		{`pg:user:pass@/really/bad/path`, `postgres`, `host=/really/bad/path password=pass user=user`, ``},
 
-		{`my:`, `mysql`, `tcp(127.0.0.1:3306)/`}, // 10
-		{`my://`, `mysql`, `tcp(127.0.0.1:3306)/`},
-		{`my:booktest:booktest@localhost/booktest`, `mysql`, `booktest:booktest@tcp(localhost:3306)/booktest`},
-		{`my:/var/run/mysqld/mysqld.sock/mydb?timeout=90`, `mysql`, `unix(/var/run/mysqld/mysqld.sock)/mydb?timeout=90`},
-		{`my:///var/run/mysqld/mysqld.sock/mydb?timeout=90`, `mysql`, `unix(/var/run/mysqld/mysqld.sock)/mydb?timeout=90`},
-		{`my+unix:user:pass@mysqld.sock?timeout=90`, `mysql`, `user:pass@unix(mysqld.sock)/?timeout=90`},
-		{`my:./path/to/socket`, `mysql`, `unix(path/to/socket)/`},
-		{`my+unix:./path/to/socket`, `mysql`, `unix(path/to/socket)/`},
+		{`my:`, `mysql`, `tcp(127.0.0.1:3306)/`, ``}, // 10
+		{`my://`, `mysql`, `tcp(127.0.0.1:3306)/`, ``},
+		{`my:booktest:booktest@localhost/booktest`, `mysql`, `booktest:booktest@tcp(localhost:3306)/booktest`, ``},
+		{`my:/var/run/mysqld/mysqld.sock/mydb?timeout=90`, `mysql`, `unix(/var/run/mysqld/mysqld.sock)/mydb?timeout=90`, `/var/run/mysqld/mysqld.sock`},
+		{`my:///var/run/mysqld/mysqld.sock/mydb?timeout=90`, `mysql`, `unix(/var/run/mysqld/mysqld.sock)/mydb?timeout=90`, `/var/run/mysqld/mysqld.sock`},
+		{`my+unix:user:pass@mysqld.sock?timeout=90`, `mysql`, `user:pass@unix(mysqld.sock)/?timeout=90`, ``},
+		{`my:./path/to/socket`, `mysql`, `unix(path/to/socket)/`, ``},
+		{`my+unix:./path/to/socket`, `mysql`, `unix(path/to/socket)/`, ``},
 
-		{`mymy:`, `mymysql`, `tcp:127.0.0.1:3306*//`}, // 18
-		{`mymy://`, `mymysql`, `tcp:127.0.0.1:3306*//`},
-		{`mymy:user:pass@localhost/booktest`, `mymysql`, `tcp:localhost:3306*booktest/user/pass`},
-		{`mymy:/var/run/mysqld/mysqld.sock/mydb?timeout=90&test=true`, `mymysql`, `unix:/var/run/mysqld/mysqld.sock,test,timeout=90*mydb`},
-		{`mymy:///var/run/mysqld/mysqld.sock/mydb?timeout=90`, `mymysql`, `unix:/var/run/mysqld/mysqld.sock,timeout=90*mydb`},
-		{`mymy+unix:user:pass@mysqld.sock?timeout=90`, `mymysql`, `unix:mysqld.sock,timeout=90*/user/pass`},
-		{`mymy:./path/to/socket`, `mymysql`, `unix:path/to/socket*//`},
-		{`mymy+unix:./path/to/socket`, `mymysql`, `unix:path/to/socket*//`},
+		{`mymy:`, `mymysql`, `tcp:127.0.0.1:3306*//`, ``}, // 18
+		{`mymy://`, `mymysql`, `tcp:127.0.0.1:3306*//`, ``},
+		{`mymy:user:pass@localhost/booktest`, `mymysql`, `tcp:localhost:3306*booktest/user/pass`, ``},
+		{`mymy:/var/run/mysqld/mysqld.sock/mydb?timeout=90&test=true`, `mymysql`, `unix:/var/run/mysqld/mysqld.sock,test,timeout=90*mydb`, `/var/run/mysqld/mysqld.sock`},
+		{`mymy:///var/run/mysqld/mysqld.sock/mydb?timeout=90`, `mymysql`, `unix:/var/run/mysqld/mysqld.sock,timeout=90*mydb`, `/var/run/mysqld/mysqld.sock`},
+		{`mymy+unix:user:pass@mysqld.sock?timeout=90`, `mymysql`, `unix:mysqld.sock,timeout=90*/user/pass`, ``},
+		{`mymy:./path/to/socket`, `mymysql`, `unix:path/to/socket*//`, ``},
+		{`mymy+unix:./path/to/socket`, `mymysql`, `unix:path/to/socket*//`, ``},
 
-		{`mssql://`, `mssql`, ``}, // 26
-		{`mssql://user:pass@localhost/dbname`, `mssql`, `Database=dbname;Password=pass;Server=localhost;User ID=user`},
-		{`mssql://user@localhost/service/dbname`, `mssql`, `Database=dbname;Server=localhost\service;User ID=user`},
-		{`mssql://user:!234%23$@localhost:1580/dbname`, `mssql`, `Database=dbname;Password=!234#$;Port=1580;Server=localhost;User ID=user`},
+		{`mssql://`, `mssql`, ``, ``}, // 26
+		{`mssql://user:pass@localhost/dbname`, `mssql`, `Database=dbname;Password=pass;Server=localhost;User ID=user`, ``},
+		{`mssql://user@localhost/service/dbname`, `mssql`, `Database=dbname;Server=localhost\service;User ID=user`, ``},
+		{`mssql://user:!234%23$@localhost:1580/dbname`, `mssql`, `Database=dbname;Password=!234#$;Port=1580;Server=localhost;User ID=user`, ``},
 
 		{`adodb://Microsoft.ACE.OLEDB.12.0?Extended+Properties=%22Text%3BHDR%3DNO%3BFMT%3DDelimited%22`, `adodb`, // 30
-			`Data Source=.;Extended Properties="Text;HDR=NO;FMT=Delimited";Provider=Microsoft.ACE.OLEDB.12.0`},
+			`Data Source=.;Extended Properties="Text;HDR=NO;FMT=Delimited";Provider=Microsoft.ACE.OLEDB.12.0`, ``},
 		{`adodb://user:pass@Provider.Name:1542/Oracle8i/dbname`, `adodb`,
-			`Data Source=Oracle8i;Database=dbname;Password=pass;Port=1542;Provider=Provider.Name;User ID=user`},
+			`Data Source=Oracle8i;Database=dbname;Password=pass;Port=1542;Provider=Provider.Name;User ID=user`, ``},
 		{`oo+Postgres+Unicode://user:pass@host:5432/dbname`, `adodb`,
-			`Provider=MSDASQL.1;Extended Properties="Database=dbname;Driver={Postgres Unicode};PWD=pass;Port=5432;Server=host;UID=user"`},
+			`Provider=MSDASQL.1;Extended Properties="Database=dbname;Driver={Postgres Unicode};PWD=pass;Port=5432;Server=host;UID=user"`, ``},
 
-		{`file:/path/to/file.sqlite3`, `sqlite3`, `/path/to/file.sqlite3`}, // 33
-		{`sqlite:///path/to/file.sqlite3`, `sqlite3`, `/path/to/file.sqlite3`},
-		{`sq://path/to/file.sqlite3`, `sqlite3`, `path/to/file.sqlite3`},
-		{`sq:path/to/file.sqlite3`, `sqlite3`, `path/to/file.sqlite3`},
-		{`sq:./path/to/file.sqlite3`, `sqlite3`, `./path/to/file.sqlite3`},
-		{`sq://./path/to/file.sqlite3?loc=auto`, `sqlite3`, `./path/to/file.sqlite3?loc=auto`},
-		{`sq::memory:?loc=auto`, `sqlite3`, `:memory:?loc=auto`},
-		{`sq://:memory:?loc=auto`, `sqlite3`, `:memory:?loc=auto`},
+		{`file:/path/to/file.sqlite3`, `sqlite3`, `/path/to/file.sqlite3`, ``}, // 33
+		{`sqlite:///path/to/file.sqlite3`, `sqlite3`, `/path/to/file.sqlite3`, ``},
+		{`sq://path/to/file.sqlite3`, `sqlite3`, `path/to/file.sqlite3`, ``},
+		{`sq:path/to/file.sqlite3`, `sqlite3`, `path/to/file.sqlite3`, ``},
+		{`sq:./path/to/file.sqlite3`, `sqlite3`, `./path/to/file.sqlite3`, ``},
+		{`sq://./path/to/file.sqlite3?loc=auto`, `sqlite3`, `./path/to/file.sqlite3?loc=auto`, ``},
+		{`sq::memory:?loc=auto`, `sqlite3`, `:memory:?loc=auto`, ``},
+		{`sq://:memory:?loc=auto`, `sqlite3`, `:memory:?loc=auto`, ``},
 
-		{`oracle://user:pass@localhost/xe.oracle.docker`, `ora`, `user/pass@localhost/xe.oracle.docker`}, // 41
+		{`oracle://user:pass@localhost`, `goracle`, `oracle://user:pass@localhost`, ``}, // 41
+		{`oracle://user:pass@localhost/service_name/instance_name`, `goracle`, `oracle://user:pass@localhost/service_name/instance_name`, ``},
+		{`oracle://user:pass@localhost:2000/xe.oracle.docker`, `goracle`, `oracle://user:pass@localhost:2000/xe.oracle.docker`, ``},
 
-		{`presto://host:8001/`, `presto`, `http://user@host:8001?catalog=default`}, // 42
-		{`presto://host/catalogname/schemaname`, `presto`, `http://user@host:8080?catalog=catalogname&schema=schemaname`},
-		{`prs://admin@host/catalogname`, `presto`, `https://admin@host:8443?catalog=catalogname`},
-		{`prestodbs://admin:pass@host:9998/catalogname`, `presto`, `https://admin:pass@host:9998?catalog=catalogname`},
+		{`presto://host:8001/`, `presto`, `http://user@host:8001?catalog=default`, ``}, // 44
+		{`presto://host/catalogname/schemaname`, `presto`, `http://user@host:8080?catalog=catalogname&schema=schemaname`, ``},
+		{`prs://admin@host/catalogname`, `presto`, `https://admin@host:8443?catalog=catalogname`, ``},
+		{`prestodbs://admin:pass@host:9998/catalogname`, `presto`, `https://admin:pass@host:9998?catalog=catalogname`, ``},
 
-		{`ca://host`, `cql`, `host:9042`}, // 46
-		{`cassandra://host:9999`, `cql`, `host:9999`},
-		{`scy://user@host:9999`, `cql`, `host:9999?username=user`},
-		{`scylla://user@host:9999?timeout=1000`, `cql`, `host:9999?timeout=1000&username=user`},
-		{`datastax://user:pass@localhost:9999/?timeout=1000`, `cql`, `localhost:9999?password=pass&timeout=1000&username=user`},
-		{`ca://user:pass@localhost:9999/dbname?timeout=1000`, `cql`, `localhost:9999?keyspace=dbname&password=pass&timeout=1000&username=user`},
+		{`ca://host`, `cql`, `host:9042`, ``}, // 48
+		{`cassandra://host:9999`, `cql`, `host:9999`, ``},
+		{`scy://user@host:9999`, `cql`, `host:9999?username=user`, ``},
+		{`scylla://user@host:9999?timeout=1000`, `cql`, `host:9999?timeout=1000&username=user`, ``},
+		{`datastax://user:pass@localhost:9999/?timeout=1000`, `cql`, `localhost:9999?password=pass&timeout=1000&username=user`, ``},
+		{`ca://user:pass@localhost:9999/dbname?timeout=1000`, `cql`, `localhost:9999?keyspace=dbname&password=pass&timeout=1000&username=user`, ``},
 
-		{`ig://host`, `ignite`, `tcp://host:10800`}, // 52
-		{`ignite://host:9999`, `ignite`, `tcp://host:9999`},
-		{`gridgain://user@host:9999`, `ignite`, `tcp://host:9999?username=user`},
-		{`ig://user@host:9999?timeout=1000`, `ignite`, `tcp://host:9999?timeout=1000&username=user`},
-		{`ig://user:pass@localhost:9999/?timeout=1000`, `ignite`, `tcp://localhost:9999?password=pass&timeout=1000&username=user`},
-		{`ig://user:pass@localhost:9999/dbname?timeout=1000`, `ignite`, `tcp://localhost:9999/dbname?password=pass&timeout=1000&username=user`},
+		{`ig://host`, `ignite`, `tcp://host:10800`, ``}, // 54
+		{`ignite://host:9999`, `ignite`, `tcp://host:9999`, ``},
+		{`gridgain://user@host:9999`, `ignite`, `tcp://host:9999?username=user`, ``},
+		{`ig://user@host:9999?timeout=1000`, `ignite`, `tcp://host:9999?timeout=1000&username=user`, ``},
+		{`ig://user:pass@localhost:9999/?timeout=1000`, `ignite`, `tcp://localhost:9999?password=pass&timeout=1000&username=user`, ``},
+		{`ig://user:pass@localhost:9999/dbname?timeout=1000`, `ignite`, `tcp://localhost:9999/dbname?password=pass&timeout=1000&username=user`, ``},
 
-		{`snowflake://host/dbname/schema`, `snowflake`, `host/dbname/schema`}, // 58
-		{`sf://user@host:9999/dbname/schema?timeout=1000`, `snowflake`, `user@host:9999/dbname/schema?timeout=1000`},
-		{`sf://user:pass@localhost:9999/dbname/schema?timeout=1000`, `snowflake`, `user:pass@localhost:9999/dbname/schema?timeout=1000`},
+		{`snowflake://host/dbname/schema`, `snowflake`, `host/dbname/schema`, ``}, // 60
+		{`sf://user@host:9999/dbname/schema?timeout=1000`, `snowflake`, `user@host:9999/dbname/schema?timeout=1000`, ``},
+		{`sf://user:pass@localhost:9999/dbname/schema?timeout=1000`, `snowflake`, `user:pass@localhost:9999/dbname/schema?timeout=1000`, ``},
 
-		{`rs://user:pass@amazon.com/dbname`, `postgres`, `postgres://user:pass@amazon.com:5439/dbname`}, // 61
+		{`rs://user:pass@amazon.com/dbname`, `postgres`, `postgres://user:pass@amazon.com:5439/dbname`, ``}, // 63
 	}
 
 	for i, test := range tests {
@@ -154,7 +158,12 @@ func TestParse(t *testing.T) {
 		}
 
 		if u.DSN != test.exp {
-			t.Errorf("test %d expected DSN `%s`, got: `%s`", i, test.exp, u.DSN)
+			_, err := os.Stat(test.path)
+			if test.path != "" && err != nil && os.IsNotExist(err) {
+				t.Logf("test %d expected DSN `%s`, got: `%s` -- ignoring because `%s` does not exist", i, test.exp, u.DSN, test.path)
+			} else {
+				t.Errorf("test %d expected DSN `%s`, got: `%s`", i, test.exp, u.DSN)
+			}
 		}
 	}
 }

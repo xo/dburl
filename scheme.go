@@ -54,7 +54,7 @@ func BaseSchemes() []Scheme {
 		// core databases
 		{"mssql", GenSQLServer, 0, false, []string{"sqlserver"}, ""},
 		{"mysql", GenMySQL, ProtoTCP | ProtoUDP | ProtoUnix, false, []string{"mariadb", "maria", "percona", "aurora"}, ""},
-		{"ora", GenOracle, 0, false, []string{"oracle", "oci8", "oci"}, ""},
+		{"goracle", GenScheme("oracle"), 0, false, []string{"ora", "oracle", "oci", "oci8", "odpi", "odpi-c"}, ""},
 		{"postgres", GenPostgres, ProtoUnix, false, []string{"pg", "postgresql", "pgsql"}, ""},
 		{"sqlite3", GenOpaque, 0, true, []string{"sqlite", "file"}, ""},
 
@@ -68,7 +68,7 @@ func BaseSchemes() []Scheme {
 		// testing
 		{"spanner", GenScheme("spanner"), 0, false, []string{"gs", "google", "span"}, ""},
 
-		// alternates implementations
+		// alternate implementations
 		{"mymysql", GenMyMySQL, ProtoTCP | ProtoUDP | ProtoUnix, false, []string{"zm", "mymy"}, ""},
 		{"pgx", GenScheme("postgres"), ProtoUnix, false, []string{"px"}, ""},
 
