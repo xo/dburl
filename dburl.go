@@ -102,6 +102,7 @@
 //   SAP ASE (tds)                | ax, ase, sapase
 //   SAP HANA (hdb)               | sa, saphana, sap, hana
 //   Snowflake (snowflake)        | sf
+//   Vertica (vertica)            | ve
 //   VoltDB (voltdb)              | vo, volt, vdb
 //
 // Any protocol scheme alias:// can be used in place of protocol://, and will
@@ -148,6 +149,7 @@
 //   SAP ASE (tds)                | github.com/thda/tds
 //   SAP HANA (hdb)               | github.com/SAP/go-hdb/driver
 //   Snowflake (snowflake)        | github.com/snowflakedb/gosnowflake
+//   Vertica (vertica)            | github.com/vertica/vertica-sql-go
 //   VoltDB (voltdb)              | github.com/VoltDB/voltdb-client-go/voltdbclient
 //
 // * OLE ODBC is a special alias for using the "MSDASQL.1" OLE provider with the
