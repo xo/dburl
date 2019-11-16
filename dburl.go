@@ -138,7 +138,7 @@
 //   Apache Avatica (avatica)     | github.com/Boostport/avatica
 //   Apache Ignite (ignite)       | github.com/amsokol/ignite-go-client/sql
 //   Cassandra (cql)              | github.com/MichaelS11/go-cql-driver
-//   ClickHouse (clickhouse)      | github.com/kshvakov/clickhouse
+//   ClickHouse (clickhouse)      | github.com/ClickHouse/clickhouse-go
 //   Couchbase (n1ql)             | github.com/couchbase/go_n1ql
 //   Cznic QL (ql)                | github.com/cznic/ql
 //   Firebird SQL (firebirdsql)   | github.com/nakagami/firebirdsql
