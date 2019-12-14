@@ -269,7 +269,7 @@ func GenMyMySQL(u *URL) (string, error) {
 	return dsn, nil
 }
 
-// GenOracle generates a goracle DSN from the passed URL.
+// GenOracle generates a Go Driver for Oracle (godror) DSN from the passed URL.
 func GenOracle(u *URL) (string, error) {
 	// Easy Connect Naming method enables clients to connect to a database server
 	// without any configuration. Clients use a connect string for a simple TCP/IP

@@ -122,14 +122,14 @@ func TestParse(t *testing.T) {
 		{`sq::memory:?loc=auto`, `sqlite3`, `:memory:?loc=auto`, ``},
 		{`sq://:memory:?loc=auto`, `sqlite3`, `:memory:?loc=auto`, ``},
 
-		{`or://user:pass@localhost:3000/sidname`, `goracle`, `user/pass@//localhost:3000/sidname`, ``}, // 41
-		{`or://localhost`, `goracle`, `localhost`, ``},
-		{`oracle://user:pass@localhost`, `goracle`, `user/pass@//localhost`, ``},
-		{`oracle://user:pass@localhost/service_name/instance_name`, `goracle`, `user/pass@//localhost/service_name/instance_name`, ``},
-		{`oracle://user:pass@localhost:2000/xe.oracle.docker`, `goracle`, `user/pass@//localhost:2000/xe.oracle.docker`, ``},
-		{`or://username:password@host/ORCL`, `goracle`, `username/password@//host/ORCL`, ``},
-		{`odpi://username:password@sales-server:1521/sales.us.acme.com`, `goracle`, `username/password@//sales-server:1521/sales.us.acme.com`, ``},
-		{`goracle://username:password@sales-server.us.acme.com/sales.us.oracle.com`, `goracle`, `username/password@//sales-server.us.acme.com/sales.us.oracle.com`, ``},
+		{`or://user:pass@localhost:3000/sidname`, `godror`, `user/pass@//localhost:3000/sidname`, ``}, // 41
+		{`or://localhost`, `godror`, `localhost`, ``},
+		{`oracle://user:pass@localhost`, `godror`, `user/pass@//localhost`, ``},
+		{`oracle://user:pass@localhost/service_name/instance_name`, `godror`, `user/pass@//localhost/service_name/instance_name`, ``},
+		{`oracle://user:pass@localhost:2000/xe.oracle.docker`, `godror`, `user/pass@//localhost:2000/xe.oracle.docker`, ``},
+		{`or://username:password@host/ORCL`, `godror`, `username/password@//host/ORCL`, ``},
+		{`odpi://username:password@sales-server:1521/sales.us.acme.com`, `godror`, `username/password@//sales-server:1521/sales.us.acme.com`, ``},
+		{`godror://username:password@sales-server.us.acme.com/sales.us.oracle.com`, `godror`, `username/password@//sales-server.us.acme.com/sales.us.oracle.com`, ``},
 
 		{`presto://host:8001/`, `presto`, `http://user@host:8001?catalog=default`, ``}, // 49
 		{`presto://host/catalogname/schemaname`, `presto`, `http://user@host:8080?catalog=catalogname&schema=schemaname`, ``},

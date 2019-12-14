@@ -102,7 +102,7 @@ supported out of the box:
 |------------------------------|------------------------------------------|
 | Microsoft SQL Server (mssql) | ms, sqlserver                            |
 | MySQL (mysql)                | my, mariadb, maria, percona, aurora      |
-| Oracle Database (goracle)    | or, ora, oracle, oci, oci8, odpi, odpi-c |
+| Oracle Database (godror)     | or, ora, oracle, oci, oci8, odpi, odpi-c |
 | PostgreSQL (postgres)        | pg, postgresql, pgsql                    |
 | SQLite3 (sqlite3)            | sq, sqlite, file                         |
 |                              |                                          |
@@ -158,7 +158,7 @@ to be imported:
 |------------------------------|---------------------------------------------------------------------------------------------|
 | Microsoft SQL Server (mssql) | [github.com/denisenkom/go-mssqldb](https://github.com/denisenkom/go-mssqldb)                |
 | MySQL (mysql)                | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)                    |
-| Oracle Database (goracle)    | [gopkg.in/goracle.v2](https://gopkg.in/goracle.v2)                                          |
+| Oracle Database (godror)     | [github.com/godror/godror](github.com/godror/godror)                                        |
 | PostgreSQL (postgres)        | [github.com/lib/pq](https://github.com/lib/pq)                                              |
 | SQLite3 (sqlite3)            | [github.com/mattn/go-sqlite3](https://github.com/mattn/go-sqlite3)                          |
 |                              |                                                                                             |
