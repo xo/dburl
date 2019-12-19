@@ -140,7 +140,7 @@
 //   Cassandra (cql)              | github.com/MichaelS11/go-cql-driver
 //   ClickHouse (clickhouse)      | github.com/ClickHouse/clickhouse-go
 //   Couchbase (n1ql)             | github.com/couchbase/go_n1ql
-//   Cznic QL (ql)                | github.com/cznic/ql
+//   Cznic QL (ql)                | modernc.org/ql
 //   Firebird SQL (firebirdsql)   | github.com/nakagami/firebirdsql
 //   Microsoft ADODB (adodb)      | github.com/mattn/go-adodb
 //   ODBC (odbc)                  | github.com/alexbrainman/odbc
