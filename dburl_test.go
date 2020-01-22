@@ -43,8 +43,8 @@ func TestBadParse(t *testing.T) {
 		{`pg+unix:./path/to/socket`, ErrRelativePathNotSupported},
 		{`snowflake://`, ErrMissingHost},
 		{`sf://`, ErrMissingHost},
-		{`snowflake://account`, ErrMissingPath},
-		{`sf://account`, ErrMissingPath},
+		{`snowflake://account`, ErrMissingUser},
+		{`sf://account`, ErrMissingUser},
 	}
 
 	for i, test := range tests {
@@ -150,13 +150,12 @@ func TestParse(t *testing.T) {
 		{`ig://user:pass@localhost:9999/?timeout=1000`, `ignite`, `tcp://localhost:9999?password=pass&timeout=1000&username=user`, ``},
 		{`ig://user:pass@localhost:9999/dbname?timeout=1000`, `ignite`, `tcp://localhost:9999/dbname?password=pass&timeout=1000&username=user`, ``},
 
-		{`snowflake://host/dbname/schema`, `snowflake`, `host/dbname/schema`, ``}, // 65
 		{`sf://user@host:9999/dbname/schema?timeout=1000`, `snowflake`, `user@host:9999/dbname/schema?timeout=1000`, ``},
 		{`sf://user:pass@localhost:9999/dbname/schema?timeout=1000`, `snowflake`, `user:pass@localhost:9999/dbname/schema?timeout=1000`, ``},
 
-		{`rs://user:pass@amazon.com/dbname`, `postgres`, `postgres://user:pass@amazon.com:5439/dbname`, ``}, // 68
+		{`rs://user:pass@amazon.com/dbname`, `postgres`, `postgres://user:pass@amazon.com:5439/dbname`, ``}, // 67
 
-		{`ve://user:pass@vertica-host/dbvertica?tlsmode=server-strict`, `vertica`, `vertica://user:pass@vertica-host:5433/dbvertica?tlsmode=server-strict`, ``}, // 69
+		{`ve://user:pass@vertica-host/dbvertica?tlsmode=server-strict`, `vertica`, `vertica://user:pass@vertica-host:5433/dbvertica?tlsmode=server-strict`, ``}, // 68
 	}
 
 	for i, test := range tests {
