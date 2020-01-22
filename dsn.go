@@ -566,22 +566,21 @@ func GenSnowflake(u *URL) (string, error) {
 	if host == "" {
 		return "", ErrMissingHost
 	}
-	if dbname == "" {
-		return "", ErrMissingPath
-	}
 	if port != "" {
 		port = ":" + port
 	}
 
 	// add user/pass
-	var user string
-	if u.User != nil {
-		user = u.User.Username()
-		if pass, _ := u.User.Password(); pass != "" {
-			user += ":" + pass
-		}
-		user += "@"
+	if u.User == nil {
+		return "", ErrMissingUser
 	}
+	var user string
+
+	user = u.User.Username()
+	if pass, _ := u.User.Password(); pass != "" {
+		user += ":" + pass
+	}
+	user += "@"
 
 	return user + host + port + "/" + dbname + genQueryOptions(u.Query()), nil
 }

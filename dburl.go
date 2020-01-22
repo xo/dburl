@@ -202,6 +202,9 @@ const (
 
 	// ErrMissingPath is the missing path error.
 	ErrMissingPath Error = "missing path"
+
+	// ErrMissingUser is the missing user error.
+	ErrMissingUser Error = "missing user"
 )
 
 // Open takes a urlstr like "protocol+transport://user:pass@host/dbname?option1=a&option2=b"
