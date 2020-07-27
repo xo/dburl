@@ -45,6 +45,8 @@ func TestBadParse(t *testing.T) {
 		{`sf://`, ErrMissingHost},
 		{`snowflake://account`, ErrMissingUser},
 		{`sf://account`, ErrMissingUser},
+		{`mq+unix://`, ErrInvalidTransportProtocol},
+		{`mq+tcp://`, ErrInvalidTransportProtocol},
 	}
 
 	for i, test := range tests {
@@ -156,6 +158,15 @@ func TestParse(t *testing.T) {
 		{`rs://user:pass@amazon.com/dbname`, `postgres`, `postgres://user:pass@amazon.com:5439/dbname`, ``}, // 67
 
 		{`ve://user:pass@vertica-host/dbvertica?tlsmode=server-strict`, `vertica`, `vertica://user:pass@vertica-host:5433/dbvertica?tlsmode=server-strict`, ``}, // 68
+
+		{`moderncsqlite:///path/to/file.sqlite3`, `sqlite`, `/path/to/file.sqlite3`, ``},
+		{`modernsqlite:///path/to/file.sqlite3`, `sqlite`, `/path/to/file.sqlite3`, ``},
+		{`mq://path/to/file.sqlite3`, `sqlite`, `path/to/file.sqlite3`, ``},
+		{`mq:path/to/file.sqlite3`, `sqlite`, `path/to/file.sqlite3`, ``},
+		{`mq:./path/to/file.sqlite3`, `sqlite`, `./path/to/file.sqlite3`, ``},
+		{`mq://./path/to/file.sqlite3?loc=auto`, `sqlite`, `./path/to/file.sqlite3?loc=auto`, ``},
+		{`mq::memory:?loc=auto`, `sqlite`, `:memory:?loc=auto`, ``},
+		{`mq://:memory:?loc=auto`, `sqlite`, `:memory:?loc=auto`, ``},
 	}
 
 	for i, test := range tests {
