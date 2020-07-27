@@ -98,41 +98,42 @@ The following are example database connection URLs that can be handled by
 The following protocols schemes (ie, driver) and their associated aliases are
 supported out of the box:
 
-| Database (scheme/driver)     | Protocol Aliases [real driver]           |
-|------------------------------|------------------------------------------|
-| Microsoft SQL Server (mssql) | ms, sqlserver                            |
-| MySQL (mysql)                | my, mariadb, maria, percona, aurora      |
-| Oracle Database (godror)     | or, ora, oracle, oci, oci8, odpi, odpi-c |
-| PostgreSQL (postgres)        | pg, postgresql, pgsql                    |
-| SQLite3 (sqlite3)            | sq, sqlite, file                         |
-|                              |                                          |
-| Amazon Redshift (redshift)   | rs [postgres]                            |
-| CockroachDB (cockroachdb)    | cr, cockroach, crdb, cdb [postgres]      |
-| MemSQL (memsql)              | me [mysql]                               |
-| TiDB (tidb)                  | ti [mysql]                               |
-| Vitess (vitess)              | vt [mysql]                               |
-|                              |                                          |
-| Google Spanner (spanner)     | gs, google, span (not yet public)        |
-|                              |                                          |
-| MySQL (mymysql)              | zm, mymy                                 |
-| PostgreSQL (pgx)             | px                                       |
-|                              |                                          |
-| Apache Avatica (avatica)     | av, phoenix                              |
-| Apache Ignite (ignite)       | ig, gridgain                             |
-| Cassandra (cql)              | ca, cassandra, datastax, scy, scylla     |
-| ClickHouse (clickhouse)      | ch                                       |
-| Couchbase (n1ql)             | n1, couchbase                            |
-| Cznic QL (ql)                | ql, cznic, cznicql                       |
-| Firebird SQL (firebirdsql)   | fb, firebird                             |
-| Microsoft ADODB (adodb)      | ad, ado                                  |
-| ODBC (odbc)                  | od                                       |
-| OLE ODBC (oleodbc)           | oo, ole, oleodbc [adodb]                 |
-| Presto (presto)              | pr, prestodb, prestos, prs, prestodbs    |
-| SAP ASE (tds)                | ax, ase, sapase                          |
-| SAP HANA (hdb)               | sa, saphana, sap, hana                   |
-| Snowflake (snowflake)        | sf                                       |
-| Vertica (vertica)            | ve                                       |
-| VoltDB (voltdb)              | vo, volt, vdb                            |
+| Database (scheme/driver)       | Protocol Aliases [real driver]           |
+|--------------------------------|------------------------------------------|
+| Microsoft SQL Server (mssql)   | ms, sqlserver                            |
+| MySQL (mysql)                  | my, mariadb, maria, percona, aurora      |
+| Oracle Database (godror)       | or, ora, oracle, oci, oci8, odpi, odpi-c |
+| PostgreSQL (postgres)          | pg, postgresql, pgsql                    |
+| SQLite3 (sqlite3)              | sq, sqlite, file                         |
+|                                |                                          |
+| Amazon Redshift (redshift)     | rs [postgres]                            |
+| CockroachDB (cockroachdb)      | cr, cockroach, crdb, cdb [postgres]      |
+| MemSQL (memsql)                | me [mysql]                               |
+| TiDB (tidb)                    | ti [mysql]                               |
+| Vitess (vitess)                | vt [mysql]                               |
+|                                |                                          |
+| Google Spanner (spanner)       | gs, google, span (not yet public)        |
+|                                |                                          |
+| MySQL (mymysql)                | zm, mymy                                 |
+| PostgreSQL (pgx)               | px                                       |
+|                                |                                          |
+| Apache Avatica (avatica)       | av, phoenix                              |
+| Apache Ignite (ignite)         | ig, gridgain                             |
+| Cassandra (cql)                | ca, cassandra, datastax, scy, scylla     |
+| ClickHouse (clickhouse)        | ch                                       |
+| Couchbase (n1ql)               | n1, couchbase                            |
+| Cznic QL (ql)                  | ql, cznic, cznicql                       |
+| Firebird SQL (firebirdsql)     | fb, firebird                             |
+| Microsoft ADODB (adodb)        | ad, ado                                  |
+| ModernC SQLite (moderncsqlite) | mq, modernsqlite                         |
+| ODBC (odbc)                    | od                                       |
+| OLE ODBC (oleodbc)             | oo, ole, oleodbc [adodb]                 |
+| Presto (presto)                | pr, prestodb, prestos, prs, prestodbs    |
+| SAP ASE (tds)                  | ax, ase, sapase                          |
+| SAP HANA (hdb)                 | sa, saphana, sap, hana                   |
+| Snowflake (snowflake)          | sf                                       |
+| Vertica (vertica)              | ve                                       |
+| VoltDB (voltdb)                | vo, volt, vdb                            |
 
 Any protocol scheme `alias://` can be used in place of `protocol://`, and will
 work identically with [`dburl.Parse`][godoc-parse] and [`dburl.Open`][godoc-open].
@@ -154,41 +155,42 @@ connection URLs.
 For reference, these are the following "expected" SQL drivers that would need
 to be imported:
 
-| Database (driver)            | Package                                                                                     |
-|------------------------------|---------------------------------------------------------------------------------------------|
-| Microsoft SQL Server (mssql) | [github.com/denisenkom/go-mssqldb](https://github.com/denisenkom/go-mssqldb)                |
-| MySQL (mysql)                | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)                    |
-| Oracle Database (godror)     | [github.com/godror/godror](github.com/godror/godror)                                        |
-| PostgreSQL (postgres)        | [github.com/lib/pq](https://github.com/lib/pq)                                              |
-| SQLite3 (sqlite3)            | [github.com/mattn/go-sqlite3](https://github.com/mattn/go-sqlite3)                          |
-|                              |                                                                                             |
-| Amazon Redshift (redshift)   | [github.com/lib/pq](https://github.com/lib/pq)                                              |
-| CockroachDB (cockroachdb)    | [github.com/lib/pq](https://github.com/lib/pq)                                              |
-| MemSQL (memsql)              | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)                    |
-| TiDB (tidb)                  | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)                    |
-| Vitess (vitess)              | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)                    |
-|                              |                                                                                             |
-| Google Spanner (spanner)     | github.com/xo/spanner (not yet public)                                                      |
-|                              |                                                                                             |
-| MySQL (mymysql)              | [github.com/ziutek/mymysql/godrv](https://github.com/ziutek/mymysql)                        |
-| PostgreSQL (pgx)             | [github.com/jackc/pgx/stdlib](https://github.com/jackc/pgx)                                 |
-|                              |                                                                                             |
-| Apache Avatica (avatica)     | [github.com/Boostport/avatica](https://github.com/Boostport/avatica)                        |
-| Apache Ignite (ignite)       | [github.com/amsokol/ignite-go-client/sql](https://github.com/amsokol/ignite-go-client)      |
-| Cassandra (cql)              | [github.com/MichaelS11/go-cql-driver](https://github.com/MichaelS11/go-cql-driver)          |
-| ClickHouse (clickhouse)      | [github.com/ClickHouse/clickhouse-go](https://github.com/ClickHouse/clickhouse-go)          |
-| Couchbase (n1ql)             | [github.com/couchbase/go_n1ql](https://github.com/couchbase/go_n1ql)                        |
-| Cznic QL (ql)                | [modernc.org/ql](https://modernc.org/ql)                                                    |
-| Firebird SQL (firebirdsql)   | [github.com/nakagami/firebirdsql](https://github.com/nakagami/firebirdsql)                  |
-| Microsoft ADODB (adodb)      | [github.com/mattn/go-adodb](https://github.com/mattn/go-adodb)                              |
-| ODBC (odbc)                  | [github.com/alexbrainman/odbc](https://github.com/alexbrainman/odbc)                        |
-| OLE ODBC (oleodbc)           | [github.com/mattn/go-adodb](https://github.com/mattn/go-adodb)                              |
-| Presto (presto)              | [github.com/prestodb/presto-go-client/presto](https://github.com/prestodb/presto-go-client) |
-| SAP ASE (tds)                | [github.com/thda/tds](https://github.com/thda/tds)                                          |
-| SAP HANA (hdb)               | [github.com/SAP/go-hdb/driver](https://github.com/SAP/go-hdb)                               |
-| Snowflake (snowflake)        | [github.com/snowflakedb/gosnowflake](https://github.com/snowflakedb/gosnowflake)            |
-| Vertica (vertica)            | [github.com/vertica/vertica-sql-go](https://github.com/vertica/vertica-sql-go)              |
-| VoltDB (voltdb)              | [github.com/VoltDB/voltdb-client-go/voltdbclient](github.com/VoltDB/voltdb-client-go])      |
+| Database (driver)              | Package                                                                                     |
+|--------------------------------|---------------------------------------------------------------------------------------------|
+| Microsoft SQL Server (mssql)   | [github.com/denisenkom/go-mssqldb](https://github.com/denisenkom/go-mssqldb)                |
+| MySQL (mysql)                  | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)                    |
+| Oracle Database (godror)       | [github.com/godror/godror](github.com/godror/godror)                                        |
+| PostgreSQL (postgres)          | [github.com/lib/pq](https://github.com/lib/pq)                                              |
+| SQLite3 (sqlite3)              | [github.com/mattn/go-sqlite3](https://github.com/mattn/go-sqlite3)                          |
+|                                |                                                                                             |
+| Amazon Redshift (redshift)     | [github.com/lib/pq](https://github.com/lib/pq)                                              |
+| CockroachDB (cockroachdb)      | [github.com/lib/pq](https://github.com/lib/pq)                                              |
+| MemSQL (memsql)                | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)                    |
+| TiDB (tidb)                    | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)                    |
+| Vitess (vitess)                | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)                    |
+|                                |                                                                                             |
+| Google Spanner (spanner)       | github.com/xo/spanner (not yet public)                                                      |
+|                                |                                                                                             |
+| MySQL (mymysql)                | [github.com/ziutek/mymysql/godrv](https://github.com/ziutek/mymysql)                        |
+| PostgreSQL (pgx)               | [github.com/jackc/pgx/stdlib](https://github.com/jackc/pgx)                                 |
+|                                |                                                                                             |
+| Apache Avatica (avatica)       | [github.com/Boostport/avatica](https://github.com/Boostport/avatica)                        |
+| Apache Ignite (ignite)         | [github.com/amsokol/ignite-go-client/sql](https://github.com/amsokol/ignite-go-client)      |
+| Cassandra (cql)                | [github.com/MichaelS11/go-cql-driver](https://github.com/MichaelS11/go-cql-driver)          |
+| ClickHouse (clickhouse)        | [github.com/ClickHouse/clickhouse-go](https://github.com/ClickHouse/clickhouse-go)          |
+| Couchbase (n1ql)               | [github.com/couchbase/go_n1ql](https://github.com/couchbase/go_n1ql)                        |
+| Cznic QL (ql)                  | [modernc.org/ql](https://modernc.org/ql)                                                    |
+| Firebird SQL (firebirdsql)     | [github.com/nakagami/firebirdsql](https://github.com/nakagami/firebirdsql)                  |
+| Microsoft ADODB (adodb)        | [github.com/mattn/go-adodb](https://github.com/mattn/go-adodb)                              |
+| ModernC SQLite (moderncsqlite) | [modernc.org/sqlite](https://modernc.org/sqlite)                                            |
+| ODBC (odbc)                    | [github.com/alexbrainman/odbc](https://github.com/alexbrainman/odbc)                        |
+| OLE ODBC (oleodbc)             | [github.com/mattn/go-adodb](https://github.com/mattn/go-adodb)                              |
+| Presto (presto)                | [github.com/prestodb/presto-go-client/presto](https://github.com/prestodb/presto-go-client) |
+| SAP ASE (tds)                  | [github.com/thda/tds](https://github.com/thda/tds)                                          |
+| SAP HANA (hdb)                 | [github.com/SAP/go-hdb/driver](https://github.com/SAP/go-hdb)                               |
+| Snowflake (snowflake)          | [github.com/snowflakedb/gosnowflake](https://github.com/snowflakedb/gosnowflake)            |
+| Vertica (vertica)              | [github.com/vertica/vertica-sql-go](https://github.com/vertica/vertica-sql-go)              |
+| VoltDB (voltdb)                | [github.com/VoltDB/voltdb-client-go/voltdbclient](github.com/VoltDB/voltdb-client-go])      |
 
 Please see [the `dburl` GoDoc listing][godoc-link] for the full API
 documentation.
