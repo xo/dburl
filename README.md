@@ -1,4 +1,4 @@
-# dburl [![GoDoc][godoc]][godoc-link] [![Build Status][travis-ci]][travis-ci-link]
+# dburl [![GoDoc][godoc]][godoc-link]
 
 Package `dburl` provides a standard, URL style mechanism for parsing and
 opening SQL database connection strings for [Go][go-project]. Provides
@@ -8,9 +8,7 @@ Server, in addition to most other SQL databases with a publicly available Go
 driver.
 
 [godoc]: https://godoc.org/github.com/xo/dburl?status.svg (GoDoc)
-[travis-ci]: https://travis-ci.org/xo/dburl.svg?branch=master (Travis CI)
 [godoc-link]: https://godoc.org/github.com/xo/dburl
-[travis-ci-link]: https://travis-ci.org/xo/dburl
 
 [Overview][] | [Quickstart][] | [Examples][] | [Schemes][] | [Installing][] | [Using][] | [About][]
 
