@@ -48,7 +48,6 @@ func TestBadParse(t *testing.T) {
 		{`mq+unix://`, ErrInvalidTransportProtocol},
 		{`mq+tcp://`, ErrInvalidTransportProtocol},
 	}
-
 	for i, test := range tests {
 		_, err := Parse(test.s)
 		if err == nil {
@@ -159,27 +158,24 @@ func TestParse(t *testing.T) {
 
 		{`ve://user:pass@vertica-host/dbvertica?tlsmode=server-strict`, `vertica`, `vertica://user:pass@vertica-host:5433/dbvertica?tlsmode=server-strict`, ``}, // 68
 
-		{`moderncsqlite:///path/to/file.sqlite3`, `sqlite`, `/path/to/file.sqlite3`, ``},
-		{`modernsqlite:///path/to/file.sqlite3`, `sqlite`, `/path/to/file.sqlite3`, ``},
-		{`mq://path/to/file.sqlite3`, `sqlite`, `path/to/file.sqlite3`, ``},
-		{`mq:path/to/file.sqlite3`, `sqlite`, `path/to/file.sqlite3`, ``},
-		{`mq:./path/to/file.sqlite3`, `sqlite`, `./path/to/file.sqlite3`, ``},
-		{`mq://./path/to/file.sqlite3?loc=auto`, `sqlite`, `./path/to/file.sqlite3?loc=auto`, ``},
-		{`mq::memory:?loc=auto`, `sqlite`, `:memory:?loc=auto`, ``},
-		{`mq://:memory:?loc=auto`, `sqlite`, `:memory:?loc=auto`, ``},
+		{`moderncsqlite:///path/to/file.sqlite3`, `moderncsqlite`, `/path/to/file.sqlite3`, ``},
+		{`modernsqlite:///path/to/file.sqlite3`, `moderncsqlite`, `/path/to/file.sqlite3`, ``},
+		{`mq://path/to/file.sqlite3`, `moderncsqlite`, `path/to/file.sqlite3`, ``},
+		{`mq:path/to/file.sqlite3`, `moderncsqlite`, `path/to/file.sqlite3`, ``},
+		{`mq:./path/to/file.sqlite3`, `moderncsqlite`, `./path/to/file.sqlite3`, ``},
+		{`mq://./path/to/file.sqlite3?loc=auto`, `moderncsqlite`, `./path/to/file.sqlite3?loc=auto`, ``},
+		{`mq::memory:?loc=auto`, `moderncsqlite`, `:memory:?loc=auto`, ``},
+		{`mq://:memory:?loc=auto`, `moderncsqlite`, `:memory:?loc=auto`, ``},
 	}
-
 	for i, test := range tests {
 		u, err := Parse(test.s)
 		if err != nil {
 			t.Errorf("test %d expected no error, got: %v", i, err)
 			continue
 		}
-
 		if u.Driver != test.d {
 			t.Errorf("test %d expected driver `%s`, got: `%s`", i, test.d, u.Driver)
 		}
-
 		if u.DSN != test.exp {
 			_, err := os.Stat(test.path)
 			if test.path != "" && err != nil && os.IsNotExist(err) {

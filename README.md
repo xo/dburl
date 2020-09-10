@@ -110,8 +110,6 @@ supported out of the box:
 | TiDB (tidb)                    | ti [mysql]                               |
 | Vitess (vitess)                | vt [mysql]                               |
 |                                |                                          |
-| Google Spanner (spanner)       | gs, google, span (not yet public)        |
-|                                |                                          |
 | MySQL (mymysql)                | zm, mymy                                 |
 | PostgreSQL (pgx)               | px                                       |
 |                                |                                          |
@@ -166,8 +164,6 @@ to be imported:
 | MemSQL (memsql)                | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)                    |
 | TiDB (tidb)                    | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)                    |
 | Vitess (vitess)                | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)                    |
-|                                |                                                                                             |
-| Google Spanner (spanner)       | github.com/xo/spanner (not yet public)                                                      |
 |                                |                                                                                             |
 | MySQL (mymysql)                | [github.com/ziutek/mymysql/godrv](https://github.com/ziutek/mymysql)                        |
 | PostgreSQL (pgx)               | [github.com/jackc/pgx/stdlib](https://github.com/jackc/pgx)                                 |

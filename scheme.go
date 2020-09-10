@@ -65,9 +65,6 @@ func BaseSchemes() []Scheme {
 		{"tidb", GenMySQL, 0, false, nil, "mysql"},
 		{"vitess", GenMySQL, 0, false, []string{"vt"}, "mysql"},
 
-		// testing
-		{"spanner", GenScheme("spanner"), 0, false, []string{"gs", "google", "span"}, ""},
-
 		// alternate implementations
 		{"mymysql", GenMyMySQL, ProtoTCP | ProtoUDP | ProtoUnix, false, []string{"zm", "mymy"}, ""},
 		{"pgx", GenScheme("postgres"), ProtoUnix, false, []string{"px"}, ""},
@@ -94,10 +91,9 @@ func BaseSchemes() []Scheme {
 }
 
 func init() {
+	// register schemes
 	schemes := BaseSchemes()
 	schemeMap = make(map[string]*Scheme, len(schemes))
-
-	// register
 	for _, scheme := range schemes {
 		Register(scheme)
 	}
@@ -112,20 +108,24 @@ func registerAlias(name, alias string, doSort bool) {
 	if !ok {
 		panic(fmt.Sprintf("scheme %s not registered", name))
 	}
-
 	if doSort && has(scheme.Aliases, alias) {
 		panic(fmt.Sprintf("scheme %s already has alias %s", name, alias))
 	}
-
 	if _, ok := schemeMap[alias]; ok {
 		panic(fmt.Sprintf("scheme %s already registered", alias))
 	}
-
 	scheme.Aliases = append(scheme.Aliases, alias)
 	if doSort {
-		sort.Sort(ss(scheme.Aliases))
+		sort.Slice(scheme.Aliases, func(i, j int) bool {
+			if len(scheme.Aliases[i]) <= len(scheme.Aliases[j]) {
+				return true
+			}
+			if len(scheme.Aliases[j]) < len(scheme.Aliases[i]) {
+				return false
+			}
+			return scheme.Aliases[i] < scheme.Aliases[j]
+		})
 	}
-
 	schemeMap[alias] = scheme
 }
 
@@ -134,16 +134,13 @@ func Register(scheme Scheme) {
 	if scheme.Generator == nil {
 		panic("must specify Generator when registering Scheme")
 	}
-
 	if scheme.Opaque && scheme.Proto&ProtoUnix != 0 {
 		panic("scheme must support only Opaque or Unix protocols, not both")
 	}
-
-	// register
+	// check if registered
 	if _, ok := schemeMap[scheme.Driver]; ok {
 		panic(fmt.Sprintf("scheme %s already registered", scheme.Driver))
 	}
-
 	sz := &Scheme{
 		Driver:    scheme.Driver,
 		Generator: scheme.Generator,
@@ -151,9 +148,7 @@ func Register(scheme Scheme) {
 		Opaque:    scheme.Opaque,
 		Override:  scheme.Override,
 	}
-
 	schemeMap[scheme.Driver] = sz
-
 	// add aliases
 	var hasShort bool
 	for _, alias := range scheme.Aliases {
@@ -164,19 +159,24 @@ func Register(scheme Scheme) {
 			registerAlias(scheme.Driver, alias, false)
 		}
 	}
-
 	if !hasShort && len(scheme.Driver) > 2 {
 		registerAlias(scheme.Driver, scheme.Driver[:2], false)
 	}
-
 	// ensure always at least one alias, and that if Driver is 2 characters,
 	// that it gets added as well
 	if len(sz.Aliases) == 0 || len(scheme.Driver) == 2 {
 		sz.Aliases = append(sz.Aliases, scheme.Driver)
 	}
-
 	// sort
-	sort.Sort(ss(sz.Aliases))
+	sort.Slice(sz.Aliases, func(i, j int) bool {
+		if len(sz.Aliases[i]) <= len(sz.Aliases[j]) {
+			return true
+		}
+		if len(sz.Aliases[j]) < len(sz.Aliases[i]) {
+			return false
+		}
+		return sz.Aliases[i] < sz.Aliases[j]
+	})
 }
 
 // Unregister unregisters a Scheme and all associated aliases.
@@ -204,7 +204,6 @@ func has(a []string, b string) bool {
 			return true
 		}
 	}
-
 	return false
 }
 
@@ -216,7 +215,6 @@ func SchemeDriverAndAliases(name string) (string, []string) {
 		if scheme.Override != "" {
 			driver = scheme.Override
 		}
-
 		var aliases []string
 		for _, alias := range scheme.Aliases {
 			if alias == driver {
@@ -224,29 +222,16 @@ func SchemeDriverAndAliases(name string) (string, []string) {
 			}
 			aliases = append(aliases, alias)
 		}
-
-		sort.Sort(ss(aliases))
-
+		sort.Slice(aliases, func(i, j int) bool {
+			if len(aliases[i]) <= len(aliases[j]) {
+				return true
+			}
+			if len(aliases[j]) < len(aliases[i]) {
+				return false
+			}
+			return aliases[i] < aliases[j]
+		})
 		return driver, aliases
 	}
-
 	return "", nil
-}
-
-// ss is a util type to provide sorting of a string slice (used for sorting
-// aliases).
-type ss []string
-
-func (s ss) Len() int      { return len(s) }
-func (s ss) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
-func (s ss) Less(i, j int) bool {
-	if len(s[i]) <= len(s[j]) {
-		return true
-	}
-
-	if len(s[j]) < len(s[i]) {
-		return false
-	}
-
-	return s[i] < s[j]
 }

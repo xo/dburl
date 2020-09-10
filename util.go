@@ -8,41 +8,6 @@ import (
 	"strings"
 )
 
-// contains code taken from go1.8, for purposes of backwards compatability with
-// older go versions.
-
-// hostname returns u.Host, without any port number.
-//
-// If Host is an IPv6 literal with a port number, Hostname returns the
-// IPv6 literal without the square brackets. IPv6 literals may include
-// a zone identifier.
-func hostname(hostport string) string {
-	colon := strings.IndexByte(hostport, ':')
-	if colon == -1 {
-		return hostport
-	}
-	if i := strings.IndexByte(hostport, ']'); i != -1 {
-		return strings.TrimPrefix(hostport[:i], "[")
-	}
-	return hostport[:colon]
-}
-
-// hostport returns the port part of u.Host, without the leading colon.
-// If u.Host doesn't contain a port, Port returns an empty string.
-func hostport(hostport string) string {
-	colon := strings.IndexByte(hostport, ':')
-	if colon == -1 {
-		return ""
-	}
-	if i := strings.Index(hostport, "]:"); i != -1 {
-		return hostport[i+len("]:"):]
-	}
-	if strings.Contains(hostport, "]") {
-		return ""
-	}
-	return hostport[colon+len(":"):]
-}
-
 // genOptions takes URL values and generates options, joining together with
 // joiner, and separated by sep, with any multi URL values joined by valSep,
 // ignoring any values with keys in ignore.
@@ -54,13 +19,11 @@ func genOptions(q url.Values, joiner, assign, sep, valSep string, skipWhenEmpty 
 	if qlen == 0 {
 		return ""
 	}
-
 	// make ignore map
 	ig := make(map[string]bool, len(ignore))
 	for _, v := range ignore {
 		ig[strings.ToLower(v)] = true
 	}
-
 	// sort keys
 	s := make([]string, len(q))
 	var i int
@@ -69,7 +32,6 @@ func genOptions(q url.Values, joiner, assign, sep, valSep string, skipWhenEmpty 
 		i++
 	}
 	sort.Strings(s)
-
 	var opts []string
 	for _, k := range s {
 		if !ig[strings.ToLower(k)] {
@@ -82,11 +44,9 @@ func genOptions(q url.Values, joiner, assign, sep, valSep string, skipWhenEmpty 
 			}
 		}
 	}
-
 	if len(opts) != 0 {
 		return joiner + strings.Join(opts, sep)
 	}
-
 	return ""
 }
 
@@ -119,7 +79,6 @@ func convertOptions(q url.Values, pairs ...string) url.Values {
 		}
 		n[k] = x
 	}
-
 	return n
 }
 
@@ -128,7 +87,6 @@ func mode(path string) os.FileMode {
 	if fi, err := os.Stat(path); err == nil {
 		return fi.Mode()
 	}
-
 	return 0
 }
 
@@ -146,7 +104,6 @@ func resolveSocket(path string) (string, string) {
 		}
 		dir, dbname = stdpath.Dir(dir), stdpath.Base(dir)
 	}
-
 	return path, ""
 }
 
@@ -162,18 +119,15 @@ func resolveDir(path string) (string, string, string) {
 			port = dir[i+1:]
 			dir = dir[:i]
 		}
-
 		if mode(dir)&os.ModeDir != 0 {
 			rest := strings.TrimPrefix(strings.TrimPrefix(strings.TrimPrefix(path, dir), ":"+port), "/")
 			return dir, port, rest
 		}
-
 		if j != -1 {
 			dir = dir[:j]
 		} else {
 			dir = ""
 		}
 	}
-
 	return path, "", ""
 }

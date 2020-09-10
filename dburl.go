@@ -83,8 +83,6 @@
 //   TiDB (tidb)                    | ti [mysql]
 //   Vitess (vitess)                | vt [mysql]
 //   -------------------------------|--------------------------------------------
-//   Google Spanner (spanner)       | gs, google, span (not yet public)
-//   -------------------------------|--------------------------------------------
 //   MySQL (mymysql)                | zm, mymy
 //   PostgreSQL (pgx)               | px
 //   -------------------------------|--------------------------------------------
@@ -130,8 +128,6 @@
 //   MemSQL (memsql)                | github.com/go-sql-driver/mysql
 //   TiDB (tidb)                    | github.com/go-sql-driver/mysql
 //   Vitess (vitess)                | github.com/go-sql-driver/mysql
-//   -------------------------------|-------------------------------------------------
-//   Google Spanner (spanner)       | github.com/xo/spanner (not yet public)
 //   -------------------------------|-------------------------------------------------
 //   MySQL (mymysql)                | github.com/ziutek/mymysql/godrv
 //   PostgreSQL (pgx)               | github.com/jackc/pgx/stdlib
@@ -218,6 +214,5 @@ func Open(urlstr string) (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return sql.Open(u.Driver, u.DSN)
 }
