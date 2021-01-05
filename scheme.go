@@ -54,7 +54,7 @@ func BaseSchemes() []Scheme {
 		// core databases
 		{"mssql", GenSQLServer, 0, false, []string{"sqlserver"}, ""},
 		{"mysql", GenMySQL, ProtoTCP | ProtoUDP | ProtoUnix, false, []string{"mariadb", "maria", "percona", "aurora"}, ""},
-		{"godror", GenOracle, 0, false, []string{"or", "ora", "oracle", "oci", "oci8", "odpi", "odpi-c"}, ""},
+		{"oracle", GenScheme("oracle"), 0, false, []string{"ora", "oci", "oci8", "odpi", "odpi-c"}, ""},
 		{"postgres", GenPostgres, ProtoUnix, false, []string{"pg", "postgresql", "pgsql"}, ""},
 		{"sqlite3", GenOpaque, 0, true, []string{"sqlite", "file"}, ""},
 
@@ -68,15 +68,24 @@ func BaseSchemes() []Scheme {
 		// alternate implementations
 		{"mymysql", GenMyMySQL, ProtoTCP | ProtoUDP | ProtoUnix, false, []string{"zm", "mymy"}, ""},
 		{"pgx", GenScheme("postgres"), ProtoUnix, false, []string{"px"}, ""},
+		{"godror", GenOracle, 0, false, []string{"gr"}, ""},
 
 		// other databases
 		{"adodb", GenADODB, 0, false, []string{"ado"}, ""},
+		{"athena", GenScheme("s3"), 0, false, []string{"s3", "aws"}, ""},
 		{"avatica", GenFromURL("http://localhost:8765/"), 0, false, []string{"phoenix"}, ""},
+		{"bigquery", GenScheme("bigquery"), 0, false, []string{"bq"}, ""},
 		{"clickhouse", GenClickhouse, 0, false, []string{"ch"}, ""},
+		{"cosmos", GenCosmos, 0, false, []string{"cm"}, ""},
 		{"cql", GenCassandra, 0, false, []string{"ca", "cassandra", "datastax", "scy", "scylla"}, ""},
 		{"firebirdsql", GenFirebird, 0, false, []string{"fb", "firebird"}, ""},
+		{"genji", GenOpaque, 0, true, []string{"gj"}, ""},
+		{"h2", GenScheme("h2"), 0, false, nil, ""},
 		{"hdb", GenScheme("hdb"), 0, false, []string{"sa", "saphana", "sap", "hana"}, ""},
+		{"hive", GenSchemeTruncate, 0, false, nil, ""},
 		{"ignite", GenIgnite, 0, false, []string{"ig", "gridgain"}, ""},
+		{"impala", GenScheme("impala"), 0, false, nil, ""},
+		{"maxcompute", GenSchemeTruncate, 0, false, []string{"mc"}, ""},
 		{"moderncsqlite", GenOpaque, 0, true, []string{"mq", "modernsqlite"}, ""},
 		{"n1ql", GenFromURL("http://localhost:9000/"), 0, false, []string{"couchbase"}, ""},
 		{"odbc", GenODBC, ProtoAny, false, nil, ""},
@@ -84,6 +93,7 @@ func BaseSchemes() []Scheme {
 		{"presto", GenPresto, 0, false, []string{"prestodb", "prestos", "prs", "prestodbs"}, ""},
 		{"ql", GenOpaque, 0, true, []string{"ql", "cznic", "cznicql"}, ""},
 		{"snowflake", GenSnowflake, 0, false, []string{"sf"}, ""},
+		{"spanner", GenSpanner, 0, false, []string{"sp"}, ""},
 		{"tds", GenFromURL("http://localhost:5000/"), 0, false, []string{"ax", "ase", "sapase"}, ""},
 		{"vertica", GenFromURL("vertica://localhost:5433/"), 0, false, nil, ""},
 		{"voltdb", GenVoltDB, 0, false, []string{"volt", "vdb"}, ""},

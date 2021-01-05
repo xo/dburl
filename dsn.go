@@ -1,6 +1,7 @@
 package dburl
 
 import (
+	"fmt"
 	"net/url"
 	stdpath "path"
 	"strings"
@@ -510,4 +511,49 @@ func GenSnowflake(u *URL) (string, error) {
 		user += ":" + pass
 	}
 	return user + "@" + host + port + "/" + dbname + genQueryOptions(u.Query()), nil
+}
+
+// GenCosmos generates a azure cosmos DSN from the passed URL.
+func GenCosmos(u *URL) (string, error) {
+	host, port, dbname := u.Hostname(), u.Port(), strings.TrimPrefix(u.Path, "/")
+	if port != "" {
+		port = ":" + port
+	}
+	q := u.Query()
+	q.Set("AccountEndpoint", "https://"+host+port)
+	// add user/pass
+	if u.User == nil {
+		return "", ErrMissingUser
+	}
+	q.Set("AccountKey", u.User.Username())
+	if dbname != "" {
+		q.Set("Db", dbname)
+	}
+	return genOptionsODBC(q, true), nil
+}
+
+// GenSpanner generates a google spanner DSN from the passed URL.
+func GenSpanner(u *URL) (string, error) {
+	project, instance, dbname := u.Hostname(), "", strings.TrimPrefix(u.Path, "/")
+	if project == "" {
+		return "", ErrMissingHost
+	}
+	i := strings.Index(dbname, "/")
+	if i == -1 {
+		return "", ErrMissingPath
+	}
+	instance, dbname = dbname[:i], dbname[i+1:]
+	if instance == "" || dbname == "" {
+		return "", ErrMissingPath
+	}
+	return fmt.Sprintf(`project/%s/instances/%s/databases/%s`, project, instance, dbname), nil
+}
+
+// GetSchemeTruncate generates a DSN by truncating the scheme://.
+func GenSchemeTruncate(u *URL) (string, error) {
+	s := u.String()
+	if i := strings.Index(s, "://"); i != -1 {
+		return s[i+3:], nil
+	}
+	return s, nil
 }

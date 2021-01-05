@@ -123,14 +123,14 @@ func TestParse(t *testing.T) {
 		{`sq::memory:?loc=auto`, `sqlite3`, `:memory:?loc=auto`, ``},
 		{`sq://:memory:?loc=auto`, `sqlite3`, `:memory:?loc=auto`, ``},
 
-		{`or://user:pass@localhost:3000/sidname`, `godror`, `user/pass@//localhost:3000/sidname`, ``}, // 41
-		{`or://localhost`, `godror`, `localhost`, ``},
-		{`oracle://user:pass@localhost`, `godror`, `user/pass@//localhost`, ``},
-		{`oracle://user:pass@localhost/service_name/instance_name`, `godror`, `user/pass@//localhost/service_name/instance_name`, ``},
-		{`oracle://user:pass@localhost:2000/xe.oracle.docker`, `godror`, `user/pass@//localhost:2000/xe.oracle.docker`, ``},
-		{`or://username:password@host/ORCL`, `godror`, `username/password@//host/ORCL`, ``},
-		{`odpi://username:password@sales-server:1521/sales.us.acme.com`, `godror`, `username/password@//sales-server:1521/sales.us.acme.com`, ``},
-		{`godror://username:password@sales-server.us.acme.com/sales.us.oracle.com`, `godror`, `username/password@//sales-server.us.acme.com/sales.us.oracle.com`, ``},
+		{`or://user:pass@localhost:3000/sidname`, `oracle`, `oracle://user:pass@localhost:3000/sidname`, ``}, // 41
+		{`or://localhost`, `oracle`, `oracle://localhost`, ``},
+		{`oracle://user:pass@localhost`, `oracle`, `oracle://user:pass@localhost`, ``},
+		{`oracle://user:pass@localhost/service_name/instance_name`, `oracle`, `oracle://user:pass@localhost/service_name/instance_name`, ``},
+		{`oracle://user:pass@localhost:2000/xe.oracle.docker`, `oracle`, `oracle://user:pass@localhost:2000/xe.oracle.docker`, ``},
+		{`or://username:password@host/ORCL`, `oracle`, `oracle://username:password@host/ORCL`, ``},
+		{`odpi://username:password@sales-server:1521/sales.us.acme.com`, `oracle`, `oracle://username:password@sales-server:1521/sales.us.acme.com`, ``},
+		{`oracle://username:password@sales-server.us.acme.com/sales.us.oracle.com`, `oracle`, `oracle://username:password@sales-server.us.acme.com/sales.us.oracle.com`, ``},
 
 		{`presto://host:8001/`, `presto`, `http://user@host:8001?catalog=default`, ``}, // 49
 		{`presto://host/catalogname/schemaname`, `presto`, `http://user@host:8080?catalog=catalogname&schema=schemaname`, ``},
@@ -158,7 +158,7 @@ func TestParse(t *testing.T) {
 
 		{`ve://user:pass@vertica-host/dbvertica?tlsmode=server-strict`, `vertica`, `vertica://user:pass@vertica-host:5433/dbvertica?tlsmode=server-strict`, ``}, // 68
 
-		{`moderncsqlite:///path/to/file.sqlite3`, `moderncsqlite`, `/path/to/file.sqlite3`, ``},
+		{`moderncsqlite:///path/to/file.sqlite3`, `moderncsqlite`, `/path/to/file.sqlite3`, ``}, // 69
 		{`modernsqlite:///path/to/file.sqlite3`, `moderncsqlite`, `/path/to/file.sqlite3`, ``},
 		{`mq://path/to/file.sqlite3`, `moderncsqlite`, `path/to/file.sqlite3`, ``},
 		{`mq:path/to/file.sqlite3`, `moderncsqlite`, `path/to/file.sqlite3`, ``},
@@ -166,6 +166,15 @@ func TestParse(t *testing.T) {
 		{`mq://./path/to/file.sqlite3?loc=auto`, `moderncsqlite`, `./path/to/file.sqlite3?loc=auto`, ``},
 		{`mq::memory:?loc=auto`, `moderncsqlite`, `:memory:?loc=auto`, ``},
 		{`mq://:memory:?loc=auto`, `moderncsqlite`, `:memory:?loc=auto`, ``},
+
+		{`gr://user:pass@localhost:3000/sidname`, `godror`, `user/pass@//localhost:3000/sidname`, ``}, // 77
+		{`gr://localhost`, `godror`, `localhost`, ``},
+		{`godror://user:pass@localhost`, `godror`, `user/pass@//localhost`, ``},
+		{`godror://user:pass@localhost/service_name/instance_name`, `godror`, `user/pass@//localhost/service_name/instance_name`, ``},
+		{`godror://user:pass@localhost:2000/xe.oracle.docker`, `godror`, `user/pass@//localhost:2000/xe.oracle.docker`, ``},
+		{`gr://username:password@host/ORCL`, `godror`, `username/password@//host/ORCL`, ``},
+		{`gr://username:password@sales-server:1521/sales.us.acme.com`, `godror`, `username/password@//sales-server:1521/sales.us.acme.com`, ``},
+		{`godror://username:password@sales-server.us.acme.com/sales.us.oracle.com`, `godror`, `username/password@//sales-server.us.acme.com/sales.us.oracle.com`, ``},
 	}
 	for i, test := range tests {
 		u, err := Parse(test.s)
