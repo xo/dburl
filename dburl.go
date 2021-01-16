@@ -111,6 +111,7 @@
 //	 SAP ASE (tds)                   | ax, ase, sapase
 //	 SAP HANA (hdb)                  | sa, saphana, sap, hana
 //	 Snowflake (snowflake)           | sf
+//	 Trino (trino)                   | tr, trino, trinos, trs
 //	 Vertica (vertica)               | ve
 //	 VoltDB (voltdb)                 | vo, volt, vdb
 //
@@ -167,6 +168,7 @@
 //	 SAP ASE (tds)                   | github.com/thda/tds
 //	 SAP HANA (hdb)                  | github.com/SAP/go-hdb/driver
 //	 Snowflake (snowflake)           | github.com/snowflakedb/gosnowflake
+//	 Trino (trino)                   | github.com/trinodb/trino-go-client/trino
 //	 Vertica (vertica)               | github.com/vertica/vertica-sql-go
 //	 VoltDB (voltdb)                 | github.com/VoltDB/voltdb-client-go/voltdbclient
 //

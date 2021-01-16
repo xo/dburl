@@ -139,6 +139,7 @@ supported out of the box:
 | SAP ASE (tds)                   | ax, ase, sapase                          |
 | SAP HANA (hdb)                  | sa, saphana, sap, hana                   |
 | Snowflake (snowflake)           | sf                                       |
+| Trino (trino)                   | tr, trino, trinos, trs                   |
 | Vertica (vertica)               | ve                                       |
 | VoltDB (voltdb)                 | vo, volt, vdb                            |
 <!-- END SCHEME TABLE -->
@@ -206,6 +207,7 @@ to be imported:
 | SAP ASE (tds)                   | [github.com/thda/tds](https://github.com/thda/tds)                                          |
 | SAP HANA (hdb)                  | [github.com/SAP/go-hdb/driver](https://github.com/SAP/go-hdb)                               |
 | Snowflake (snowflake)           | [github.com/snowflakedb/gosnowflake](https://github.com/snowflakedb/gosnowflake)            |
+| Trino (trino)                   | [github.com/trinodb/trino-go-client/trino](https://github.com/trinodb/trino-go-client) |
 | Vertica (vertica)               | [github.com/vertica/vertica-sql-go](https://github.com/vertica/vertica-sql-go)              |
 | VoltDB (voltdb)                 | [github.com/VoltDB/voltdb-client-go/voltdbclient](github.com/VoltDB/voltdb-client-go])      |
 <!-- END DRIVER TABLE -->

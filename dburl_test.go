@@ -175,6 +175,10 @@ func TestParse(t *testing.T) {
 		{`gr://username:password@host/ORCL`, `godror`, `username/password@//host/ORCL`, ``},
 		{`gr://username:password@sales-server:1521/sales.us.acme.com`, `godror`, `username/password@//sales-server:1521/sales.us.acme.com`, ``},
 		{`godror://username:password@sales-server.us.acme.com/sales.us.oracle.com`, `godror`, `username/password@//sales-server.us.acme.com/sales.us.oracle.com`, ``},
+
+		{`trino://host:8001/`, `trino`, `http://user@host:8001?catalog=default`, ``}, // 85
+		{`trino://host/catalogname/schemaname`, `trino`, `http://user@host:8080?catalog=catalogname&schema=schemaname`, ``},
+		{`trs://admin@host/catalogname`, `trino`, `https://admin@host:8443?catalog=catalogname`, ``},
 	}
 	for i, test := range tests {
 		u, err := Parse(test.s)

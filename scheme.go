@@ -95,6 +95,7 @@ func BaseSchemes() []Scheme {
 		{"snowflake", GenSnowflake, 0, false, []string{"sf"}, ""},
 		{"spanner", GenSpanner, 0, false, []string{"sp"}, ""},
 		{"tds", GenFromURL("http://localhost:5000/"), 0, false, []string{"ax", "ase", "sapase"}, ""},
+		{"trino", GenPresto, 0, false, []string{"trino", "trinos", "trs"}, ""},
 		{"vertica", GenFromURL("vertica://localhost:5433/"), 0, false, nil, ""},
 		{"voltdb", GenVoltDB, 0, false, []string{"volt", "vdb"}, ""},
 	}
