@@ -74,7 +74,7 @@
 //   Microsoft SQL Server (mssql)    | ms, sqlserver
 //   MySQL (mysql)                   | my, mariadb, maria, percona, aurora
 //   Oracle Database (oracle)        | or, ora, oci, oci8, odpi, odpi-c
-//   PostgreSQL (postgres)           | pg, postgresql, pgsql
+//   PostgreSQL (postgres)           | pg, postgresql, pgsql, gcppostgres, awspostgres
 //   SQLite3 (sqlite3)               | sq, sqlite, file
 //   --------------------------------|--------------------------------------------
 //   Amazon Redshift (redshift)      | rs [postgres]
