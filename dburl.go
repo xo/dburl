@@ -175,7 +175,7 @@
 // * OLE ODBC is a special alias for using the "MSDASQL.1" OLE provider with the
 // ADODB driver on Windows. oleodbc:// URLs will be converted to the equivalent
 // ADODB DSN with "Extended Properties" having the respective ODBC parameters,
-// including the underlying transport prootocol. As such, oleodbc+protocol://user:pass@host/dbname
+// including the underlying transport protocol. As such, oleodbc+transport://user:pass@host/dbname
 // URLs are equivalent to adodb://MSDASQL.1/?Extended+Properties=.... on
 // Windows. See GenOLEODBC for information regarding how URL components are
 // mapped and passed to ADODB's Extended Properties parameter.
@@ -204,6 +204,7 @@ func (err Error) Error() string {
 	return string(err)
 }
 
+// Error values.
 const (
 	// ErrInvalidDatabaseScheme is the invalid database scheme error.
 	ErrInvalidDatabaseScheme Error = "invalid database scheme"

@@ -96,7 +96,7 @@ func GenPostgres(u *URL) (string, error) {
 		return "", ErrRelativePathNotSupported
 	}
 	// resolve path
-	if u.Proto == "unix" {
+	if u.Transport == "unix" {
 		if host == "" {
 			dbname = "/" + dbname
 		}
@@ -160,7 +160,7 @@ func GenMySQL(u *URL) (string, error) {
 		}
 	}
 	// resolve path
-	if u.Proto == "unix" {
+	if u.Transport == "unix" {
 		if host == "" {
 			dbname = "/" + dbname
 		}
@@ -172,7 +172,7 @@ func GenMySQL(u *URL) (string, error) {
 		u.hostPortDB = []string{host, port, dbname}
 	}
 	// if host or proto is not empty
-	if u.Proto != "unix" {
+	if u.Transport != "unix" {
 		if host == "" {
 			host = "127.0.0.1"
 		}
@@ -184,7 +184,7 @@ func GenMySQL(u *URL) (string, error) {
 		port = ":" + port
 	}
 	// add proto and database
-	dsn += u.Proto + "(" + host + port + ")" + "/" + dbname
+	dsn += u.Transport + "(" + host + port + ")" + "/" + dbname
 	return dsn + genQueryOptions(u.Query()), nil
 }
 
@@ -192,7 +192,7 @@ func GenMySQL(u *URL) (string, error) {
 func GenMyMySQL(u *URL) (string, error) {
 	host, port, dbname := u.Hostname(), u.Port(), strings.TrimPrefix(u.Path, "/")
 	// resolve path
-	if u.Proto == "unix" {
+	if u.Transport == "unix" {
 		if host == "" {
 			dbname = "/" + dbname
 		}
@@ -204,7 +204,7 @@ func GenMyMySQL(u *URL) (string, error) {
 		u.hostPortDB = []string{host, port, dbname}
 	}
 	// if host or proto is not empty
-	if u.Proto != "unix" {
+	if u.Transport != "unix" {
 		if host == "" {
 			host = "127.0.0.1"
 		}
@@ -216,7 +216,7 @@ func GenMyMySQL(u *URL) (string, error) {
 		port = ":" + port
 	}
 	// build dsn
-	dsn := u.Proto + ":" + host + port
+	dsn := u.Transport + ":" + host + port
 	dsn += genOptions(
 		convertOptions(u.Query(), "true", ""),
 		",", "=", ",", " ", false,
@@ -323,10 +323,10 @@ func GenODBC(u *URL) (string, error) {
 	}
 	// build q
 	q := u.Query()
-	q.Set("Driver", "{"+strings.Replace(u.Proto, "+", " ", -1)+"}")
+	q.Set("Driver", "{"+strings.Replace(u.Transport, "+", " ", -1)+"}")
 	q.Set("Server", host)
 	if port == "" {
-		proto := strings.ToLower(u.Proto)
+		proto := strings.ToLower(u.Transport)
 		switch {
 		case strings.Contains(proto, "mysql"):
 			q.Set("Port", "3306")

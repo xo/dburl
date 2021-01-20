@@ -5,16 +5,16 @@ import (
 	"sort"
 )
 
-// Proto are the allowed transport protocol types in a database URL scheme.
-type Proto uint
+// Transport are the allowed transport protocol types in a database URL scheme.
+type Transport uint
 
 // Proto types.
 const (
-	ProtoNone Proto = 0
-	ProtoTCP  Proto = 1
-	ProtoUDP  Proto = 2
-	ProtoUnix Proto = 4
-	ProtoAny  Proto = 8
+	TransportNone Transport = 0
+	TransportTCP  Transport = 1
+	TransportUDP  Transport = 2
+	TransportUnix Transport = 4
+	TransportAny  Transport = 8
 )
 
 // Scheme wraps information used for registering a URL scheme with
@@ -35,8 +35,8 @@ type Scheme struct {
 	// Note: this func should not modify the passed URL.
 	Generator func(*URL) (string, error)
 
-	// Proto are allowed protocol types for the scheme.
-	Proto Proto
+	// Transport are allowed protocol types for the scheme.
+	Transport Transport
 
 	// Opaque toggles Parse to not re-process URLs with an "opaque" component.
 	Opaque bool
@@ -53,9 +53,9 @@ func BaseSchemes() []Scheme {
 	return []Scheme{
 		// core databases
 		{"mssql", GenSQLServer, 0, false, []string{"sqlserver"}, ""},
-		{"mysql", GenMySQL, ProtoTCP | ProtoUDP | ProtoUnix, false, []string{"mariadb", "maria", "percona", "aurora"}, ""},
+		{"mysql", GenMySQL, TransportTCP | TransportUDP | TransportUnix, false, []string{"mariadb", "maria", "percona", "aurora"}, ""},
 		{"oracle", GenScheme("oracle"), 0, false, []string{"ora", "oci", "oci8", "odpi", "odpi-c"}, ""},
-		{"postgres", GenPostgres, ProtoUnix, false, []string{"pg", "postgresql", "pgsql"}, ""},
+		{"postgres", GenPostgres, TransportUnix, false, []string{"pg", "postgresql", "pgsql"}, ""},
 		{"sqlite3", GenOpaque, 0, true, []string{"sqlite", "file"}, ""},
 
 		// wire compatibles
@@ -66,8 +66,8 @@ func BaseSchemes() []Scheme {
 		{"vitess", GenMySQL, 0, false, []string{"vt"}, "mysql"},
 
 		// alternate implementations
-		{"mymysql", GenMyMySQL, ProtoTCP | ProtoUDP | ProtoUnix, false, []string{"zm", "mymy"}, ""},
-		{"pgx", GenScheme("postgres"), ProtoUnix, false, []string{"px"}, ""},
+		{"mymysql", GenMyMySQL, TransportTCP | TransportUDP | TransportUnix, false, []string{"zm", "mymy"}, ""},
+		{"pgx", GenScheme("postgres"), TransportUnix, false, []string{"px"}, ""},
 		{"godror", GenOracle, 0, false, []string{"gr"}, ""},
 
 		// other databases
@@ -88,8 +88,8 @@ func BaseSchemes() []Scheme {
 		{"maxcompute", GenSchemeTruncate, 0, false, []string{"mc"}, ""},
 		{"moderncsqlite", GenOpaque, 0, true, []string{"mq", "modernsqlite"}, ""},
 		{"n1ql", GenFromURL("http://localhost:9000/"), 0, false, []string{"couchbase"}, ""},
-		{"odbc", GenODBC, ProtoAny, false, nil, ""},
-		{"oleodbc", GenOLEODBC, ProtoAny, false, []string{"oo", "ole"}, "adodb"},
+		{"odbc", GenODBC, TransportAny, false, nil, ""},
+		{"oleodbc", GenOLEODBC, TransportAny, false, []string{"oo", "ole"}, "adodb"},
 		{"presto", GenPresto, 0, false, []string{"prestodb", "prestos", "prs", "prestodbs"}, ""},
 		{"ql", GenOpaque, 0, true, []string{"ql", "cznic", "cznicql"}, ""},
 		{"snowflake", GenSnowflake, 0, false, []string{"sf"}, ""},
@@ -145,7 +145,7 @@ func Register(scheme Scheme) {
 	if scheme.Generator == nil {
 		panic("must specify Generator when registering Scheme")
 	}
-	if scheme.Opaque && scheme.Proto&ProtoUnix != 0 {
+	if scheme.Opaque && scheme.Transport&TransportUnix != 0 {
 		panic("scheme must support only Opaque or Unix protocols, not both")
 	}
 	// check if registered
@@ -155,7 +155,7 @@ func Register(scheme Scheme) {
 	sz := &Scheme{
 		Driver:    scheme.Driver,
 		Generator: scheme.Generator,
-		Proto:     scheme.Proto,
+		Transport: scheme.Transport,
 		Opaque:    scheme.Opaque,
 		Override:  scheme.Override,
 	}
