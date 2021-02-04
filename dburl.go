@@ -103,6 +103,7 @@
 //	 Genji (genji)                    | gj
 //	 Google BigQuery (bigquery)       | bq
 //	 Google Spanner (spanner)         | sp
+//	 IBM Netezza (nzgo)               | nz, nzgo
 //	 Microsoft ADODB (adodb)          | ad, ado
 //	 ModernC SQLite (moderncsqlite)   | mq, modernsqlite
 //	 ODBC (odbc)                      | od
@@ -160,6 +161,7 @@
 //	 Genji (genji)                    | github.com/genjidb/genji/sql/driver
 //	 Google BigQuery (bigquery)       | gorm.io/driver/bigquery/driver
 //	 Google Spanner (spanner)         | github.com/rakyll/go-sql-driver-spanner
+//	 IBM Netezza (nzgo)               | github.com/IBM/nzgo
 //	 Microsoft ADODB (adodb)          | github.com/mattn/go-adodb
 //	 ModernC SQLite (moderncsqlite)   | modernc.org/sqlite
 //	 ODBC (odbc)                      | github.com/alexbrainman/odbc

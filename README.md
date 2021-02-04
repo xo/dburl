@@ -131,6 +131,7 @@ supported out of the box:
 | Genji (genji)                    | gj                                       |
 | Google BigQuery (bigquery)       | bq                                       |
 | Google Spanner (spanner)         | sp                                       |
+| IBM Netezza (nzgo)               | nz, netezza                              |
 | Microsoft ADODB (adodb)          | ad, ado                                  |
 | ModernC SQLite (moderncsqlite)   | mq, modernsqlite                         |
 | ODBC (odbc)                      | od                                       |
@@ -199,6 +200,7 @@ to be imported:
 | Genji (genji)                    | [github.com/genjidb/genji/sql/driver](https://github.com/genjidb/genji)                     |
 | Google BigQuery (bigquery)       | [gorm.io/driver/bigquery/driver](https://gorm.io/driver/bigquery/driver)                    |
 | Google Spanner (spanner)         | [github.com/rakyll/go-sql-driver-spanner](https://github.com/rakyll/go-sql-driver-spanner)  |
+| IBM Netezza (nzgo)               | [github.com/IBM/nzgo](https://github.com/IBM/nzgo)                                          |
 | Microsoft ADODB (adodb)          | [github.com/mattn/go-adodb](https://github.com/mattn/go-adodb)                              |
 | ModernC SQLite (moderncsqlite)   | [modernc.org/sqlite](https://modernc.org/sqlite)                                            |
 | ODBC (odbc)                      | [github.com/alexbrainman/odbc](https://github.com/alexbrainman/odbc)                        |
