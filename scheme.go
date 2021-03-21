@@ -52,11 +52,11 @@ type Scheme struct {
 func BaseSchemes() []Scheme {
 	return []Scheme{
 		// core databases
-		{"mssql", GenSQLServer, 0, false, []string{"sqlserver"}, ""},
 		{"mysql", GenMySQL, TransportTCP | TransportUDP | TransportUnix, false, []string{"mariadb", "maria", "percona", "aurora"}, ""},
 		{"oracle", GenScheme("oracle"), 0, false, []string{"ora", "oci", "oci8", "odpi", "odpi-c"}, ""},
 		{"postgres", GenPostgres, TransportUnix, false, []string{"pg", "postgresql", "pgsql"}, ""},
 		{"sqlite3", GenOpaque, 0, true, []string{"sqlite", "file"}, ""},
+		{"sqlserver", GenSQLServer, 0, false, []string{"ms", "mssql"}, ""},
 
 		// wire compatibles
 		{"cockroachdb", GenFromURL("postgres://localhost:26257/?sslmode=disable"), 0, false, []string{"cr", "cockroach", "crdb", "cdb"}, "postgres"},

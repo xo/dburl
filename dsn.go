@@ -120,7 +120,7 @@ func GenPostgres(u *URL) (string, error) {
 	return genOptions(q, "", "=", " ", ",", true), nil
 }
 
-// GenSQLServer generates a mssql DSN from the passed URL.
+// GenSQLServer generates a sqlserver DSN from the passed URL.
 func GenSQLServer(u *URL) (string, error) {
 	host, port, dbname := u.Hostname(), u.Port(), strings.TrimPrefix(u.Path, "/")
 	// add instance name to host if present
