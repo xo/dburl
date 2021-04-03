@@ -99,6 +99,7 @@
 //	 ClickHouse (clickhouse)          | ch
 //	 Couchbase (n1ql)                 | n1, couchbase
 //	 Cznic QL (ql)                    | ql, cznic, cznicql
+//	 CSVQ (csvq)                      | csv, tsv, json
 //	 Firebird SQL (firebirdsql)       | fb, firebird
 //	 Genji (genji)                    | gj
 //	 Google BigQuery (bigquery)       | bq
@@ -157,6 +158,7 @@
 //	 ClickHouse (clickhouse)          | github.com/ClickHouse/clickhouse-go
 //	 Couchbase (n1ql)                 | github.com/couchbase/go_n1ql
 //	 Cznic QL (ql)                    | modernc.org/ql
+//	 CSVQ (csvq)                      | github.com/mithrandie/csvq
 //	 Firebird SQL (firebirdsql)       | github.com/nakagami/firebirdsql
 //	 Genji (genji)                    | github.com/genjidb/genji/sql/driver
 //	 Google BigQuery (bigquery)       | gorm.io/driver/bigquery/driver
