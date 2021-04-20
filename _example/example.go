@@ -14,12 +14,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	var name string
-	err = db.QueryRow(`SELECT name FROM mytable WHERE id=10`).Scan(&name)
-	if err != nil {
+	if err := db.QueryRow(`SELECT name FROM mytable WHERE id=10`).Scan(&name); err != nil {
 		log.Fatal(err)
 	}
-
-	fmt.Printf(">> got: %s\n", name)
+	fmt.Println("name:", name)
 }

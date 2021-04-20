@@ -1,0 +1,25 @@
+on: [push, pull_request]
+name: Test
+jobs:
+  test:
+    strategy:
+      matrix:
+        go-version: [1.16.x]
+        platform: [ubuntu-latest]
+    runs-on: ${{ matrix.platform }}
+    steps:
+    - name: Install Packages
+      run: |
+        sudo apt-get -qq update
+        sudo apt-get install -y netcat-openbsd
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ matrix.go-version }}
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Test
+      run: |
+        sudo mkdir -p /var/run/postgresql /var/run/mysqld
+        sudo nc -lkU /var/run/mysqld/mysqld.sock &> /dev/null &
+        CGO_ENABLED=0 go test -v ./...

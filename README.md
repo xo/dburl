@@ -1,14 +1,11 @@
-# dburl [![GoDoc][godoc]][godoc-link]
+# About dburl
 
 Package `dburl` provides a standard, URL style mechanism for parsing and
 opening SQL database connection strings for [Go][go-project]. Provides
-standardized way to [parse][godoc-parse] and [open][godoc-open] URLs for
+standardized way to [parse][goref-parse] and [open][goref-open] URLs for
 popular databases PostgreSQL, MySQL, SQLite3, Oracle Database, Microsoft SQL
 Server, in addition to most other SQL databases with a publicly available Go
 driver.
-
-[godoc]: https://godoc.org/github.com/xo/dburl?status.svg (GoDoc)
-[godoc-link]: https://godoc.org/github.com/xo/dburl
 
 [Overview][] | [Quickstart][] | [Examples][] | [Schemes][] | [Installing][] | [Using][] | [About][]
 
@@ -19,6 +16,18 @@ driver.
 [Installing]: #installing (Installing)
 [Using]: #using (Using)
 [About]: #about (About)
+
+[![Unit Tests][dburl-ci-status]][dburl-ci]
+[![Go Reference][goref-dburl-status]][goref-dburl]
+[![Discord Discussion][discord-status]][discord]
+
+[dburl-ci]: https://github.com/xo/dburl/actions/workflows/test.yml
+[dburl-ci-status]: https://github.com/xo/dburl/actions/workflows/test.yml/badge.svg
+[goref-dburl]: https://pkg.go.dev/github.com/xo/dburl
+[goref-dburl-status]: https://pkg.go.dev/badge/github.com/xo/dburl.svg
+[discord]: https://discord.gg/yJKEzc7prt (Discord Discussion)
+[discord-status]: https://img.shields.io/discord/829150509658013727.svg?label=Discord&logo=Discord&colorB=7289da&style=flat-square (Discord Discussion)
+
 
 ## Database Connection URL Overview
 
@@ -49,7 +58,7 @@ or SID, and `/dbname` is optional. Please see below for examples.</i>
 ## Quickstart
 
 Database connection URLs in the above format can be parsed with the
-[`dburl.Parse` func][godoc-parse] as such:
+[`dburl.Parse` func][goref-parse] as such:
 
 ```go
 import (
@@ -59,8 +68,8 @@ u, err := dburl.Parse("postgresql://user:pass@localhost/mydatabase/?sslmode=disa
 if err != nil { /* ... */ }
 ```
 
-Additionally, a simple helper, [`dburl.Open`][godoc-open], is provided that
-will parse, open, and return a [standard `sql.DB` database][godoc-sql-db]
+Additionally, a simple helper, [`dburl.Open`][goref-open], is provided that
+will parse, open, and return a [standard `sql.DB` database][goref-sql-db]
 connection:
 
 ```go
@@ -74,7 +83,7 @@ if err != nil { /* ... */ }
 ## Example URLs
 
 The following are example database connection URLs that can be handled by
-[`dburl.Parse`][godoc-parse] and [`dburl.Open`][godoc-open]:
+[`dburl.Parse`][goref-parse] and [`dburl.Open`][goref-open]:
 
 ```
    postgres://user:pass@localhost/dbname
@@ -147,7 +156,7 @@ supported out of the box:
 <!-- END SCHEME TABLE -->
 
 Any protocol scheme `alias://` can be used in place of `protocol://`, and will
-work identically with [`dburl.Parse`][godoc-parse] and [`dburl.Open`][godoc-open].
+work identically with [`dburl.Parse`][goref-parse] and [`dburl.Open`][goref-open].
 
 ## Installing
 
@@ -160,7 +169,7 @@ $ go get -u github.com/xo/dburl
 ## Using
 
 Please note that `dburl` does not import actual SQL drivers, and only provides
-a standard way to [parse][godoc-parse]/[open][godoc-open] respective database
+a standard way to [parse][goref-parse]/[open][goref-open] respective database
 connection URLs.
 
 For reference, these are the following "expected" SQL drivers that would need
@@ -216,15 +225,15 @@ to be imported:
 | VoltDB (voltdb)                  | [github.com/VoltDB/voltdb-client-go/voltdbclient](github.com/VoltDB/voltdb-client-go])      |
 <!-- END DRIVER TABLE -->
 
-Please see [the `dburl` GoDoc listing][godoc-link] for the full API
+Please see [the `dburl` Go Reference][goref-link] for the full API
 documentation.
 
 ### URL Parsing Rules
 
-[`dburl.Parse`][godoc-parse] and [`dburl.Open`][godoc-open] rely primarily on
-Go's standard [`net/url.URL`][godoc-net-url] type, and as such, parsing or
+[`dburl.Parse`][goref-parse] and [`dburl.Open`][goref-open] rely primarily on
+Go's standard [`net/url.URL`][goref-net-url] type, and as such, parsing or
 opening database connection URLs with `dburl` are subject to the same rules,
-conventions, and semantics as [Go's `net/url.Parse` func][godoc-net-url-parse].
+conventions, and semantics as [Go's `net/url.Parse` func][goref-net-url-parse].
 
 ## Example
 
@@ -235,26 +244,23 @@ A [full example](_example/example.go) for reference:
 package main
 
 import (
-    "fmt"
-    "log"
+	"fmt"
+	"log"
 
-    _ "github.com/denisenkom/go-mssqldb"
-    "github.com/xo/dburl"
+	_ "github.com/denisenkom/go-mssqldb"
+	"github.com/xo/dburl"
 )
 
 func main() {
-    db, err := dburl.Open("sqlserver://user:pass@localhost/dbname")
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    var name string
-    err = db.QueryRow(`SELECT name FROM mytable WHERE id=10`).Scan(&name)
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    fmt.Printf(">> got: %s\n", name)
+	db, err := dburl.Open("sqlserver://user:pass@localhost/dbname")
+	if err != nil {
+		log.Fatal(err)
+	}
+	var name string
+	if err := db.QueryRow(`SELECT name FROM mytable WHERE id=10`).Scan(&name); err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("name:", name)
 }
 ```
 
@@ -266,11 +272,11 @@ func main() {
 * [xo][xo] - a command-line tool to generate Go code from a database schema
 
 [go-project]: https://golang.org/project
-[godoc-open]: https://godoc.org/github.com/xo/dburl#Open
-[godoc-parse]: https://godoc.org/github.com/xo/dburl#Parse
-[godoc-sql-db]: https://godoc.org/database/sql#DB
-[godoc-net-url]: https://godoc.org/net/url#URL
-[godoc-net-url-parse]: https://godoc.org/net/url#URL.Parse
+[goref-open]: https://pkg.go.dev/github.com/xo/dburl#Open
+[goref-parse]: https://pkg.go.dev/github.com/xo/dburl#Parse
+[goref-sql-db]: https://pkg.go.dev/database/sql#DB
+[goref-net-url]: https://pkg.go.dev/net/url#URL
+[goref-net-url-parse]: https://pkg.go.dev/net/url#URL.Parse
 
 [usql]: https://github.com/xo/usql
 [xo]: https://github.com/xo/xo
