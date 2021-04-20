@@ -1,24 +1,40 @@
 package dburl_test
 
 import (
-	"fmt"
+	"database/sql"
 	"log"
 
-	_ "github.com/lib/pq"
 	"github.com/xo/dburl"
 )
 
-func ExampleParse() {
+func Example_parse() {
 	u, err := dburl.Parse("pg://user:pass@host:1234/dbname")
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(
-		"driver:", u.Driver,
-		"user:", u.User.Username(),
-		"host:", u.Host,
-		"db:", u.Path,
-	)
-	// Output:
-	// driver: postgres user: user host: host:1234 db: /dbname
+	db, err := sql.Open(u.Driver, u.DSN)
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := db.Query("SELECT ...")
+	if err != nil {
+		log.Fatal(err)
+	}
+	for res.Next() {
+		/* ... */
+	}
+}
+
+func Example_open() {
+	db, err := dburl.Open("my://user:pass@host:1234/dbname")
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := db.Query("SELECT ...")
+	if err != nil {
+		log.Fatal(err)
+	}
+	for res.Next() {
+		/* ... */
+	}
 }
