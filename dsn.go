@@ -11,11 +11,15 @@ import (
 // passed URL.
 func GenScheme(scheme string) func(*URL) (string, error) {
 	return func(u *URL) (string, error) {
+		host := u.Host
+		if host == "" {
+			host = "localhost"
+		}
 		z := &url.URL{
 			Scheme:   scheme,
 			Opaque:   u.Opaque,
 			User:     u.User,
-			Host:     u.Host,
+			Host:     host,
 			Path:     u.Path,
 			RawPath:  u.RawPath,
 			RawQuery: u.RawQuery,
@@ -174,7 +178,7 @@ func GenMySQL(u *URL) (string, error) {
 	// if host or proto is not empty
 	if u.Transport != "unix" {
 		if host == "" {
-			host = "127.0.0.1"
+			host = "localhost"
 		}
 		if port == "" {
 			port = "3306"
@@ -206,7 +210,7 @@ func GenMyMySQL(u *URL) (string, error) {
 	// if host or proto is not empty
 	if u.Transport != "unix" {
 		if host == "" {
-			host = "127.0.0.1"
+			host = "localhost"
 		}
 		if port == "" {
 			port = "3306"

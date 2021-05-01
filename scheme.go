@@ -67,7 +67,7 @@ func BaseSchemes() []Scheme {
 
 		// alternate implementations
 		{"mymysql", GenMyMySQL, TransportTCP | TransportUDP | TransportUnix, false, []string{"zm", "mymy"}, ""},
-		{"pgx", GenScheme("postgres"), TransportUnix, false, []string{"px"}, ""},
+		{"pgx", GenFromURL("postgres://localhost:5432/"), TransportUnix, false, []string{"px"}, ""},
 		{"godror", GenOracle, 0, false, []string{"gr"}, ""},
 
 		// other databases
