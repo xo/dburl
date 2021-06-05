@@ -190,14 +190,20 @@ func Expand(u *user.User, file string) string {
 	return file
 }
 
-// Open opens a database connection for the provided url, reading the named
+// Open opens a database connection for the provided URL, reading the named
 // passfile in the current user's home directory.
 func Open(urlstr, name string) (*sql.DB, error) {
-	u, err := user.Current()
+	v, err := dburl.Parse(urlstr)
 	if err != nil {
 		return nil, err
 	}
-	v, err := dburl.Parse(urlstr)
+	return OpenURL(v, name)
+}
+
+// OpenURL opens a database connection for the provided URL, reading the named
+// passfile in the current user's home directory.
+func OpenURL(v *dburl.URL, name string) (*sql.DB, error) {
+	u, err := user.Current()
 	if err != nil {
 		return nil, err
 	}
