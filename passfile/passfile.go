@@ -4,6 +4,7 @@ package passfile
 
 import (
 	"bufio"
+	"database/sql"
 	"fmt"
 	"io"
 	"net/url"
@@ -187,6 +188,28 @@ func Expand(u *user.User, file string) string {
 		return filepath.Join(u.HomeDir, strings.TrimPrefix(file, "~/"))
 	}
 	return file
+}
+
+// Open opens a database connection for the provided url, reading the named
+// passfile in the current user's home directory.
+func Open(urlstr, name string) (*sql.DB, error) {
+	u, err := user.Current()
+	if err != nil {
+		return nil, err
+	}
+	v, err := dburl.Parse(urlstr)
+	if err != nil {
+		return nil, err
+	}
+	user, err := Match(u, v, name)
+	if err != nil {
+		return sql.Open(v.Driver, v.DSN)
+	}
+	v.User = user
+	if v, err = dburl.Parse(v.String()); err != nil {
+		return nil, err
+	}
+	return sql.Open(v.Driver, v.DSN)
 }
 
 // Error is a error.
