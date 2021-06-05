@@ -203,6 +203,9 @@ func Open(urlstr, name string) (*sql.DB, error) {
 // OpenURL opens a database connection for the provided URL, reading the named
 // passfile in the current user's home directory.
 func OpenURL(v *dburl.URL, name string) (*sql.DB, error) {
+	if v.User != nil {
+		return sql.Open(v.Driver, v.DSN)
+	}
 	u, err := user.Current()
 	if err != nil {
 		return nil, err
@@ -212,10 +215,9 @@ func OpenURL(v *dburl.URL, name string) (*sql.DB, error) {
 		return sql.Open(v.Driver, v.DSN)
 	}
 	v.User = user
-	if v, err = dburl.Parse(v.String()); err != nil {
-		return nil, err
-	}
-	return sql.Open(v.Driver, v.DSN)
+	z, _ := dburl.Parse(v.String())
+	*v = *z
+	return sql.Open(z.Driver, z.DSN)
 }
 
 // Error is a error.
