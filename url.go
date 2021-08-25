@@ -10,25 +10,19 @@ import (
 type URL struct {
 	// URL is the base net/url/URL.
 	url.URL
-
 	// OriginalScheme is the original parsed scheme (ie, "sq", "mysql+unix", "sap", etc).
 	OriginalScheme string
-
 	// Transport is the specified transport protocol (ie, "tcp", "udp",
 	// "unix", ...), if provided.
 	Transport string
-
 	// Driver is the non-aliased SQL driver name that should be used in a call
 	// to sql/Open.
 	Driver string
-
 	// Unaliased is the unaliased driver name.
 	Unaliased string
-
 	// DSN is the built connection "data source name" that can be used in a
 	// call to sql/Open.
 	DSN string
-
 	// hostPortDB will be set by Gen*() funcs after determining the host, port,
 	// database.
 	//
@@ -78,7 +72,6 @@ func Parse(urlstr string) (*URL, error) {
 		if v.Fragment != "" {
 			f = "#" + v.Fragment
 		}
-
 		return Parse(v.OriginalScheme + "://" + v.Opaque + q + f)
 	}
 	if scheme.Opaque && v.Opaque == "" {

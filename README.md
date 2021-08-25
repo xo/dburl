@@ -137,6 +137,7 @@ supported out of the box:
 | Couchbase (n1ql)                 | n1, couchbase                            |
 | Cznic QL (ql)                    | ql, cznic, cznicql                       |
 | CSVQ (csvq)                      | csv, tsv, json                           |
+| Exasol (exasol)                  | ex, exa                                  |
 | Firebird SQL (firebirdsql)       | fb, firebird                             |
 | Genji (genji)                    | gj                                       |
 | Google BigQuery (bigquery)       | bq                                       |
@@ -207,6 +208,7 @@ to be imported:
 | Couchbase (n1ql)                 | [github.com/couchbase/go_n1ql](https://github.com/couchbase/go_n1ql)                        |
 | Cznic QL (ql)                    | [modernc.org/ql](https://modernc.org/ql)                                                    |
 | CSVQ (csvq)                      | [github.com/mithrandie/csvq](https://github.com/mithrandie/csvq)                            |
+| Exasol (exasol)                  | [github.com/exasol/exasol-driver-go](https://github.com/exasol/exasol-driver-go)            |
 | Firebird SQL (firebirdsql)       | [github.com/nakagami/firebirdsql](https://github.com/nakagami/firebirdsql)                  |
 | Genji (genji)                    | [github.com/genjidb/genji/sql/driver](https://github.com/genjidb/genji)                     |
 | Google BigQuery (bigquery)       | [gorm.io/driver/bigquery/driver](https://gorm.io/driver/bigquery/driver)                    |

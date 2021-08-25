@@ -100,6 +100,7 @@
 //	 Couchbase (n1ql)                 | n1, couchbase
 //	 Cznic QL (ql)                    | ql, cznic, cznicql
 //	 CSVQ (csvq)                      | csv, tsv, json
+// 	 Exasol (exasol                   | ex, exa
 //	 Firebird SQL (firebirdsql)       | fb, firebird
 //	 Genji (genji)                    | gj
 //	 Google BigQuery (bigquery)       | bq
@@ -132,7 +133,7 @@
 //	----------------------------------|-------------------------------------------------
 //	 Microsoft SQL Server (sqlserver) | github.com/denisenkom/go-mssqldb
 //	 MySQL (mysql)                    | github.com/go-sql-driver/mysql
-//	 Oracle Database (oracle)         | github.com/sijms/go-ora
+//	 Oracle Database (oracle)         | github.com/sijms/go-ora/v2
 //	 PostgreSQL (postgres)            | github.com/lib/pq
 //	 SQLite3 (sqlite3)                | github.com/mattn/go-sqlite3
 //   ---------------------------------|-------------------------------------------------
@@ -159,6 +160,7 @@
 //	 Couchbase (n1ql)                 | github.com/couchbase/go_n1ql
 //	 Cznic QL (ql)                    | modernc.org/ql
 //	 CSVQ (csvq)                      | github.com/mithrandie/csvq
+//	 Exasol (exasol)                  | github.com/exasol/exasol-driver-go
 //	 Firebird SQL (firebirdsql)       | github.com/nakagami/firebirdsql
 //	 Genji (genji)                    | github.com/genjidb/genji/sql/driver
 //	 Google BigQuery (bigquery)       | gorm.io/driver/bigquery/driver
@@ -212,22 +214,16 @@ func (err Error) Error() string {
 const (
 	// ErrInvalidDatabaseScheme is the invalid database scheme error.
 	ErrInvalidDatabaseScheme Error = "invalid database scheme"
-
 	// ErrUnknownDatabaseScheme is the unknown database type error.
 	ErrUnknownDatabaseScheme Error = "unknown database scheme"
-
 	// ErrInvalidTransportProtocol is the invalid transport protocol error.
 	ErrInvalidTransportProtocol Error = "invalid transport protocol"
-
 	// ErrRelativePathNotSupported is the relative paths not supported error.
 	ErrRelativePathNotSupported Error = "relative path not supported"
-
 	// ErrMissingHost is the missing host error.
 	ErrMissingHost Error = "missing host"
-
 	// ErrMissingPath is the missing path error.
 	ErrMissingPath Error = "missing path"
-
 	// ErrMissingUser is the missing user error.
 	ErrMissingUser Error = "missing user"
 )

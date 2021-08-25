@@ -553,11 +553,32 @@ func GenSpanner(u *URL) (string, error) {
 	return fmt.Sprintf(`project/%s/instances/%s/databases/%s`, project, instance, dbname), nil
 }
 
-// GetSchemeTruncate generates a DSN by truncating the scheme://.
+// GenSchemeTruncate generates a DSN by truncating the scheme://.
 func GenSchemeTruncate(u *URL) (string, error) {
 	s := u.String()
 	if i := strings.Index(s, "://"); i != -1 {
 		return s[i+3:], nil
 	}
 	return s, nil
+}
+
+// GenExasol generates a exasol DSN from the passed URL.
+func GenExasol(u *URL) (string, error) {
+	host, port, dbname := u.Hostname(), u.Port(), strings.TrimPrefix(u.Path, "/")
+	if host == "" {
+		host = "localhost"
+	}
+	if port == "" {
+		port = "8563"
+	}
+	q := u.Query()
+	if dbname != "" {
+		q.Set("schema", dbname)
+	}
+	if u.User != nil {
+		q.Set("user", u.User.Username())
+		pass, _ := u.User.Password()
+		q.Set("password", pass)
+	}
+	return fmt.Sprintf("exa:%s:%s%s", host, port, genOptions(q, ";", "=", ";", ",", true)), nil
 }

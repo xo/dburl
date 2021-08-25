@@ -77,7 +77,6 @@ func TestParse(t *testing.T) {
 		{`pg+unix:/var/run/postgresql:4444/booktest`, `postgres`, `dbname=booktest host=/var/run/postgresql port=4444`, `/var/run/postgresql`},
 		{`pg:user:pass@/var/run/postgresql/mydb`, `postgres`, `dbname=mydb host=/var/run/postgresql password=pass user=user`, `/var/run/postgresql`},
 		{`pg:user:pass@/really/bad/path`, `postgres`, `host=/really/bad/path password=pass user=user`, ``},
-
 		{`my:`, `mysql`, `tcp(localhost:3306)/`, ``}, // 10
 		{`my://`, `mysql`, `tcp(localhost:3306)/`, ``},
 		{`my:booktest:booktest@localhost/booktest`, `mysql`, `booktest:booktest@tcp(localhost:3306)/booktest`, ``},
@@ -86,7 +85,6 @@ func TestParse(t *testing.T) {
 		{`my+unix:user:pass@mysqld.sock?timeout=90`, `mysql`, `user:pass@unix(mysqld.sock)/?timeout=90`, ``},
 		{`my:./path/to/socket`, `mysql`, `unix(path/to/socket)/`, ``},
 		{`my+unix:./path/to/socket`, `mysql`, `unix(path/to/socket)/`, ``},
-
 		{`mymy:`, `mymysql`, `tcp:localhost:3306*//`, ``}, // 18
 		{`mymy://`, `mymysql`, `tcp:localhost:3306*//`, ``},
 		{`mymy:user:pass@localhost/booktest`, `mymysql`, `tcp:localhost:3306*booktest/user/pass`, ``},
@@ -95,12 +93,10 @@ func TestParse(t *testing.T) {
 		{`mymy+unix:user:pass@mysqld.sock?timeout=90`, `mymysql`, `unix:mysqld.sock,timeout=90*/user/pass`, ``},
 		{`mymy:./path/to/socket`, `mymysql`, `unix:path/to/socket*//`, ``},
 		{`mymy+unix:./path/to/socket`, `mymysql`, `unix:path/to/socket*//`, ``},
-
 		{`mssql://`, `sqlserver`, ``, ``}, // 26
 		{`mssql://user:pass@localhost/dbname`, `sqlserver`, `Database=dbname;Password=pass;Server=localhost;User ID=user`, ``},
 		{`mssql://user@localhost/service/dbname`, `sqlserver`, `Database=dbname;Server=localhost\service;User ID=user`, ``},
 		{`mssql://user:!234%23$@localhost:1580/dbname`, `sqlserver`, `Database=dbname;Password=!234#$;Port=1580;Server=localhost;User ID=user`, ``},
-
 		{
 			`adodb://Microsoft.ACE.OLEDB.12.0?Extended+Properties=%22Text%3BHDR%3DNO%3BFMT%3DDelimited%22`, `adodb`, // 30
 			`Data Source=.;Extended Properties="Text;HDR=NO;FMT=Delimited";Provider=Microsoft.ACE.OLEDB.12.0`, ``,
@@ -113,7 +109,6 @@ func TestParse(t *testing.T) {
 			`oo+Postgres+Unicode://user:pass@host:5432/dbname`, `adodb`,
 			`Provider=MSDASQL.1;Extended Properties="Database=dbname;Driver={Postgres Unicode};PWD=pass;Port=5432;Server=host;UID=user"`, ``,
 		},
-
 		{`file:/path/to/file.sqlite3`, `sqlite3`, `/path/to/file.sqlite3`, ``}, // 33
 		{`sqlite:///path/to/file.sqlite3`, `sqlite3`, `/path/to/file.sqlite3`, ``},
 		{`sq://path/to/file.sqlite3`, `sqlite3`, `path/to/file.sqlite3`, ``},
@@ -122,7 +117,6 @@ func TestParse(t *testing.T) {
 		{`sq://./path/to/file.sqlite3?loc=auto`, `sqlite3`, `./path/to/file.sqlite3?loc=auto`, ``},
 		{`sq::memory:?loc=auto`, `sqlite3`, `:memory:?loc=auto`, ``},
 		{`sq://:memory:?loc=auto`, `sqlite3`, `:memory:?loc=auto`, ``},
-
 		{`or://user:pass@localhost:3000/sidname`, `oracle`, `oracle://user:pass@localhost:3000/sidname`, ``}, // 41
 		{`or://localhost`, `oracle`, `oracle://localhost`, ``},
 		{`oracle://user:pass@localhost`, `oracle`, `oracle://user:pass@localhost`, ``},
@@ -131,34 +125,27 @@ func TestParse(t *testing.T) {
 		{`or://username:password@host/ORCL`, `oracle`, `oracle://username:password@host/ORCL`, ``},
 		{`odpi://username:password@sales-server:1521/sales.us.acme.com`, `oracle`, `oracle://username:password@sales-server:1521/sales.us.acme.com`, ``},
 		{`oracle://username:password@sales-server.us.acme.com/sales.us.oracle.com`, `oracle`, `oracle://username:password@sales-server.us.acme.com/sales.us.oracle.com`, ``},
-
 		{`presto://host:8001/`, `presto`, `http://user@host:8001?catalog=default`, ``}, // 49
 		{`presto://host/catalogname/schemaname`, `presto`, `http://user@host:8080?catalog=catalogname&schema=schemaname`, ``},
 		{`prs://admin@host/catalogname`, `presto`, `https://admin@host:8443?catalog=catalogname`, ``},
 		{`prestodbs://admin:pass@host:9998/catalogname`, `presto`, `https://admin:pass@host:9998?catalog=catalogname`, ``},
-
 		{`ca://host`, `cql`, `host:9042`, ``}, // 53
 		{`cassandra://host:9999`, `cql`, `host:9999`, ``},
 		{`scy://user@host:9999`, `cql`, `host:9999?username=user`, ``},
 		{`scylla://user@host:9999?timeout=1000`, `cql`, `host:9999?timeout=1000&username=user`, ``},
 		{`datastax://user:pass@localhost:9999/?timeout=1000`, `cql`, `localhost:9999?password=pass&timeout=1000&username=user`, ``},
 		{`ca://user:pass@localhost:9999/dbname?timeout=1000`, `cql`, `localhost:9999?keyspace=dbname&password=pass&timeout=1000&username=user`, ``},
-
 		{`ig://host`, `ignite`, `tcp://host:10800`, ``}, // 59
 		{`ignite://host:9999`, `ignite`, `tcp://host:9999`, ``},
 		{`gridgain://user@host:9999`, `ignite`, `tcp://host:9999?username=user`, ``},
 		{`ig://user@host:9999?timeout=1000`, `ignite`, `tcp://host:9999?timeout=1000&username=user`, ``},
 		{`ig://user:pass@localhost:9999/?timeout=1000`, `ignite`, `tcp://localhost:9999?password=pass&timeout=1000&username=user`, ``},
 		{`ig://user:pass@localhost:9999/dbname?timeout=1000`, `ignite`, `tcp://localhost:9999/dbname?password=pass&timeout=1000&username=user`, ``},
-
 		{`sf://user@host:9999/dbname/schema?timeout=1000`, `snowflake`, `user@host:9999/dbname/schema?timeout=1000`, ``},
 		{`sf://user:pass@localhost:9999/dbname/schema?timeout=1000`, `snowflake`, `user:pass@localhost:9999/dbname/schema?timeout=1000`, ``},
-
-		{`rs://user:pass@amazon.com/dbname`, `postgres`, `postgres://user:pass@amazon.com:5439/dbname`, ``}, // 67
-
+		{`rs://user:pass@amazon.com/dbname`, `postgres`, `postgres://user:pass@amazon.com:5439/dbname`, ``},                                                     // 67
 		{`ve://user:pass@vertica-host/dbvertica?tlsmode=server-strict`, `vertica`, `vertica://user:pass@vertica-host:5433/dbvertica?tlsmode=server-strict`, ``}, // 68
-
-		{`moderncsqlite:///path/to/file.sqlite3`, `moderncsqlite`, `/path/to/file.sqlite3`, ``}, // 69
+		{`moderncsqlite:///path/to/file.sqlite3`, `moderncsqlite`, `/path/to/file.sqlite3`, ``},                                                                 // 69
 		{`modernsqlite:///path/to/file.sqlite3`, `moderncsqlite`, `/path/to/file.sqlite3`, ``},
 		{`mq://path/to/file.sqlite3`, `moderncsqlite`, `path/to/file.sqlite3`, ``},
 		{`mq:path/to/file.sqlite3`, `moderncsqlite`, `path/to/file.sqlite3`, ``},
@@ -166,7 +153,6 @@ func TestParse(t *testing.T) {
 		{`mq://./path/to/file.sqlite3?loc=auto`, `moderncsqlite`, `./path/to/file.sqlite3?loc=auto`, ``},
 		{`mq::memory:?loc=auto`, `moderncsqlite`, `:memory:?loc=auto`, ``},
 		{`mq://:memory:?loc=auto`, `moderncsqlite`, `:memory:?loc=auto`, ``},
-
 		{`gr://user:pass@localhost:3000/sidname`, `godror`, `user/pass@//localhost:3000/sidname`, ``}, // 77
 		{`gr://localhost`, `godror`, `localhost`, ``},
 		{`godror://user:pass@localhost`, `godror`, `user/pass@//localhost`, ``},
@@ -175,13 +161,13 @@ func TestParse(t *testing.T) {
 		{`gr://username:password@host/ORCL`, `godror`, `username/password@//host/ORCL`, ``},
 		{`gr://username:password@sales-server:1521/sales.us.acme.com`, `godror`, `username/password@//sales-server:1521/sales.us.acme.com`, ``},
 		{`godror://username:password@sales-server.us.acme.com/sales.us.oracle.com`, `godror`, `username/password@//sales-server.us.acme.com/sales.us.oracle.com`, ``},
-
 		{`trino://host:8001/`, `trino`, `http://user@host:8001?catalog=default`, ``}, // 85
 		{`trino://host/catalogname/schemaname`, `trino`, `http://user@host:8080?catalog=catalogname&schema=schemaname`, ``},
 		{`trs://admin@host/catalogname`, `trino`, `https://admin@host:8443?catalog=catalogname`, ``},
-
 		{`pgx://`, `pgx`, `postgres://localhost:5432/`, ``},
 		{`ca://`, `cql`, `localhost:9042`, ``},
+		{`exa://`, `exasol`, `exa:localhost:8563`, ``},
+		{`exa://user:pass@host:1883/dbname?autocommit=1`, `exasol`, `exa:host:1883;autocommit=1;password=pass;schema=dbname;user=user`, ``}, // 91
 	}
 	for i, test := range tests {
 		u, err := Parse(test.s)

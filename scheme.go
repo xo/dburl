@@ -28,22 +28,17 @@ type Scheme struct {
 	// first 2 characters of the Driver, unless one of the Aliases includes an
 	// alias that is 2 characters.
 	Driver string
-
 	// Generator is the func responsible for generating a DSN based on parsed
 	// URL information.
 	//
 	// Note: this func should not modify the passed URL.
 	Generator func(*URL) (string, error)
-
 	// Transport are allowed protocol types for the scheme.
 	Transport Transport
-
 	// Opaque toggles Parse to not re-process URLs with an "opaque" component.
 	Opaque bool
-
 	// Aliases are any additional aliases for the scheme.
 	Aliases []string
-
 	// Override is the Go SQL driver to use instead of Driver.
 	Override string
 }
@@ -57,19 +52,16 @@ func BaseSchemes() []Scheme {
 		{"postgres", GenPostgres, TransportUnix, false, []string{"pg", "postgresql", "pgsql"}, ""},
 		{"sqlite3", GenOpaque, 0, true, []string{"sqlite", "file"}, ""},
 		{"sqlserver", GenSQLServer, 0, false, []string{"ms", "mssql"}, ""},
-
 		// wire compatibles
 		{"cockroachdb", GenFromURL("postgres://localhost:26257/?sslmode=disable"), 0, false, []string{"cr", "cockroach", "crdb", "cdb"}, "postgres"},
 		{"memsql", GenMySQL, 0, false, nil, "mysql"},
 		{"redshift", GenFromURL("postgres://localhost:5439/"), 0, false, []string{"rs"}, "postgres"},
 		{"tidb", GenMySQL, 0, false, nil, "mysql"},
 		{"vitess", GenMySQL, 0, false, []string{"vt"}, "mysql"},
-
 		// alternate implementations
 		{"mymysql", GenMyMySQL, TransportTCP | TransportUDP | TransportUnix, false, []string{"zm", "mymy"}, ""},
 		{"pgx", GenFromURL("postgres://localhost:5432/"), TransportUnix, false, []string{"px"}, ""},
 		{"godror", GenOracle, 0, false, []string{"gr"}, ""},
-
 		// other databases
 		{"adodb", GenADODB, 0, false, []string{"ado"}, ""},
 		{"athena", GenScheme("s3"), 0, false, []string{"s3", "aws"}, ""},
@@ -79,6 +71,7 @@ func BaseSchemes() []Scheme {
 		{"cosmos", GenCosmos, 0, false, []string{"cm"}, ""},
 		{"cql", GenCassandra, 0, false, []string{"ca", "cassandra", "datastax", "scy", "scylla"}, ""},
 		{"csvq", GenOpaque, 0, true, []string{"csv", "tsv", "json"}, ""},
+		{"exasol", GenExasol, 0, false, []string{"ex", "exa"}, ""},
 		{"firebirdsql", GenFirebird, 0, false, []string{"fb", "firebird"}, ""},
 		{"genji", GenOpaque, 0, true, []string{"gj"}, ""},
 		{"h2", GenScheme("h2"), 0, false, nil, ""},
@@ -121,7 +114,7 @@ func registerAlias(name, alias string, doSort bool) {
 	if !ok {
 		panic(fmt.Sprintf("scheme %s not registered", name))
 	}
-	if doSort && has(scheme.Aliases, alias) {
+	if doSort && contains(scheme.Aliases, alias) {
 		panic(fmt.Sprintf("scheme %s already has alias %s", name, alias))
 	}
 	if _, ok := schemeMap[alias]; ok {
@@ -208,16 +201,6 @@ func Unregister(name string) *Scheme {
 // RegisterAlias registers a alias for an already registered Scheme.h
 func RegisterAlias(name, alias string) {
 	registerAlias(name, alias, true)
-}
-
-// has is a util func to determine if a contains b.
-func has(a []string, b string) bool {
-	for _, s := range a {
-		if s == b {
-			return true
-		}
-	}
-	return false
 }
 
 // SchemeDriverAndAliases returns the registered driver and aliases for a

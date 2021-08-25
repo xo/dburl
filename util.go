@@ -12,11 +12,13 @@ import (
 // joiner, and separated by sep, with any multi URL values joined by valSep,
 // ignoring any values with keys in ignore.
 //
-// For example, to build a "ODBC" style connection string, use like the following:
-//     genOptions(u.Query(), "", "=", ";", ",")
+// For example, to build a "ODBC" style connection string, can be used like the
+// following:
+//
+//     genOptions(u.Query(), "", "=", ";", ",", false)
+//
 func genOptions(q url.Values, joiner, assign, sep, valSep string, skipWhenEmpty bool, ignore ...string) string {
-	qlen := len(q)
-	if qlen == 0 {
+	if len(q) == 0 {
 		return ""
 	}
 	// make ignore map
@@ -50,8 +52,8 @@ func genOptions(q url.Values, joiner, assign, sep, valSep string, skipWhenEmpty 
 	return ""
 }
 
-// genOptionsODBC is a util wrapper around genOptions that uses the fixed settings
-// for ODBC style connection strings.
+// genOptionsODBC is a util wrapper around genOptions that uses the fixed
+// settings for ODBC style connection strings.
 func genOptionsODBC(q url.Values, skipWhenEmpty bool, ignore ...string) string {
 	return genOptions(q, "", "=", ";", ",", skipWhenEmpty, ignore...)
 }
@@ -116,8 +118,7 @@ func resolveDir(path string) (string, string, string) {
 		port := ""
 		i, j := strings.LastIndex(dir, ":"), strings.LastIndex(dir, "/")
 		if i != -1 && i > j {
-			port = dir[i+1:]
-			dir = dir[:i]
+			port, dir = dir[i+1:], dir[:i]
 		}
 		if mode(dir)&os.ModeDir != 0 {
 			rest := strings.TrimPrefix(strings.TrimPrefix(strings.TrimPrefix(path, dir), ":"+port), "/")
@@ -130,4 +131,14 @@ func resolveDir(path string) (string, string, string) {
 		}
 	}
 	return path, "", ""
+}
+
+// contains determines if v contains s.
+func contains(v []string, s string) bool {
+	for _, z := range v {
+		if z == s {
+			return true
+		}
+	}
+	return false
 }
