@@ -47,23 +47,24 @@ type Scheme struct {
 func BaseSchemes() []Scheme {
 	return []Scheme{
 		// core databases
-		{"mysql", GenMySQL, TransportTCP | TransportUDP | TransportUnix, false, []string{"mariadb", "maria", "percona", "aurora"}, ""},
+		{"mysql", GenMysql, TransportTCP | TransportUDP | TransportUnix, false, []string{"mariadb", "maria", "percona", "aurora"}, ""},
 		{"oracle", GenScheme("oracle"), 0, false, []string{"ora", "oci", "oci8", "odpi", "odpi-c"}, ""},
 		{"postgres", GenPostgres, TransportUnix, false, []string{"pg", "postgresql", "pgsql"}, ""},
 		{"sqlite3", GenOpaque, 0, true, []string{"sqlite", "file"}, ""},
-		{"sqlserver", GenSQLServer, 0, false, []string{"ms", "mssql"}, ""},
+		{"sqlserver", GenSqlserver, 0, false, []string{"ms", "mssql"}, ""},
 		// wire compatibles
 		{"cockroachdb", GenFromURL("postgres://localhost:26257/?sslmode=disable"), 0, false, []string{"cr", "cockroach", "crdb", "cdb"}, "postgres"},
-		{"memsql", GenMySQL, 0, false, nil, "mysql"},
+		{"memsql", GenMysql, 0, false, nil, "mysql"},
 		{"redshift", GenFromURL("postgres://localhost:5439/"), 0, false, []string{"rs"}, "postgres"},
-		{"tidb", GenMySQL, 0, false, nil, "mysql"},
-		{"vitess", GenMySQL, 0, false, []string{"vt"}, "mysql"},
+		{"tidb", GenMysql, 0, false, nil, "mysql"},
+		{"vitess", GenMysql, 0, false, []string{"vt"}, "mysql"},
 		// alternate implementations
-		{"mymysql", GenMyMySQL, TransportTCP | TransportUDP | TransportUnix, false, []string{"zm", "mymy"}, ""},
+		{"godror", GenGodror, 0, false, []string{"gr"}, ""},
+		{"moderncsqlite", GenOpaque, 0, true, []string{"mq", "modernsqlite"}, ""},
+		{"mymysql", GenMymysql, TransportTCP | TransportUDP | TransportUnix, false, []string{"zm", "mymy"}, ""},
 		{"pgx", GenFromURL("postgres://localhost:5432/"), TransportUnix, false, []string{"px"}, ""},
-		{"godror", GenOracle, 0, false, []string{"gr"}, ""},
 		// other databases
-		{"adodb", GenADODB, 0, false, []string{"ado"}, ""},
+		{"adodb", GenAdodb, 0, false, []string{"ado"}, ""},
 		{"athena", GenScheme("s3"), 0, false, []string{"s3", "aws"}, ""},
 		{"avatica", GenFromURL("http://localhost:8765/"), 0, false, []string{"phoenix"}, ""},
 		{"bigquery", GenScheme("bigquery"), 0, false, []string{"bq"}, ""},
@@ -80,11 +81,10 @@ func BaseSchemes() []Scheme {
 		{"ignite", GenIgnite, 0, false, []string{"ig", "gridgain"}, ""},
 		{"impala", GenScheme("impala"), 0, false, nil, ""},
 		{"maxcompute", GenSchemeTruncate, 0, false, []string{"mc"}, ""},
-		{"moderncsqlite", GenOpaque, 0, true, []string{"mq", "modernsqlite"}, ""},
 		{"n1ql", GenFromURL("http://localhost:9000/"), 0, false, []string{"couchbase"}, ""},
 		{"nzgo", GenPostgres, TransportUnix, false, []string{"nz", "netezza"}, ""},
-		{"odbc", GenODBC, TransportAny, false, nil, ""},
-		{"oleodbc", GenOLEODBC, TransportAny, false, []string{"oo", "ole"}, "adodb"},
+		{"odbc", GenOdbc, TransportAny, false, nil, ""},
+		{"oleodbc", GenOleodbc, TransportAny, false, []string{"oo", "ole"}, "adodb"},
 		{"presto", GenPresto, 0, false, []string{"prestodb", "prestos", "prs", "prestodbs"}, ""},
 		{"ql", GenOpaque, 0, true, []string{"ql", "cznic", "cznicql"}, ""},
 		{"snowflake", GenSnowflake, 0, false, []string{"sf"}, ""},
@@ -92,7 +92,7 @@ func BaseSchemes() []Scheme {
 		{"tds", GenFromURL("http://localhost:5000/"), 0, false, []string{"ax", "ase", "sapase"}, ""},
 		{"trino", GenPresto, 0, false, []string{"trino", "trinos", "trs"}, ""},
 		{"vertica", GenFromURL("vertica://localhost:5433/"), 0, false, nil, ""},
-		{"voltdb", GenVoltDB, 0, false, []string{"volt", "vdb"}, ""},
+		{"voltdb", GenVoltdb, 0, false, []string{"volt", "vdb"}, ""},
 	}
 }
 
@@ -230,4 +230,14 @@ func SchemeDriverAndAliases(name string) (string, []string) {
 		return driver, aliases
 	}
 	return "", nil
+}
+
+// contains determines if v contains s.
+func contains(v []string, s string) bool {
+	for _, z := range v {
+		if z == s {
+			return true
+		}
+	}
+	return false
 }

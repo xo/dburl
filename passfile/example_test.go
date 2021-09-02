@@ -14,7 +14,7 @@ func Example_entries() {
 		log.Fatal(err)
 	}
 	// read ~/.usqlpass or $ENV{USQLPASS}
-	entries, err := passfile.Entries(u, "usqlpass")
+	entries, err := passfile.Entries(u.HomeDir, "usqlpass")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -24,18 +24,18 @@ func Example_entries() {
 }
 
 func Example_match() {
-	u, err := user.Current()
+	v, err := user.Current()
 	if err != nil {
 		log.Fatal(err)
 	}
-	v, err := dburl.Parse("pg://")
+	u, err := dburl.Parse("pg://")
 	if err != nil {
 		log.Fatal(err)
 	}
 	// read ~/.usqlpass or $ENV{USQLPASS}
-	user, err := passfile.Match(u, v, "usqlpass")
+	user, err := passfile.Match(u, v.HomeDir, "usqlpass")
 	if err == nil {
-		v.User = user
+		u.User = user
 	}
-	log.Println("url:", v.String())
+	log.Println("url:", u.String())
 }

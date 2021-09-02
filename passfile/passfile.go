@@ -9,7 +9,6 @@ import (
 	"io"
 	"net/url"
 	"os"
-	"os/user"
 	"path/filepath"
 	"regexp"
 	"runtime"
@@ -101,25 +100,25 @@ func ParseFile(file string) ([]Entry, error) {
 	return entries, nil
 }
 
-// Equals returns true when b matches the entry.
-func (entry Entry) Equals(b Entry) bool {
-	return (entry.Protocol == "*" || entry.Protocol == b.Protocol) &&
-		(entry.Host == "*" || entry.Host == b.Host) &&
-		(entry.Port == "*" || entry.Port == b.Port)
+// Equals returns true when v matches the entry.
+func (entry Entry) Equals(v Entry) bool {
+	return (entry.Protocol == "*" || entry.Protocol == v.Protocol) &&
+		(entry.Host == "*" || entry.Host == v.Host) &&
+		(entry.Port == "*" || entry.Port == v.Port)
 }
 
 // MatchEntries returns a Userinfo when the normalized v is found in entries.
-func MatchEntries(v *dburl.URL, entries []Entry) (*url.Userinfo, error) {
+func MatchEntries(u *dburl.URL, entries []Entry) (*url.Userinfo, error) {
 	// check if v already has password defined ...
 	var username string
-	if v.User != nil {
-		username = v.User.Username()
-		if _, ok := v.User.Password(); ok {
+	if u.User != nil {
+		username = u.User.Username()
+		if _, ok := u.User.Password(); ok {
 			return nil, nil
 		}
 	}
 	// find matching entry
-	n := strings.SplitN(v.Normalize(":", "", 3), ":", 6)
+	n := strings.SplitN(u.Normalize(":", "", 3), ":", 6)
 	if len(n) < 3 {
 		return nil, ErrUnableToNormalizeURL
 	}
@@ -138,7 +137,7 @@ func MatchEntries(v *dburl.URL, entries []Entry) (*url.Userinfo, error) {
 
 // MatchFile returns a Userinfo from a passfile entry matching database URL v
 // read from the specified file.
-func MatchFile(v *dburl.URL, file string) (*url.Userinfo, error) {
+func MatchFile(u *dburl.URL, file string) (*url.Userinfo, error) {
 	entries, err := ParseFile(file)
 	if err != nil {
 		return nil, &FileError{file, err}
@@ -146,7 +145,7 @@ func MatchFile(v *dburl.URL, file string) (*url.Userinfo, error) {
 	if entries == nil {
 		return nil, nil
 	}
-	user, err := MatchEntries(v, entries)
+	user, err := MatchEntries(u, entries)
 	if err != nil {
 		return nil, &FileError{file, err}
 	}
@@ -157,67 +156,62 @@ func MatchFile(v *dburl.URL, file string) (*url.Userinfo, error) {
 // from the file in $HOME/.<name> or $ENV{NAME}.
 //
 // Equivalent to MatchFile(v, Path(u, name))
-func Match(u *user.User, v *dburl.URL, name string) (*url.Userinfo, error) {
-	return MatchFile(v, Path(u, name))
+func Match(u *dburl.URL, homeDir, name string) (*url.Userinfo, error) {
+	return MatchFile(u, Path(homeDir, name))
 }
 
 // Entries returns the entries for the specified passfile name.
-func Entries(u *user.User, name string) ([]Entry, error) {
-	return ParseFile(Path(u, name))
+func Entries(homeDir, name string) ([]Entry, error) {
+	return ParseFile(Path(homeDir, name))
 }
 
 // Path returns the expanded path to the password file for name.
 //
 // Uses $HOME/.<name>, overridden by environment variable $ENV{NAME} (for
 // example, ~/.usqlpass and $ENV{USQLPASS}).
-func Path(u *user.User, name string) string {
+func Path(homeDir, name string) string {
 	file := "~/." + strings.ToLower(name)
 	if s := os.Getenv(strings.ToUpper(name)); s != "" {
 		file = s
 	}
-	return Expand(u, file)
+	return Expand(homeDir, file)
 }
 
-// Expand expands the tilde (~) in the front of a path to a the supplied
-// directory.
-func Expand(u *user.User, file string) string {
+// Expand expands the tilde (~) in the front of a path to home directory.
+func Expand(homeDir string, file string) string {
 	switch {
 	case file == "~":
-		return u.HomeDir
+		return homeDir
 	case strings.HasPrefix(file, "~/"):
-		return filepath.Join(u.HomeDir, strings.TrimPrefix(file, "~/"))
+		return filepath.Join(homeDir, strings.TrimPrefix(file, "~/"))
 	}
 	return file
 }
 
 // Open opens a database connection for the provided URL, reading the named
-// passfile in the current user's home directory.
-func Open(urlstr, name string) (*sql.DB, error) {
+// passfile in the home directory.
+func Open(urlstr, homeDir, name string) (*sql.DB, error) {
 	v, err := dburl.Parse(urlstr)
 	if err != nil {
 		return nil, err
 	}
-	return OpenURL(v, name)
+	return OpenURL(v, homeDir, name)
 }
 
 // OpenURL opens a database connection for the provided URL, reading the named
-// passfile in the current user's home directory.
-func OpenURL(v *dburl.URL, name string) (*sql.DB, error) {
-	if v.User != nil {
-		return sql.Open(v.Driver, v.DSN)
+// passfile in the home directory.
+func OpenURL(u *dburl.URL, homeDir, name string) (*sql.DB, error) {
+	if u.User != nil {
+		return sql.Open(u.Driver, u.DSN)
 	}
-	u, err := user.Current()
+	user, err := Match(u, homeDir, name)
 	if err != nil {
-		return nil, err
+		return sql.Open(u.Driver, u.DSN)
 	}
-	user, err := Match(u, v, name)
-	if err != nil {
-		return sql.Open(v.Driver, v.DSN)
-	}
-	v.User = user
-	z, _ := dburl.Parse(v.String())
-	*v = *z
-	return sql.Open(z.Driver, z.DSN)
+	u.User = user
+	v, _ := dburl.Parse(u.String())
+	*u = *v
+	return sql.Open(v.Driver, v.DSN)
 }
 
 // Error is a error.

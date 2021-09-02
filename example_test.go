@@ -23,6 +23,9 @@ func Example_parse() {
 	for res.Next() {
 		/* ... */
 	}
+	if err := res.Err(); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func Example_open() {
@@ -36,5 +39,8 @@ func Example_open() {
 	}
 	for res.Next() {
 		/* ... */
+	}
+	if err := res.Err(); err != nil {
+		log.Fatal(err)
 	}
 }

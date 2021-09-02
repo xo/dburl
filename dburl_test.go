@@ -1,9 +1,32 @@
 package dburl
 
 import (
+	"io/fs"
 	"os"
 	"testing"
+	"time"
 )
+
+type stat fs.FileMode
+
+func (mode stat) Name() string       { return "" }
+func (mode stat) Size() int64        { return 1 }
+func (mode stat) Mode() fs.FileMode  { return fs.FileMode(mode) }
+func (mode stat) ModTime() time.Time { return time.Now() }
+func (mode stat) IsDir() bool        { return fs.FileMode(mode)&fs.ModeDir != 0 }
+func (mode stat) Sys() interface{}   { return nil }
+
+func init() {
+	Stat = func(name string) (fs.FileInfo, error) {
+		switch name {
+		case "/var/run/postgresql":
+			return stat(fs.ModeDir), nil
+		case "/var/run/mysqld/mysqld.sock":
+			return stat(fs.ModeSocket), nil
+		}
+		return nil, fs.ErrNotExist
+	}
+}
 
 func TestBadParse(t *testing.T) {
 	tests := []struct {
@@ -51,11 +74,11 @@ func TestBadParse(t *testing.T) {
 	for i, test := range tests {
 		_, err := Parse(test.s)
 		if err == nil {
-			t.Errorf("test %d expected error parsing `%s`, got: nil", i, test.s)
+			t.Errorf("test %d expected error parsing %q", i, test.s)
 			continue
 		}
 		if err != test.exp {
-			t.Errorf("test %d expected error parsing `%s`: `%v`, got: `%v`", i, test.s, test.exp, err)
+			t.Errorf("test %d expected error parsing %q: expected: %v got: %v", i, test.s, test.exp, err)
 		}
 	}
 }
@@ -176,14 +199,14 @@ func TestParse(t *testing.T) {
 			continue
 		}
 		if u.Driver != test.d {
-			t.Errorf("test %d expected driver `%s`, got: `%s`", i, test.d, u.Driver)
+			t.Errorf("test %d expected driver %q, got: %q", i, test.d, u.Driver)
 		}
 		if u.DSN != test.exp {
 			_, err := os.Stat(test.path)
 			if test.path != "" && err != nil && os.IsNotExist(err) {
-				t.Logf("test %d expected DSN `%s`, got: `%s` -- ignoring because `%s` does not exist", i, test.exp, u.DSN, test.path)
+				t.Logf("test %d expected dsn %q, got: %q -- ignoring because `%s` does not exist", i, test.exp, u.DSN, test.path)
 			} else {
-				t.Errorf("test %d expected DSN `%s`, got: `%s`", i, test.exp, u.DSN)
+				t.Errorf("test %d expected dsn %q, got: %q", i, test.exp, u.DSN)
 			}
 		}
 	}

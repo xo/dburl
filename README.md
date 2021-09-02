@@ -28,14 +28,13 @@ driver.
 [discord]: https://discord.gg/yJKEzc7prt (Discord Discussion)
 [discord-status]: https://img.shields.io/discord/829150509658013727.svg?label=Discord&logo=Discord&colorB=7289da&style=flat-square (Discord Discussion)
 
-
 ## Database Connection URL Overview
 
 Supported database connection URLs are of the form:
 
-```
-   protocol+transport://user:pass@host/dbname?opt1=a&opt2=b
-   protocol:/path/to/file
+```text
+protocol+transport://user:pass@host/dbname?opt1=a&opt2=b
+protocol:/path/to/file
 ```
 
 Where:
@@ -85,19 +84,19 @@ if err != nil { /* ... */ }
 The following are example database connection URLs that can be handled by
 [`dburl.Parse`][goref-parse] and [`dburl.Open`][goref-open]:
 
-```
-   postgres://user:pass@localhost/dbname
-   pg://user:pass@localhost/dbname?sslmode=disable
-   mysql://user:pass@localhost/dbname
-   mysql:/var/run/mysqld/mysqld.sock
-   sqlserver://user:pass@remote-host.com/dbname
-   mssql://user:pass@remote-host.com/instance/dbname
-   ms://user:pass@remote-host.com:port/instance/dbname?keepAlive=10
-   oracle://user:pass@somehost.com/sid
-   sap://user:pass@localhost/dbname
-   sqlite:/path/to/file.db
-   file:myfile.sqlite3?loc=auto
-   odbc+postgres://user:pass@localhost:port/dbname?option1=
+```text
+postgres://user:pass@localhost/dbname
+pg://user:pass@localhost/dbname?sslmode=disable
+mysql://user:pass@localhost/dbname
+mysql:/var/run/mysqld/mysqld.sock
+sqlserver://user:pass@remote-host.com/dbname
+mssql://user:pass@remote-host.com/instance/dbname
+ms://user:pass@remote-host.com:port/instance/dbname?keepAlive=10
+oracle://user:pass@somehost.com/sid
+sap://user:pass@localhost/dbname
+sqlite:/path/to/file.db
+file:myfile.sqlite3?loc=auto
+odbc+postgres://user:pass@localhost:port/dbname?option1=
 ```
 
 ## Protocol Schemes and Aliases
@@ -271,7 +270,7 @@ func main() {
 `dburl` was built primarily to support these projects:
 
 * [usql][usql] - a universal command-line interface for SQL databases
-* [xo][xo] - a command-line tool to generate Go code from a database schema
+* [xo][xo] - a command-line tool to generate code for SQL databases
 
 [go-project]: https://golang.org/project
 [goref-open]: https://pkg.go.dev/github.com/xo/dburl#Open
