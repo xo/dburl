@@ -220,7 +220,7 @@ func Open(urlstr string) (*sql.DB, error) {
 }
 
 // URL wraps the standard net/url.URL type, adding OriginalScheme, Transport,
-// Driver, and DSN strings.
+// Driver, Unaliased, and DSN strings.
 type URL struct {
 	// URL is the base net/url/URL.
 	url.URL
@@ -252,8 +252,7 @@ type URL struct {
 //
 // Note: if the URL has a Opaque component (ie, URLs not specified as
 // "scheme://" but "scheme:"), and the database scheme does not support opaque
-// components, then Parse will attempt to re-process the URL as
-// "scheme://<opaque>".
+// components, Parse will attempt to re-process the URL as "scheme://<opaque>".
 func Parse(urlstr string) (*URL, error) {
 	// parse url
 	v, err := url.Parse(urlstr)
@@ -281,8 +280,8 @@ func Parse(urlstr string) (*URL, error) {
 	if !ok {
 		return nil, ErrUnknownDatabaseScheme
 	}
-	// if scheme does not understand opaque URLs, retry parsing after making a fully
-	// qualified URL
+	// if scheme does not understand opaque URLs, retry parsing after building
+	// fully qualified URL
 	if !scheme.Opaque && u.Opaque != "" {
 		var q string
 		if u.RawQuery != "" {

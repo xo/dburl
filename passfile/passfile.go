@@ -80,7 +80,7 @@ func ParseFile(file string) ([]Entry, error) {
 		// ensure not a directory
 		return nil, &FileError{file, ErrMustNotBeDirectory}
 	case runtime.GOOS != "windows" && fi.Mode()&0x3f != 0:
-		// ensure  not group/world readable/writable/executable
+		// ensure not group/world readable/writable/executable
 		return nil, &FileError{file, ErrHasGroupOrWorldAccess}
 	}
 	// open
@@ -152,15 +152,17 @@ func MatchFile(u *dburl.URL, file string) (*url.Userinfo, error) {
 	return user, nil
 }
 
-// Match returns a Userinfo from a passfile entry matching database URL v read
+// Match returns a Userinfo from a passfile entry matching database URL read
 // from the file in $HOME/.<name> or $ENV{NAME}.
 //
-// Equivalent to MatchFile(v, Path(u, name))
+// Equivalent to MatchFile(u, Path(homeDir, name)).
 func Match(u *dburl.URL, homeDir, name string) (*url.Userinfo, error) {
 	return MatchFile(u, Path(homeDir, name))
 }
 
 // Entries returns the entries for the specified passfile name.
+//
+// Equivalent to ParseFile(Path(homeDir, name)).
 func Entries(homeDir, name string) ([]Entry, error) {
 	return ParseFile(Path(homeDir, name))
 }
@@ -177,7 +179,8 @@ func Path(homeDir, name string) string {
 	return Expand(homeDir, file)
 }
 
-// Expand expands the tilde (~) in the front of a path to home directory.
+// Expand expands the beginning tilde (~) in a file name to the provided home
+// directory.
 func Expand(homeDir string, file string) string {
 	switch {
 	case file == "~":
@@ -186,16 +189,6 @@ func Expand(homeDir string, file string) string {
 		return filepath.Join(homeDir, strings.TrimPrefix(file, "~/"))
 	}
 	return file
-}
-
-// Open opens a database connection for the provided URL, reading the named
-// passfile in the home directory.
-func Open(urlstr, homeDir, name string) (*sql.DB, error) {
-	v, err := dburl.Parse(urlstr)
-	if err != nil {
-		return nil, err
-	}
-	return OpenURL(v, homeDir, name)
 }
 
 // OpenURL opens a database connection for the provided URL, reading the named
@@ -212,6 +205,16 @@ func OpenURL(u *dburl.URL, homeDir, name string) (*sql.DB, error) {
 	v, _ := dburl.Parse(u.String())
 	*u = *v
 	return sql.Open(v.Driver, v.DSN)
+}
+
+// Open opens a database connection for a URL, reading the named passfile in
+// the home directory.
+func Open(urlstr, homeDir, name string) (*sql.DB, error) {
+	u, err := dburl.Parse(urlstr)
+	if err != nil {
+		return nil, err
+	}
+	return OpenURL(u, homeDir, name)
 }
 
 // Error is a error.

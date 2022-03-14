@@ -50,8 +50,8 @@ func GenSchemeTruncate(u *URL) (string, error) {
 	return s, nil
 }
 
-// GenFromURL returns a func that generates a DSN using urlstr as the default
-// URL parameters, overriding the values only if when in the passed URL.
+// GenFromURL returns a func that generates a DSN based on parameters of the
+// passed URL.
 func GenFromURL(urlstr string) func(*URL) (string, error) {
 	z, err := url.Parse(urlstr)
 	if err != nil {

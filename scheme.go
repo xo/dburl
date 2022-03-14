@@ -5,10 +5,10 @@ import (
 	"sort"
 )
 
-// Transport are the allowed transport protocol types in a database URL scheme.
+// Transport is the allowed transport protocol types in a database URL scheme.
 type Transport uint
 
-// Proto types.
+// Transport types.
 const (
 	TransportNone Transport = 0
 	TransportTCP  Transport = 1
@@ -17,11 +17,11 @@ const (
 	TransportAny  Transport = 8
 )
 
-// Scheme wraps information used for registering a URL scheme with
-// Parse/Open.
+// Scheme wraps information used for registering a database URL scheme for use
+// with Parse/Open.
 type Scheme struct {
-	// Driver is the name of the SQL driver that will set as the Scheme in
-	// Parse'd URLs, and is the driver name expected by the standard sql.Open
+	// Driver is the name of the SQL driver that is set as the Scheme in
+	// Parse'd URLs and is the driver name expected by the standard sql.Open
 	// calls.
 	//
 	// Note: a 2 letter alias will always be registered for the Driver as the
@@ -33,13 +33,15 @@ type Scheme struct {
 	//
 	// Note: this func should not modify the passed URL.
 	Generator func(*URL) (string, error)
-	// Transport are allowed protocol types for the scheme.
+	// Transport are allowed protocol transport types for the scheme.
 	Transport Transport
 	// Opaque toggles Parse to not re-process URLs with an "opaque" component.
 	Opaque bool
 	// Aliases are any additional aliases for the scheme.
 	Aliases []string
 	// Override is the Go SQL driver to use instead of Driver.
+	//
+	// Used for "wire compatible" driver schemes.
 	Override string
 }
 
@@ -48,7 +50,7 @@ func BaseSchemes() []Scheme {
 	return []Scheme{
 		// core databases
 		{"mysql", GenMysql, TransportTCP | TransportUDP | TransportUnix, false, []string{"mariadb", "maria", "percona", "aurora"}, ""},
-		{"oracle", GenScheme("oracle"), 0, false, []string{"ora", "oci", "oci8", "odpi", "odpi-c"}, ""},
+		{"oracle", GenFromURL("oracle://localhost:1521"), 0, false, []string{"ora", "oci", "oci8", "odpi", "odpi-c"}, ""},
 		{"postgres", GenPostgres, TransportUnix, false, []string{"pg", "postgresql", "pgsql"}, ""},
 		{"sqlite3", GenOpaque, 0, true, []string{"sqlite", "file"}, ""},
 		{"sqlserver", GenSqlserver, 0, false, []string{"ms", "mssql"}, ""},
@@ -75,7 +77,7 @@ func BaseSchemes() []Scheme {
 		{"exasol", GenExasol, 0, false, []string{"ex", "exa"}, ""},
 		{"firebirdsql", GenFirebird, 0, false, []string{"fb", "firebird"}, ""},
 		{"genji", GenOpaque, 0, true, []string{"gj"}, ""},
-		{"h2", GenScheme("h2"), 0, false, nil, ""},
+		{"h2", GenFromURL("h2://localhost:9092/"), 0, false, nil, ""},
 		{"hdb", GenScheme("hdb"), 0, false, []string{"sa", "saphana", "sap", "hana"}, ""},
 		{"hive", GenSchemeTruncate, 0, false, nil, ""},
 		{"ignite", GenIgnite, 0, false, []string{"ig", "gridgain"}, ""},

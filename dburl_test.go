@@ -141,13 +141,13 @@ func TestParse(t *testing.T) {
 		{`sq::memory:?loc=auto`, `sqlite3`, `:memory:?loc=auto`, ``},
 		{`sq://:memory:?loc=auto`, `sqlite3`, `:memory:?loc=auto`, ``},
 		{`or://user:pass@localhost:3000/sidname`, `oracle`, `oracle://user:pass@localhost:3000/sidname`, ``}, // 41
-		{`or://localhost`, `oracle`, `oracle://localhost`, ``},
-		{`oracle://user:pass@localhost`, `oracle`, `oracle://user:pass@localhost`, ``},
-		{`oracle://user:pass@localhost/service_name/instance_name`, `oracle`, `oracle://user:pass@localhost/service_name/instance_name`, ``},
+		{`or://localhost`, `oracle`, `oracle://localhost:1521`, ``},
+		{`oracle://user:pass@localhost`, `oracle`, `oracle://user:pass@localhost:1521`, ``},
+		{`oracle://user:pass@localhost/service_name/instance_name`, `oracle`, `oracle://user:pass@localhost:1521/service_name/instance_name`, ``},
 		{`oracle://user:pass@localhost:2000/xe.oracle.docker`, `oracle`, `oracle://user:pass@localhost:2000/xe.oracle.docker`, ``},
-		{`or://username:password@host/ORCL`, `oracle`, `oracle://username:password@host/ORCL`, ``},
+		{`or://username:password@host/ORCL`, `oracle`, `oracle://username:password@host:1521/ORCL`, ``},
 		{`odpi://username:password@sales-server:1521/sales.us.acme.com`, `oracle`, `oracle://username:password@sales-server:1521/sales.us.acme.com`, ``},
-		{`oracle://username:password@sales-server.us.acme.com/sales.us.oracle.com`, `oracle`, `oracle://username:password@sales-server.us.acme.com/sales.us.oracle.com`, ``},
+		{`oracle://username:password@sales-server.us.acme.com/sales.us.oracle.com`, `oracle`, `oracle://username:password@sales-server.us.acme.com:1521/sales.us.oracle.com`, ``},
 		{`presto://host:8001/`, `presto`, `http://user@host:8001?catalog=default`, ``}, // 49
 		{`presto://host/catalogname/schemaname`, `presto`, `http://user@host:8080?catalog=catalogname&schema=schemaname`, ``},
 		{`prs://admin@host/catalogname`, `presto`, `https://admin@host:8443?catalog=catalogname`, ``},
