@@ -129,7 +129,7 @@ supported out of the box:
 | Apache Hive (hive)               | hi                                       |
 | Apache Ignite (ignite)           | ig, gridgain                             |
 | Apache Impala (impala)           | im                                       |
-| AWS Athena (athena)              | s3                                       |
+| AWS Athena (awsathena)           | s3, aws, athena                          |
 | Azure Cosmos (cosmos)            | cm                                       |
 | Cassandra (cql)                  | ca, cassandra, datastax, scy, scylla     |
 | ClickHouse (clickhouse)          | ch                                       |
@@ -200,7 +200,7 @@ to be imported:
 | Apache Hive (hive)               | [sqlflow.org/gohive](https://sqlflow.org/gohive)                                            |
 | Apache Ignite (ignite)           | [github.com/amsokol/ignite-go-client/sql](https://github.com/amsokol/ignite-go-client)      |
 | Apache Impala (impala)           | [github.com/bippio/go-impala](https://github.com/bippio/go-impala)                          |
-| AWS Athena (athena)              | [github.com/uber/athenadriver/go](https://github.com/uber/athenadriver)                     |
+| AWS Athena (awsathena)           | [github.com/uber/athenadriver/go](https://github.com/uber/athenadriver)                     |
 | Azure Cosmos (cosmos)            | [github.com/btnguyen2k/gocosmos](https://github.com/btnguyen2k/gocosmos)                    |
 | Cassandra (cql)                  | [github.com/MichaelS11/go-cql-driver](https://github.com/MichaelS11/go-cql-driver)          |
 | ClickHouse (clickhouse)          | [github.com/ClickHouse/clickhouse-go](https://github.com/ClickHouse/clickhouse-go)          |

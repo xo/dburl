@@ -67,7 +67,7 @@ func BaseSchemes() []Scheme {
 		{"pgx", GenFromURL("postgres://localhost:5432/"), TransportUnix, false, []string{"px"}, ""},
 		// other databases
 		{"adodb", GenAdodb, 0, false, []string{"ado"}, ""},
-		{"athena", GenScheme("s3"), 0, false, []string{"s3", "aws"}, ""},
+		{"awsathena", GenScheme("s3"), 0, false, []string{"s3", "aws", "athena"}, ""},
 		{"avatica", GenFromURL("http://localhost:8765/"), 0, false, []string{"phoenix"}, ""},
 		{"bigquery", GenScheme("bigquery"), 0, false, []string{"bq"}, ""},
 		{"clickhouse", GenClickhouse, 0, false, []string{"ch"}, ""},
