@@ -87,6 +87,7 @@ func BaseSchemes() []Scheme {
 		{"nzgo", GenPostgres, TransportUnix, false, []string{"nz", "netezza"}, ""},
 		{"odbc", GenOdbc, TransportAny, false, nil, ""},
 		{"oleodbc", GenOleodbc, TransportAny, false, []string{"oo", "ole"}, "adodb"},
+		{"ots", GenTableStore, TransportAny, false, []string{"tablestore"}, ""},
 		{"presto", GenPresto, 0, false, []string{"prestodb", "prestos", "prs", "prestodbs"}, ""},
 		{"ql", GenOpaque, 0, true, []string{"ql", "cznic", "cznicql"}, ""},
 		{"snowflake", GenSnowflake, 0, false, []string{"sf"}, ""},

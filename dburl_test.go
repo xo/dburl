@@ -70,6 +70,8 @@ func TestBadParse(t *testing.T) {
 		{`sf://account`, ErrMissingUser},
 		{`mq+unix://`, ErrInvalidTransportProtocol},
 		{`mq+tcp://`, ErrInvalidTransportProtocol},
+		{`ots+tcp://`, ErrInvalidTransportProtocol},
+		{`tablestore+tcp://`, ErrInvalidTransportProtocol},
 	}
 	for i, test := range tests {
 		_, err := Parse(test.s)
@@ -191,6 +193,12 @@ func TestParse(t *testing.T) {
 		{`ca://`, `cql`, `localhost:9042`, ``},
 		{`exa://`, `exasol`, `exa:localhost:8563`, ``},
 		{`exa://user:pass@host:1883/dbname?autocommit=1`, `exasol`, `exa:host:1883;autocommit=1;password=pass;schema=dbname;user=user`, ``}, // 91
+		{`ots://user:pass@localhost/instance_name`, `ots`, `https://user:pass@localhost/instance_name`, ``},
+		{`ots+https://user:pass@localhost/instance_name`, `ots`, `https://user:pass@localhost/instance_name`, ``},
+		{`ots+http://user:pass@localhost/instance_name`, `ots`, `http://user:pass@localhost/instance_name`, ``},
+		{`tablestore://user:pass@localhost/instance_name`, `ots`, `https://user:pass@localhost/instance_name`, ``},
+		{`tablestore+https://user:pass@localhost/instance_name`, `ots`, `https://user:pass@localhost/instance_name`, ``},
+		{`tablestore+http://user:pass@localhost/instance_name`, `ots`, `http://user:pass@localhost/instance_name`, ``},
 	}
 	for i, test := range tests {
 		u, err := Parse(test.s)

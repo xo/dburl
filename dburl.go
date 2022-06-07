@@ -88,6 +88,7 @@
 //   Oracle (godror)                  | gr
 //   ---------------------------------|--------------------------------------------
 //	 Alibaba MaxCompute (maxcompute)  | mc
+//	 Alibaba Tablestore (ots)  	  | ot, ots, tablestore
 //	 Apache Avatica (avatica)         | av, phoenix
 //	 Apache H2 (h2)                   | h2
 //	 Apache Hive (hive)               | hi
@@ -148,6 +149,7 @@
 //	 PostgreSQL (pgx)                 | github.com/jackc/pgx/stdlib
 //   ---------------------------------|-------------------------------------------------
 //	 Alibaba MaxCompute (maxcompute)  | sqlflow.org/gomaxcompute
+//	 Alibaba Tablestore (ots)  	  | github.com/aliyun/aliyun-tablestore-go-sql-driver
 //	 Apache Avatica (avatica)         | github.com/Boostport/avatica
 //	 Apache H2 (h2)                   | github.com/jmrobles/h2go
 //	 Apache Hive (hive)               | sqlflow.org/gohive

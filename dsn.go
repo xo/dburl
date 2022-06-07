@@ -583,6 +583,32 @@ func GenSqlserver(u *URL) (string, error) {
 	return genOptionsOdbc(q, true), nil
 }
 
+// GenTableStore generates a tablestore DSN from the passed URL.
+func GenTableStore(u *URL) (string, error) {
+	var transport string
+	splits := strings.Split(u.OriginalScheme, "+")
+	if len(splits) == 0 {
+		return "", ErrInvalidDatabaseScheme
+	} else if len(splits) == 1 || splits[1] == "https" {
+		transport = "https"
+	} else if splits[1] == "http" {
+		transport = "http"
+	} else {
+		return "", ErrInvalidTransportProtocol
+	}
+	z := &url.URL{
+		Scheme:   transport,
+		Opaque:   u.Opaque,
+		User:     u.User,
+		Host:     u.Host,
+		Path:     u.Path,
+		RawPath:  u.RawPath,
+		RawQuery: u.RawQuery,
+		Fragment: u.Fragment,
+	}
+	return z.String(), nil
+}
+
 // GenVoltdb generates a voltdb DSN from the passed URL.
 func GenVoltdb(u *URL) (string, error) {
 	host, port := "localhost", "21212"
