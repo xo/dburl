@@ -174,34 +174,6 @@ func GenCassandra(u *URL) (string, error) {
 	return host + ":" + port + genQueryOptions(q), nil
 }
 
-// GenClickhouse generates a clickhouse DSN from the passed URL.
-func GenClickhouse(u *URL) (string, error) {
-	z := &url.URL{
-		Scheme:   "tcp",
-		Opaque:   u.Opaque,
-		Host:     u.Host,
-		Path:     u.Path,
-		RawPath:  u.RawPath,
-		RawQuery: u.RawQuery,
-		Fragment: u.Fragment,
-	}
-	if z.Port() == "" {
-		z.Host += ":9000"
-	}
-	// build q
-	q := z.Query()
-	if u.User != nil {
-		if user := u.User.Username(); len(user) > 0 {
-			q.Set("username", user)
-		}
-		if pass, ok := u.User.Password(); ok {
-			q.Set("password", pass)
-		}
-	}
-	z.RawQuery = q.Encode()
-	return z.String(), nil
-}
-
 // GenCosmos generates a cosmos DSN from the passed URL.
 func GenCosmos(u *URL) (string, error) {
 	host, port, dbname := u.Hostname(), u.Port(), strings.TrimPrefix(u.Path, "/")
@@ -660,8 +632,7 @@ func genOptionsOdbc(q url.Values, skipWhenEmpty bool, ignore ...string) string {
 // For example, to build a "ODBC" style connection string, can be used like the
 // following:
 //
-//     genOptions(u.Query(), "", "=", ";", ",", false)
-//
+//	genOptions(u.Query(), "", "=", ";", ",", false)
 func genOptions(q url.Values, joiner, assign, sep, valSep string, skipWhenEmpty bool, ignore ...string) string {
 	if len(q) == 0 {
 		return ""

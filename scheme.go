@@ -70,7 +70,7 @@ func BaseSchemes() []Scheme {
 		{"awsathena", GenScheme("s3"), 0, false, []string{"s3", "aws", "athena"}, ""},
 		{"avatica", GenFromURL("http://localhost:8765/"), 0, false, []string{"phoenix"}, ""},
 		{"bigquery", GenScheme("bigquery"), 0, false, []string{"bq"}, ""},
-		{"clickhouse", GenClickhouse, 0, false, []string{"ch"}, ""},
+		{"clickhouse", GenFromURL("clickhouse://localhost:9000/"), 0, false, []string{"ch"}, ""},
 		{"cosmos", GenCosmos, 0, false, []string{"cm"}, ""},
 		{"cql", GenCassandra, 0, false, []string{"ca", "cassandra", "datastax", "scy", "scylla"}, ""},
 		{"csvq", GenOpaque, 0, true, []string{"csv", "tsv", "json"}, ""},
