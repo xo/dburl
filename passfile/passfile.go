@@ -101,14 +101,14 @@ func ParseFile(file string) ([]Entry, error) {
 }
 
 // Equals returns true when v matches the entry.
-func (entry Entry) Equals(v Entry) bool {
-	return (entry.Protocol == "*" || entry.Protocol == v.Protocol) &&
+func (entry Entry) Equals(v Entry, protocols ...string) bool {
+	return (entry.Protocol == "*" || contains(protocols, entry.Protocol)) &&
 		(entry.Host == "*" || entry.Host == v.Host) &&
 		(entry.Port == "*" || entry.Port == v.Port)
 }
 
 // MatchEntries returns a Userinfo when the normalized v is found in entries.
-func MatchEntries(u *dburl.URL, entries []Entry) (*url.Userinfo, error) {
+func MatchEntries(u *dburl.URL, entries []Entry, protocols ...string) (*url.Userinfo, error) {
 	// check if v already has password defined ...
 	var username string
 	if u.User != nil {
@@ -124,7 +124,7 @@ func MatchEntries(u *dburl.URL, entries []Entry) (*url.Userinfo, error) {
 	}
 	m := NewEntry(n)
 	for _, entry := range entries {
-		if entry.Equals(m) {
+		if entry.Equals(m, protocols...) {
 			u := entry.Username
 			if entry.Username == "*" {
 				u = username
@@ -137,7 +137,7 @@ func MatchEntries(u *dburl.URL, entries []Entry) (*url.Userinfo, error) {
 
 // MatchFile returns a Userinfo from a passfile entry matching database URL v
 // read from the specified file.
-func MatchFile(u *dburl.URL, file string) (*url.Userinfo, error) {
+func MatchFile(u *dburl.URL, file string, protocols ...string) (*url.Userinfo, error) {
 	entries, err := ParseFile(file)
 	if err != nil {
 		return nil, &FileError{file, err}
@@ -145,7 +145,7 @@ func MatchFile(u *dburl.URL, file string) (*url.Userinfo, error) {
 	if entries == nil {
 		return nil, nil
 	}
-	user, err := MatchEntries(u, entries)
+	user, err := MatchEntries(u, entries, protocols...)
 	if err != nil {
 		return nil, &FileError{file, err}
 	}
@@ -155,9 +155,18 @@ func MatchFile(u *dburl.URL, file string) (*url.Userinfo, error) {
 // Match returns a Userinfo from a passfile entry matching database URL read
 // from the file in $HOME/.<name> or $ENV{NAME}.
 //
-// Equivalent to MatchFile(u, Path(homeDir, name)).
+// Equivalent to MatchFile(u, Path(homeDir, name), dburl.Protocols(u.Driver)...).
 func Match(u *dburl.URL, homeDir, name string) (*url.Userinfo, error) {
-	return MatchFile(u, Path(homeDir, name))
+	return MatchFile(u, Path(homeDir, name), dburl.Protocols(u.Driver)...)
+}
+
+// MatchProtocols returns a Userinfo from a passfile entry matching database
+// URL read from the file in $HOME/.<name> or $ENV{NAME} using the specified
+// protocols.
+//
+// Equivalent to MatchFile(u, Path(homeDir, name), protocols...).
+func MatchProtocols(u *dburl.URL, homeDir, name string, protocols ...string) (*url.Userinfo, error) {
+	return MatchFile(u, Path(homeDir, name), protocols...)
 }
 
 // Entries returns the entries for the specified passfile name.
@@ -269,4 +278,14 @@ type ErrEmptyField struct {
 // Error satisfies the error interface.
 func (err *ErrEmptyField) Error() string {
 	return fmt.Sprintf("line %d has empty field %d", err.Line, err.Field)
+}
+
+// contains determines if v contains s.
+func contains(v []string, s string) bool {
+	for _, z := range v {
+		if z == s {
+			return true
+		}
+	}
+	return false
 }

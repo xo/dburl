@@ -190,8 +190,7 @@ func Register(scheme Scheme) {
 
 // Unregister unregisters a Scheme and all associated aliases.
 func Unregister(name string) *Scheme {
-	scheme, ok := schemeMap[name]
-	if ok {
+	if scheme, ok := schemeMap[name]; ok {
 		for _, alias := range scheme.Aliases {
 			delete(schemeMap, alias)
 		}
@@ -201,9 +200,17 @@ func Unregister(name string) *Scheme {
 	return nil
 }
 
-// RegisterAlias registers a alias for an already registered Scheme.h
+// RegisterAlias registers a alias for an already registered Scheme.
 func RegisterAlias(name, alias string) {
 	registerAlias(name, alias, true)
+}
+
+// Protocols returns list of all valid protocol aliases for a scheme name.
+func Protocols(name string) []string {
+	if scheme, ok := schemeMap[name]; ok {
+		return append([]string{scheme.Driver}, scheme.Aliases...)
+	}
+	return nil
 }
 
 // SchemeDriverAndAliases returns the registered driver and aliases for a
