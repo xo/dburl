@@ -53,7 +53,7 @@ func BaseSchemes() []Scheme {
 		{"oracle", GenFromURL("oracle://localhost:1521"), 0, false, []string{"ora", "oci", "oci8", "odpi", "odpi-c"}, ""},
 		{"postgres", GenPostgres, TransportUnix, false, []string{"pg", "postgresql", "pgsql"}, ""},
 		{"sqlite3", GenOpaque, 0, true, []string{"sqlite", "file"}, ""},
-		{"sqlserver", GenSqlserver, 0, false, []string{"ms", "mssql"}, ""},
+		{"sqlserver", GenSqlserver, 0, false, []string{"ms", "mssql", "azuresql"}, ""},
 		// wire compatibles
 		{"cockroachdb", GenFromURL("postgres://localhost:26257/?sslmode=disable"), 0, false, []string{"cr", "cockroach", "crdb", "cdb"}, "postgres"},
 		{"memsql", GenMysql, 0, false, nil, "mysql"},
