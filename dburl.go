@@ -71,7 +71,7 @@
 //
 //   Database (scheme/driver)         | Protocol Aliases [real driver]
 //   ---------------------------------|--------------------------------------------
-//   Microsoft SQL Server (sqlserver) | ms, mssql
+//   Microsoft SQL Server (sqlserver) | ms, mssql, azuresql
 //   MySQL (mysql)                    | my, mariadb, maria, percona, aurora
 //   Oracle Database (oracle)         | or, ora, oci, oci8, odpi, odpi-c
 //   PostgreSQL (postgres)            | pg, postgresql, pgsql

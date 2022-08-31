@@ -111,7 +111,7 @@ supported out of the box:
 | Oracle Database (oracle)         | or, ora, oracle, oci, oci8, odpi, odpi-c |
 | PostgreSQL (postgres)            | pg, postgresql, pgsql                    |
 | SQLite3 (sqlite3)                | sq, sqlite, file                         |
-| Microsoft SQL Server (sqlserver) | ms, mssql                                |
+| Microsoft SQL Server (sqlserver) | ms, mssql, azuresql                      |
 |                                  |                                          |
 | Amazon Redshift (redshift)       | rs [postgres]                            |
 | CockroachDB (cockroachdb)        | cr, cockroach, crdb, cdb [postgres]      |
