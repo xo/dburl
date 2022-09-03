@@ -183,7 +183,7 @@ to be imported:
 | Oracle Database (oracle)         | [github.com/sijms/go-ora](https://github.com/sijms/go-ora)                                                     |
 | PostgreSQL (postgres)            | [github.com/lib/pq](https://github.com/lib/pq)                                                                 |
 | SQLite3 (sqlite3)                | [github.com/mattn/go-sqlite3](https://github.com/mattn/go-sqlite3)                                             |
-| Microsoft SQL Server (sqlserver) | [github.com/denisenkom/go-mssqldb](https://github.com/denisenkom/go-mssqldb)                                   |
+| Microsoft SQL Server (sqlserver) | [github.com/microsoft/go-mssqldb](https://github.com/microsoft/go-mssqldb)                                   |
 |                                  |                                                                                                                |
 | Amazon Redshift (redshift)       | [github.com/lib/pq](https://github.com/lib/pq)                                                                 |
 | CockroachDB (cockroachdb)        | [github.com/lib/pq](https://github.com/lib/pq)                                                                 |
@@ -250,7 +250,7 @@ import (
 	"fmt"
 	"log"
 
-	_ "github.com/denisenkom/go-mssqldb"
+	_ "github.com/microsoft/go-mssqldb"
 	"github.com/xo/dburl"
 )
 
