@@ -132,7 +132,7 @@
 //
 //   Database (scheme/driver)         | Package
 //	----------------------------------|-------------------------------------------------
-//	 Microsoft SQL Server (sqlserver) | github.com/denisenkom/go-mssqldb
+//	 Microsoft SQL Server (sqlserver) | github.com/microsoft/go-mssqldb
 //	 MySQL (mysql)                    | github.com/go-sql-driver/mysql
 //	 Oracle Database (oracle)         | github.com/sijms/go-ora/v2
 //	 PostgreSQL (postgres)            | github.com/lib/pq
