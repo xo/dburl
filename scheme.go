@@ -52,6 +52,7 @@ func BaseSchemes() []Scheme {
 		{"mysql", GenMysql, TransportTCP | TransportUDP | TransportUnix, false, []string{"mariadb", "maria", "percona", "aurora"}, ""},
 		{"oracle", GenFromURL("oracle://localhost:1521"), 0, false, []string{"ora", "oci", "oci8", "odpi", "odpi-c"}, ""},
 		{"postgres", GenPostgres, TransportUnix, false, []string{"pg", "postgresql", "pgsql"}, ""},
+		{"mogdb", GenPostgres, TransportUnix, false, []string{"mg", "mogdb", "mgsql", "gsql"}, ""},
 		{"sqlite3", GenOpaque, 0, true, []string{"sqlite", "file"}, ""},
 		{"sqlserver", GenSqlserver, 0, false, []string{"ms", "mssql", "azuresql"}, ""},
 		// wire compatibles

@@ -110,6 +110,7 @@ supported out of the box:
 | MySQL (mysql)                    | my, mariadb, maria, percona, aurora      |
 | Oracle Database (oracle)         | or, ora, oracle, oci, oci8, odpi, odpi-c |
 | PostgreSQL (postgres)            | pg, postgresql, pgsql                    |
+| MogDB (mogdb)                    | mg, mogdb, mgsql, gsql                   |
 | SQLite3 (sqlite3)                | sq, sqlite, file                         |
 | Microsoft SQL Server (sqlserver) | ms, mssql, azuresql                      |
 |                                  |                                          |
@@ -182,8 +183,9 @@ to be imported:
 | MySQL (mysql)                    | [github.com/go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)                                       |
 | Oracle Database (oracle)         | [github.com/sijms/go-ora](https://github.com/sijms/go-ora)                                                     |
 | PostgreSQL (postgres)            | [github.com/lib/pq](https://github.com/lib/pq)                                                                 |
+| MogDB (mogdb)                    | [openGauss-connector-go-pq](https://gitee.com/opengauss/openGauss-connector-go-pq)                             |
 | SQLite3 (sqlite3)                | [github.com/mattn/go-sqlite3](https://github.com/mattn/go-sqlite3)                                             |
-| Microsoft SQL Server (sqlserver) | [github.com/microsoft/go-mssqldb](https://github.com/microsoft/go-mssqldb)                                   |
+| Microsoft SQL Server (sqlserver) | [github.com/microsoft/go-mssqldb](https://github.com/microsoft/go-mssqldb)                                     |
 |                                  |                                                                                                                |
 | Amazon Redshift (redshift)       | [github.com/lib/pq](https://github.com/lib/pq)                                                                 |
 | CockroachDB (cockroachdb)        | [github.com/lib/pq](https://github.com/lib/pq)                                                                 |
