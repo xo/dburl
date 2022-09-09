@@ -1,19 +1,13 @@
-on: [push, pull_request]
 name: Test
+on: [push, pull_request]
 jobs:
   test:
-    strategy:
-      matrix:
-        go-version: [1.19.x]
-        platform: [ubuntu-latest]
-    runs-on: ${{ matrix.platform }}
+    name: Test
+    runs-on: ubuntu-latest
     steps:
     - name: Install Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: ${{ matrix.go-version }}
+      uses: actions/setup-go@v3
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Test
-      run: |
-        CGO_ENABLED=0 go test -v ./...
+      run: CGO_ENABLED=0 go test -v ./...
