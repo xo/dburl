@@ -242,6 +242,11 @@ func SchemeDriverAndAliases(name string) (string, []string) {
 	return "", nil
 }
 
+// ShortAlias returns the short alias for the scheme name.
+func ShortAlias(name string) string {
+	return schemeMap[name].Aliases[0]
+}
+
 // contains determines if v contains s.
 func contains(v []string, s string) bool {
 	for _, z := range v {
