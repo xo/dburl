@@ -39,6 +39,9 @@ func TestMatching(t *testing.T) {
 	expectedUserPassword(t, "postgres://user2@host:1/db2", "user2", "pass8")
 	expectedUserPassword(t, "postgres://user@host:2/db2", "user", "pass7")
 	expectedUserPassword(t, "postgres://user2@host:2/db2", "user2", "pass10")
+	expectedUserPassword(t, "postgres://host:1/db", "user", "pass1")
+	expectedUserPassword(t, "postgres://host:2/db2", "user2", "pass10")
+	expectedUserPassword(t, "postgres://user3@host:1/db", "user3", "pass11")
 }
 
 func TestParse(t *testing.T) {
@@ -105,4 +108,7 @@ postgres:*:*:*:user2:pass8
 
 #Order matters (won't get here)
 postgres:host:2:db2:user:pass9
+
+#Default password
+postgres:*:*:*:*:pass11
 `

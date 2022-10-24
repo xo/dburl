@@ -106,7 +106,9 @@ func (entry Entry) Equals(v Entry, protocols ...string) bool {
 		(entry.Host == "*" || entry.Host == v.Host) &&
 		(entry.Port == "*" || entry.Port == v.Port) &&
 		(entry.DBName == "*" || entry.DBName == v.DBName) &&
-		(entry.Username == "*" || entry.Username == v.Username)
+		(entry.Username == v.Username ||
+			(entry.Username != "*" && v.Username == "") ||
+			(entry.Username == "*" && v.Username != ""))
 }
 
 // MatchEntries returns a Userinfo when the normalized v is found in entries.
@@ -120,7 +122,7 @@ func MatchEntries(u *dburl.URL, entries []Entry, protocols ...string) (*url.User
 		}
 	}
 	// find matching entry
-	n := strings.SplitN(u.Normalize(":", "", 3), ":", 6)
+	n := strings.SplitN(u.Normalize(":", "", 4), ":", 6)
 	if len(n) < 3 {
 		return nil, ErrUnableToNormalizeURL
 	}
