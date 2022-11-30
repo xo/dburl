@@ -193,6 +193,14 @@ func GenCosmos(u *URL) (string, error) {
 	return genOptionsOdbc(q, true), nil
 }
 
+// GenDatabend generates a databend DSN from the passed URL.
+func GenDatabend(u *URL) (string, error) {
+	if u.Hostname() == "" {
+		return "", ErrMissingHost
+	}
+	return u.String(), nil
+}
+
 // GenExasol generates a exasol DSN from the passed URL.
 func GenExasol(u *URL) (string, error) {
 	host, port, dbname := u.Hostname(), u.Port(), strings.TrimPrefix(u.Path, "/")

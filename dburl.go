@@ -88,7 +88,7 @@
 //	  Oracle (godror)                  | gr
 //	  ---------------------------------|--------------------------------------------
 //		 Alibaba MaxCompute (maxcompute)  | mc
-//		 Alibaba Tablestore (ots)  	  | ot, ots, tablestore
+//		 Alibaba Tablestore (ots)         | ot, ots, tablestore
 //		 Apache Avatica (avatica)         | av, phoenix
 //		 Apache H2 (h2)                   | h2
 //		 Apache Hive (hive)               | hi
@@ -101,7 +101,8 @@
 //		 Couchbase (n1ql)                 | n1, couchbase
 //		 Cznic QL (ql)                    | ql, cznic, cznicql
 //		 CSVQ (csvq)                      | csv, tsv, json
-//		 Exasol (exasol                   | ex, exa
+//		 Exasol (exasol)                  | ex, exa
+//		 Databend (databend)              | bend
 //		 Firebird SQL (firebirdsql)       | fb, firebird
 //		 Genji (genji)                    | gj
 //		 Google BigQuery (bigquery)       | bq
@@ -162,6 +163,7 @@
 //		 Couchbase (n1ql)                 | github.com/couchbase/go_n1ql
 //		 Cznic QL (ql)                    | modernc.org/ql
 //		 CSVQ (csvq)                      | github.com/mithrandie/csvq
+//		 Databend (databend)              | github.com/datafuselabs/databend
 //		 Exasol (exasol)                  | github.com/exasol/exasol-driver-go
 //		 Firebird SQL (firebirdsql)       | github.com/nakagami/firebirdsql
 //		 Genji (genji)                    | github.com/genjidb/genji/sql/driver
