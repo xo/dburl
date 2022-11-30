@@ -72,6 +72,8 @@ func TestBadParse(t *testing.T) {
 		{`mq+tcp://`, ErrInvalidTransportProtocol},
 		{`ots+tcp://`, ErrInvalidTransportProtocol},
 		{`tablestore+tcp://`, ErrInvalidTransportProtocol},
+		{`bend://`, ErrMissingHost},
+		{`databend://`, ErrMissingHost},
 	}
 	for i, test := range tests {
 		_, err := Parse(test.s)
@@ -199,6 +201,8 @@ func TestParse(t *testing.T) {
 		{`tablestore://user:pass@localhost/instance_name`, `ots`, `https://user:pass@localhost/instance_name`, ``},
 		{`tablestore+https://user:pass@localhost/instance_name`, `ots`, `https://user:pass@localhost/instance_name`, ``},
 		{`tablestore+http://user:pass@localhost/instance_name`, `ots`, `http://user:pass@localhost/instance_name`, ``},
+		{`bend://user:pass@localhost/instance_name?sslmode=disabled&warehouse=wh`, `databend`, `bend://user:pass@localhost/instance_name?sslmode=disabled&warehouse=wh`, ``},
+		{`databend://user:pass@localhost/instance_name?tenant=tn&warehouse=wh`, `databend`, `databend://user:pass@localhost/instance_name?tenant=tn&warehouse=wh`, ``},
 	}
 	for i, test := range tests {
 		u, err := Parse(test.s)

@@ -74,6 +74,7 @@ func BaseSchemes() []Scheme {
 		{"cosmos", GenCosmos, 0, false, []string{"cm"}, ""},
 		{"cql", GenCassandra, 0, false, []string{"ca", "cassandra", "datastax", "scy", "scylla"}, ""},
 		{"csvq", GenOpaque, 0, true, []string{"csv", "tsv", "json"}, ""},
+		{"databend", GenDatabend, 0, false, []string{"bend"}, ""},
 		{"exasol", GenExasol, 0, false, []string{"ex", "exa"}, ""},
 		{"firebirdsql", GenFirebird, 0, false, []string{"fb", "firebird"}, ""},
 		{"genji", GenOpaque, 0, true, []string{"gj"}, ""},

@@ -137,6 +137,7 @@ supported out of the box:
 | Couchbase (n1ql)                 | n1, couchbase                            |
 | Cznic QL (ql)                    | ql, cznic, cznicql                       |
 | CSVQ (csvq)                      | csv, tsv, json                           |
+| Databend (databend)              | bend                                     |
 | Exasol (exasol)                  | ex, exa                                  |
 | Firebird SQL (firebirdsql)       | fb, firebird                             |
 | Genji (genji)                    | gj                                       |
@@ -183,7 +184,7 @@ to be imported:
 | Oracle Database (oracle)         | [github.com/sijms/go-ora](https://github.com/sijms/go-ora)                                                     |
 | PostgreSQL (postgres)            | [github.com/lib/pq](https://github.com/lib/pq)                                                                 |
 | SQLite3 (sqlite3)                | [github.com/mattn/go-sqlite3](https://github.com/mattn/go-sqlite3)                                             |
-| Microsoft SQL Server (sqlserver) | [github.com/microsoft/go-mssqldb](https://github.com/microsoft/go-mssqldb)                                   |
+| Microsoft SQL Server (sqlserver) | [github.com/microsoft/go-mssqldb](https://github.com/microsoft/go-mssqldb)                                     |
 |                                  |                                                                                                                |
 | Amazon Redshift (redshift)       | [github.com/lib/pq](https://github.com/lib/pq)                                                                 |
 | CockroachDB (cockroachdb)        | [github.com/lib/pq](https://github.com/lib/pq)                                                                 |
@@ -209,6 +210,7 @@ to be imported:
 | Couchbase (n1ql)                 | [github.com/couchbase/go_n1ql](https://github.com/couchbase/go_n1ql)                                           |
 | Cznic QL (ql)                    | [modernc.org/ql](https://modernc.org/ql)                                                                       |
 | CSVQ (csvq)                      | [github.com/mithrandie/csvq](https://github.com/mithrandie/csvq)                                               |
+| Databend (databend)              | [github.com/databendcloud/databend-go](https://github.com/databendcloud/databend-go)                           |
 | Exasol (exasol)                  | [github.com/exasol/exasol-driver-go](https://github.com/exasol/exasol-driver-go)                               |
 | Firebird SQL (firebirdsql)       | [github.com/nakagami/firebirdsql](https://github.com/nakagami/firebirdsql)                                     |
 | Genji (genji)                    | [github.com/genjidb/genji/sql/driver](https://github.com/genjidb/genji)                                        |
