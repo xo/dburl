@@ -537,32 +537,6 @@ func GenSpanner(u *URL) (string, error) {
 	return fmt.Sprintf(`project/%s/instances/%s/databases/%s`, project, instance, dbname), nil
 }
 
-// GenSqlserver generates a sqlserver DSN from the passed URL.
-func GenSqlserver(u *URL) (string, error) {
-	host, port, dbname := u.Hostname(), u.Port(), strings.TrimPrefix(u.Path, "/")
-	// add instance name to host if present
-	if i := strings.Index(dbname, "/"); i != -1 {
-		host = host + `\` + dbname[:i]
-		dbname = dbname[i+1:]
-	}
-	// build q
-	q := u.Query()
-	q.Set("Server", host)
-	q.Set("Port", port)
-	q.Set("Database", dbname)
-	// add user/pass
-	if u.User != nil {
-		q.Set("User ID", u.User.Username())
-		pass, _ := u.User.Password()
-		q.Set("Password", pass)
-	}
-	// save host, port, dbname
-	if u.hostPortDB == nil {
-		u.hostPortDB = []string{host, port, dbname}
-	}
-	return genOptionsOdbc(q, true), nil
-}
-
 // GenTableStore generates a tablestore DSN from the passed URL.
 func GenTableStore(u *URL) (string, error) {
 	var transport string

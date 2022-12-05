@@ -53,7 +53,7 @@ func BaseSchemes() []Scheme {
 		{"oracle", GenFromURL("oracle://localhost:1521"), 0, false, []string{"ora", "oci", "oci8", "odpi", "odpi-c"}, ""},
 		{"postgres", GenPostgres, TransportUnix, false, []string{"pg", "postgresql", "pgsql"}, ""},
 		{"sqlite3", GenOpaque, 0, true, []string{"sqlite", "file"}, ""},
-		{"sqlserver", GenSqlserver, 0, false, []string{"ms", "mssql", "azuresql"}, ""},
+		{"sqlserver", GenScheme("sqlserver"), 0, false, []string{"ms", "mssql", "azuresql"}, ""},
 		// wire compatibles
 		{"cockroachdb", GenFromURL("postgres://localhost:26257/?sslmode=disable"), 0, false, []string{"cr", "cockroach", "crdb", "cdb"}, "postgres"},
 		{"memsql", GenMysql, 0, false, nil, "mysql"},
@@ -74,7 +74,7 @@ func BaseSchemes() []Scheme {
 		{"cosmos", GenCosmos, 0, false, []string{"cm"}, ""},
 		{"cql", GenCassandra, 0, false, []string{"ca", "cassandra", "datastax", "scy", "scylla"}, ""},
 		{"csvq", GenOpaque, 0, true, []string{"csv", "tsv", "json"}, ""},
-		{"databend", GenDatabend, 0, false, []string{"bend"}, ""},
+		{"databend", GenDatabend, 0, false, []string{"dd", "bend"}, ""},
 		{"exasol", GenExasol, 0, false, []string{"ex", "exa"}, ""},
 		{"firebirdsql", GenFirebird, 0, false, []string{"fb", "firebird"}, ""},
 		{"genji", GenOpaque, 0, true, []string{"gj"}, ""},

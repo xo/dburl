@@ -137,7 +137,7 @@ supported out of the box:
 | Couchbase (n1ql)                 | n1, couchbase                            |
 | Cznic QL (ql)                    | ql, cznic, cznicql                       |
 | CSVQ (csvq)                      | csv, tsv, json                           |
-| Databend (databend)              | bend                                     |
+| Databend (databend)              | dd, bend                                 |
 | Exasol (exasol)                  | ex, exa                                  |
 | Firebird SQL (firebirdsql)       | fb, firebird                             |
 | Genji (genji)                    | gj                                       |
