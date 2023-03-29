@@ -121,9 +121,11 @@ func TestParse(t *testing.T) {
 		{`mymy:./path/to/socket`, `mymysql`, `unix:path/to/socket*//`, ``},
 		{`mymy+unix:./path/to/socket`, `mymysql`, `unix:path/to/socket*//`, ``},
 		{`mssql://`, `sqlserver`, `sqlserver://localhost`, ``}, // 26
-		{`mssql://user:pass@localhost/dbname`, `sqlserver`, `sqlserver://user:pass@localhost/dbname`, ``},
-		{`mssql://user@localhost/service/dbname`, `sqlserver`, `sqlserver://user@localhost/service/dbname`, ``},
-		{`mssql://user:!234%23$@localhost:1580/dbname`, `sqlserver`, `sqlserver://user:%21234%23$@localhost:1580/dbname`, ``},
+		{`mssql://user:pass@localhost/dbname`, `sqlserver`, `sqlserver://user:pass@localhost/?database=dbname`, ``},
+		{`mssql://user@localhost/service/dbname`, `sqlserver`, `sqlserver://user@localhost/service?database=dbname`, ``},
+		{`mssql://user:!234%23$@localhost:1580/dbname`, `sqlserver`, `sqlserver://user:%21234%23$@localhost:1580/?database=dbname`, ``},
+		{`mssql://user:!234%23$@localhost:1580/service/dbname?fedauth=true`, `sqlserver`, `azuresql://user:%21234%23$@localhost:1580/service?database=dbname&fedauth=true`, ``},
+		{`azuresql://user:pass@localhost:100/dbname`, `sqlserver`, `azuresql://user:pass@localhost:100/?database=dbname`, ``},
 		{
 			`adodb://Microsoft.ACE.OLEDB.12.0?Extended+Properties=%22Text%3BHDR%3DNO%3BFMT%3DDelimited%22`, `adodb`, // 30
 			`Data Source=.;Extended Properties="Text;HDR=NO;FMT=Delimited";Provider=Microsoft.ACE.OLEDB.12.0`, ``,
