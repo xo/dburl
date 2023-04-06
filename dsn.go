@@ -534,7 +534,7 @@ func GenSpanner(u *URL) (string, error) {
 	if instance == "" || dbname == "" {
 		return "", ErrMissingPath
 	}
-	return fmt.Sprintf(`project/%s/instances/%s/databases/%s`, project, instance, dbname), nil
+	return fmt.Sprintf(`projects/%s/instances/%s/databases/%s`, project, instance, dbname), nil
 }
 
 // GenSqlserver generates a sqlserver DSN from the passed URL.
