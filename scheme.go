@@ -77,6 +77,7 @@ func BaseSchemes() []Scheme {
 		{"databend", GenDatabend, 0, false, []string{"dd", "bend"}, ""},
 		{"exasol", GenExasol, 0, false, []string{"ex", "exa"}, ""},
 		{"firebirdsql", GenFirebird, 0, false, []string{"fb", "firebird"}, ""},
+		{"flightsql", GenScheme("flightsql"), 0, false, []string{"flightsql"}, ""},
 		{"genji", GenOpaque, 0, true, []string{"gj"}, ""},
 		{"h2", GenFromURL("h2://localhost:9092/"), 0, false, nil, ""},
 		{"hdb", GenScheme("hdb"), 0, false, []string{"sa", "saphana", "sap", "hana"}, ""},
