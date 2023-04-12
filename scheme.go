@@ -5,7 +5,7 @@ import (
 	"sort"
 )
 
-// Transport is the allowed transport protocol types in a database URL scheme.
+// Transport is the allowed transport protocol types in a database [URL] scheme.
 type Transport uint
 
 // Transport types.
@@ -18,7 +18,7 @@ const (
 )
 
 // Scheme wraps information used for registering a database URL scheme for use
-// with Parse/Open.
+// with [Parse]/[Open].
 type Scheme struct {
 	// Driver is the name of the SQL driver that is set as the Scheme in
 	// Parse'd URLs and is the driver name expected by the standard sql.Open
@@ -140,7 +140,7 @@ func registerAlias(name, alias string, doSort bool) {
 	schemeMap[alias] = scheme
 }
 
-// Register registers a Scheme.
+// Register registers a [Scheme].
 func Register(scheme Scheme) {
 	if scheme.Generator == nil {
 		panic("must specify Generator when registering Scheme")
@@ -190,7 +190,8 @@ func Register(scheme Scheme) {
 	})
 }
 
-// Unregister unregisters a Scheme and all associated aliases.
+// Unregister unregisters a scheme and all associated aliases, returning the
+// removed [Scheme].
 func Unregister(name string) *Scheme {
 	if scheme, ok := schemeMap[name]; ok {
 		for _, alias := range scheme.Aliases {
@@ -202,12 +203,13 @@ func Unregister(name string) *Scheme {
 	return nil
 }
 
-// RegisterAlias registers a alias for an already registered Scheme.
+// RegisterAlias registers an additional alias for a registered scheme.
 func RegisterAlias(name, alias string) {
 	registerAlias(name, alias, true)
 }
 
-// Protocols returns list of all valid protocol aliases for a scheme name.
+// Protocols returns list of all valid protocol aliases for a registered
+// [Scheme] name.
 func Protocols(name string) []string {
 	if scheme, ok := schemeMap[name]; ok {
 		return append([]string{scheme.Driver}, scheme.Aliases...)

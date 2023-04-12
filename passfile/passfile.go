@@ -259,7 +259,7 @@ func (err *FileError) Unwrap() error {
 	return err.Err
 }
 
-// ErrInvalidEntry is the invalid entrty error.
+// ErrInvalidEntry is the invalid entry error.
 type ErrInvalidEntry struct {
 	Line int
 }
