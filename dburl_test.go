@@ -205,6 +205,7 @@ func TestParse(t *testing.T) {
 		{`tablestore+http://user:pass@localhost/instance_name`, `ots`, `http://user:pass@localhost/instance_name`, ``},
 		{`bend://user:pass@localhost/instance_name?sslmode=disabled&warehouse=wh`, `databend`, `bend://user:pass@localhost/instance_name?sslmode=disabled&warehouse=wh`, ``},
 		{`databend://user:pass@localhost/instance_name?tenant=tn&warehouse=wh`, `databend`, `databend://user:pass@localhost/instance_name?tenant=tn&warehouse=wh`, ``},
+		{`flightsql://user:pass@localhost?timeout=3s&token=foobar&tls=enabled`, `flightsql`, `flightsql://user:pass@localhost?timeout=3s&token=foobar&tls=enabled`, ``},
 	}
 	for i, test := range tests {
 		u, err := Parse(test.s)
