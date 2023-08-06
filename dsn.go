@@ -601,6 +601,40 @@ func GenVoltdb(u *URL) (string, error) {
 	return host + ":" + port, nil
 }
 
+// GenIngres generates a DSN ([node_id::]dbname[/svr_class]) from the passed URL.
+func GenIngres(u *URL) (string, error) {
+	var dsn string
+	if u.Host == "" {
+		// by default set to database database
+		dsn = "iidbdb"
+	} else if u.Path == "" {
+		// If only host is set then it is the dbname
+		dsn = u.Host
+	} else if u.Path != "" {
+		var parts = strings.Split(strings.Trim(u.Path, "/"), "/")
+
+		if len(parts) == 1 {
+			// node and dbname
+			dsn = fmt.Sprintf("%s::%s", u.Host, parts[0])
+		} else if len(parts) >= 2 {
+			dsn = fmt.Sprintf("%s::%s/%s", u.Host, parts[0], parts[1])
+		}
+	}
+
+	if dsn == "" {
+		return dsn, ErrMissingPath
+	}
+
+	q := u.Query()
+	if u.User != nil {
+		q.Set("username", u.User.Username())
+		pass, _ := u.User.Password()
+		q.Set("password", pass)
+	}
+
+	return dsn + genQueryOptions(q), nil
+}
+
 // convertOptions converts an option value based on name, value pairs.
 func convertOptions(q url.Values, pairs ...string) url.Values {
 	n := make(url.Values)

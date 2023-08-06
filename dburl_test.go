@@ -206,6 +206,15 @@ func TestParse(t *testing.T) {
 		{`bend://user:pass@localhost/instance_name?sslmode=disabled&warehouse=wh`, `databend`, `bend://user:pass@localhost/instance_name?sslmode=disabled&warehouse=wh`, ``},
 		{`databend://user:pass@localhost/instance_name?tenant=tn&warehouse=wh`, `databend`, `databend://user:pass@localhost/instance_name?tenant=tn&warehouse=wh`, ``},
 		{`flightsql://user:pass@localhost?timeout=3s&token=foobar&tls=enabled`, `flightsql`, `flightsql://user:pass@localhost?timeout=3s&token=foobar&tls=enabled`, ``},
+		{`ingres://mydb`, `ingres`, `mydb`, ``},
+		{`ingres://node1/mydb`, `ingres`, `node1::mydb`, ``},
+		{`ingres://node1/mydb/s1`, `ingres`, `node1::mydb/s1`, ``},
+		{`ingres://node1/mydb/s1/s2`, `ingres`, `node1::mydb/s1`, ``},
+		{`ingres://`, `ingres`, `iidbdb`, ``},
+		{`ingres://user:pass@mydb`, `ingres`, `mydb?password=pass&username=user`, ``},
+                {`ingres://user:pass@node1/mydb`, `ingres`, `node1::mydb?password=pass&username=user`, ``},
+		{`vector://mydb`, `ingres`, `mydb`, ``},
+		{`actianx://mydb`, `ingres`, `mydb`, ``},
 	}
 	for i, test := range tests {
 		u, err := Parse(test.s)

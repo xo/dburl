@@ -98,6 +98,7 @@ func BaseSchemes() []Scheme {
 		{"trino", GenPresto, 0, false, []string{"trino", "trinos", "trs"}, ""},
 		{"vertica", GenFromURL("vertica://localhost:5433/"), 0, false, nil, ""},
 		{"voltdb", GenVoltdb, 0, false, []string{"volt", "vdb"}, ""},
+		{"ingres", GenIngres, 0, false, []string{"vector", "actianx"}, ""},
 	}
 }
 
