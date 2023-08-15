@@ -124,8 +124,10 @@ func TestParse(t *testing.T) {
 		{`mssql://user:pass@localhost/dbname`, `sqlserver`, `sqlserver://user:pass@localhost/?database=dbname`, ``},
 		{`mssql://user@localhost/service/dbname`, `sqlserver`, `sqlserver://user@localhost/service?database=dbname`, ``},
 		{`mssql://user:!234%23$@localhost:1580/dbname`, `sqlserver`, `sqlserver://user:%21234%23$@localhost:1580/?database=dbname`, ``},
-		{`mssql://user:!234%23$@localhost:1580/service/dbname?fedauth=true`, `sqlserver`, `azuresql://user:%21234%23$@localhost:1580/service?database=dbname&fedauth=true`, ``},
-		{`azuresql://user:pass@localhost:100/dbname`, `sqlserver`, `azuresql://user:pass@localhost:100/?database=dbname`, ``},
+		{`mssql://user:!234%23$@localhost:1580/service/dbname?fedauth=true`, `azuresql`, `azuresql://user:%21234%23$@localhost:1580/service?database=dbname&fedauth=true`, ``},
+		{`azuresql://user:pass@localhost:100/dbname`, `azuresql`, `azuresql://user:pass@localhost:100/?database=dbname`, ``},
+		{`sqlserver://xxx.database.windows.net?database=xxx&fedauth=ActiveDirectoryMSI`, `azuresql`, `azuresql://xxx.database.windows.net?database=xxx&fedauth=ActiveDirectoryMSI`, ``},
+		{`azuresql://xxx.database.windows.net/dbname?fedauth=ActiveDirectoryMSI`, `azuresql`, `azuresql://xxx.database.windows.net/?database=dbname&fedauth=ActiveDirectoryMSI`, ``},
 		{
 			`adodb://Microsoft.ACE.OLEDB.12.0?Extended+Properties=%22Text%3BHDR%3DNO%3BFMT%3DDelimited%22`, `adodb`, // 30
 			`Data Source=.;Extended Properties="Text;HDR=NO;FMT=Delimited";Provider=Microsoft.ACE.OLEDB.12.0`, ``,
@@ -209,19 +211,17 @@ func TestParse(t *testing.T) {
 	}
 	for i, test := range tests {
 		u, err := Parse(test.s)
-		if err != nil {
-			t.Errorf("test %d expected no error, got: %v", i, err)
-			continue
-		}
-		if u.Driver != test.d {
+		switch {
+		case err != nil:
+			t.Fatalf("test %d expected no error, got: %v", i, err)
+		case u.Driver != test.d:
 			t.Errorf("test %d expected driver %q, got: %q", i, test.d, u.Driver)
-		}
-		if u.DSN != test.exp {
+		case u.DSN != test.exp:
 			_, err := os.Stat(test.path)
 			if test.path != "" && err != nil && os.IsNotExist(err) {
 				t.Logf("test %d expected dsn %q, got: %q -- ignoring because `%s` does not exist", i, test.exp, u.DSN, test.path)
 			} else {
-				t.Errorf("test %d expected dsn %q, got: %q", i, test.exp, u.DSN)
+				t.Errorf("test %d expected:\n%q\ngot:\n%q", i, test.exp, u.DSN)
 			}
 		}
 	}

@@ -23,19 +23,18 @@ var Stat = func(name string) (fs.FileInfo, error) {
 // passed URL.
 func GenScheme(scheme string) func(*URL) (string, error) {
 	return func(u *URL) (string, error) {
-		host := u.Host
-		if host == "" {
-			host = "localhost"
-		}
 		z := &url.URL{
 			Scheme:   scheme,
 			Opaque:   u.Opaque,
 			User:     u.User,
-			Host:     host,
+			Host:     u.Host,
 			Path:     u.Path,
 			RawPath:  u.RawPath,
 			RawQuery: u.RawQuery,
 			Fragment: u.Fragment,
+		}
+		if z.Host == "" {
+			z.Host = "localhost"
 		}
 		return z.String(), nil
 	}
@@ -539,21 +538,17 @@ func GenSpanner(u *URL) (string, error) {
 
 // GenSqlserver generates a sqlserver DSN from the passed URL.
 func GenSqlserver(u *URL) (string, error) {
-	host := u.Host
-	if host == "" {
-		host = "localhost"
-	}
 	z := &url.URL{
-		Scheme:   "sqlserver",
+		Scheme:   sqlserverDriver(u),
 		Opaque:   u.Opaque,
 		User:     u.User,
-		Host:     host,
+		Host:     u.Host,
 		Path:     u.Path,
 		RawQuery: u.RawQuery,
 		Fragment: u.Fragment,
 	}
-	if strings.ToLower(u.Scheme) == "azuresql" || z.Query().Has("fedauth") {
-		z.Scheme = "azuresql"
+	if z.Host == "" {
+		z.Host = "localhost"
 	}
 	v := strings.Split(strings.TrimPrefix(z.Path, "/"), "/")
 	if n, q := len(v), z.Query(); !q.Has("database") && n != 0 && len(v[0]) != 0 {
@@ -561,6 +556,16 @@ func GenSqlserver(u *URL) (string, error) {
 		z.Path, z.RawQuery = "/"+strings.Join(v[:n-1], "/"), q.Encode()
 	}
 	return z.String(), nil
+}
+
+// sqlserverDriver returns the driver used for a Microsoft SQL Server URL.
+func sqlserverDriver(u *URL) string {
+	switch {
+	case u.Query().Has("fedauth"),
+		strings.Contains(strings.ToLower(u.OriginalScheme), "azuresql"):
+		return "azuresql"
+	}
+	return "sqlserver"
 }
 
 // GenTableStore generates a tablestore DSN from the passed URL.
