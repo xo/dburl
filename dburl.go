@@ -24,7 +24,11 @@ func Open(urlstr string) (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	return sql.Open(u.Driver, u.DSN)
+	driver := u.Driver
+	if u.GoDriver != "" {
+		driver = u.GoDriver
+	}
+	return sql.Open(driver, u.DSN)
 }
 
 // URL wraps the standard [net/url.URL] type, adding OriginalScheme, Transport,
@@ -40,8 +44,12 @@ type URL struct {
 	// Driver is the non-aliased SQL driver name that should be used in a call
 	// to sql/Open.
 	Driver string
-	// Unaliased is the unaliased driver name.
-	Unaliased string
+	// GoDriver is the Go SQL driver name to use when opening a connection to
+	// the database. Used by Microsoft SQL Server's azuresql URLs, as the
+	// wire-compatible alias style uses a different syntax style.
+	GoDriver string
+	// UnaliasedDriver is the unaliased driver name.
+	UnaliasedDriver string
 	// DSN is the built connection "data source name" that can be used in a
 	// call to sql/Open.
 	DSN string
@@ -123,12 +131,12 @@ func Parse(urlstr string) (*URL, error) {
 		}
 	}
 	// set driver
-	u.Driver, u.Unaliased = scheme.Driver, scheme.Driver
+	u.Driver, u.UnaliasedDriver = scheme.Driver, scheme.Driver
 	if scheme.Override != "" {
 		u.Driver = scheme.Override
 	}
 	// generate dsn
-	if u.DSN, err = scheme.Generator(u); err != nil {
+	if u.DSN, u.GoDriver, err = scheme.Generator(u); err != nil {
 		return nil, err
 	}
 	return u, nil
@@ -185,7 +193,7 @@ func (u *URL) Short() string {
 // Normalize returns the driver, host, port, database, and user name of a URL,
 // joined with sep, populating blank fields with empty.
 func (u *URL) Normalize(sep, empty string, cut int) string {
-	s := []string{u.Unaliased, "", "", "", ""}
+	s := []string{u.UnaliasedDriver, "", "", "", ""}
 	if u.Transport != "tcp" && u.Transport != "unix" {
 		s[0] += "+" + u.Transport
 	}

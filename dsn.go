@@ -21,8 +21,8 @@ var Stat = func(name string) (fs.FileInfo, error) {
 
 // GenScheme returns a func that generates a scheme:// style DSN from the
 // passed URL.
-func GenScheme(scheme string) func(*URL) (string, error) {
-	return func(u *URL) (string, error) {
+func GenScheme(scheme string) func(*URL) (string, string, error) {
+	return func(u *URL) (string, string, error) {
 		z := &url.URL{
 			Scheme:   scheme,
 			Opaque:   u.Opaque,
@@ -36,27 +36,27 @@ func GenScheme(scheme string) func(*URL) (string, error) {
 		if z.Host == "" {
 			z.Host = "localhost"
 		}
-		return z.String(), nil
+		return z.String(), "", nil
 	}
 }
 
 // GenSchemeTruncate generates a DSN by truncating the scheme://.
-func GenSchemeTruncate(u *URL) (string, error) {
+func GenSchemeTruncate(u *URL) (string, string, error) {
 	s := u.String()
 	if i := strings.Index(s, "://"); i != -1 {
-		return s[i+3:], nil
+		return s[i+3:], "", nil
 	}
-	return s, nil
+	return s, "", nil
 }
 
 // GenFromURL returns a func that generates a DSN based on parameters of the
 // passed URL.
-func GenFromURL(urlstr string) func(*URL) (string, error) {
+func GenFromURL(urlstr string) func(*URL) (string, string, error) {
 	z, err := url.Parse(urlstr)
 	if err != nil {
 		panic(err)
 	}
-	return func(u *URL) (string, error) {
+	return func(u *URL) (string, string, error) {
 		opaque := z.Opaque
 		if u.Opaque != "" {
 			opaque = u.Opaque
@@ -101,20 +101,20 @@ func GenFromURL(urlstr string) func(*URL) (string, error) {
 			RawQuery: q.Encode(),
 			Fragment: fragment,
 		}
-		return y.String(), nil
+		return y.String(), "", nil
 	}
 }
 
 // GenOpaque generates a opaque file path DSN from the passed URL.
-func GenOpaque(u *URL) (string, error) {
+func GenOpaque(u *URL) (string, string, error) {
 	if u.Opaque == "" {
-		return "", ErrMissingPath
+		return "", "", ErrMissingPath
 	}
-	return u.Opaque + genQueryOptions(u.Query()), nil
+	return u.Opaque + genQueryOptions(u.Query()), "", nil
 }
 
 // GenAdodb generates a adodb DSN from the passed URL.
-func GenAdodb(u *URL) (string, error) {
+func GenAdodb(u *URL) (string, string, error) {
 	// grab data source
 	host, port := u.Hostname(), u.Port()
 	dsname, dbname := strings.TrimPrefix(u.Path, "/"), ""
@@ -146,11 +146,11 @@ func GenAdodb(u *URL) (string, error) {
 		}
 		u.hostPortDB = []string{host, port, n}
 	}
-	return genOptionsOdbc(q, true), nil
+	return genOptionsOdbc(q, true), "", nil
 }
 
 // GenCassandra generates a cassandra DSN from the passed URL.
-func GenCassandra(u *URL) (string, error) {
+func GenCassandra(u *URL) (string, string, error) {
 	host, port, dbname := "localhost", "9042", strings.TrimPrefix(u.Path, "/")
 	if h := u.Hostname(); h != "" {
 		host = h
@@ -170,11 +170,11 @@ func GenCassandra(u *URL) (string, error) {
 	if dbname != "" {
 		q.Set("keyspace", dbname)
 	}
-	return host + ":" + port + genQueryOptions(q), nil
+	return host + ":" + port + genQueryOptions(q), "", nil
 }
 
 // GenCosmos generates a cosmos DSN from the passed URL.
-func GenCosmos(u *URL) (string, error) {
+func GenCosmos(u *URL) (string, string, error) {
 	host, port, dbname := u.Hostname(), u.Port(), strings.TrimPrefix(u.Path, "/")
 	if port != "" {
 		port = ":" + port
@@ -183,25 +183,25 @@ func GenCosmos(u *URL) (string, error) {
 	q.Set("AccountEndpoint", "https://"+host+port)
 	// add user/pass
 	if u.User == nil {
-		return "", ErrMissingUser
+		return "", "", ErrMissingUser
 	}
 	q.Set("AccountKey", u.User.Username())
 	if dbname != "" {
 		q.Set("Db", dbname)
 	}
-	return genOptionsOdbc(q, true), nil
+	return genOptionsOdbc(q, true), "", nil
 }
 
 // GenDatabend generates a databend DSN from the passed URL.
-func GenDatabend(u *URL) (string, error) {
+func GenDatabend(u *URL) (string, string, error) {
 	if u.Hostname() == "" {
-		return "", ErrMissingHost
+		return "", "", ErrMissingHost
 	}
-	return u.String(), nil
+	return u.String(), "", nil
 }
 
 // GenExasol generates a exasol DSN from the passed URL.
-func GenExasol(u *URL) (string, error) {
+func GenExasol(u *URL) (string, string, error) {
 	host, port, dbname := u.Hostname(), u.Port(), strings.TrimPrefix(u.Path, "/")
 	if host == "" {
 		host = "localhost"
@@ -218,11 +218,11 @@ func GenExasol(u *URL) (string, error) {
 		pass, _ := u.User.Password()
 		q.Set("password", pass)
 	}
-	return fmt.Sprintf("exa:%s:%s%s", host, port, genOptions(q, ";", "=", ";", ",", true)), nil
+	return fmt.Sprintf("exa:%s:%s%s", host, port, genOptions(q, ";", "=", ";", ",", true)), "", nil
 }
 
 // GenFirebird generates a firebird DSN from the passed URL.
-func GenFirebird(u *URL) (string, error) {
+func GenFirebird(u *URL) (string, string, error) {
 	z := &url.URL{
 		User:     u.User,
 		Host:     u.Host,
@@ -231,11 +231,11 @@ func GenFirebird(u *URL) (string, error) {
 		RawQuery: u.RawQuery,
 		Fragment: u.Fragment,
 	}
-	return strings.TrimPrefix(z.String(), "//"), nil
+	return strings.TrimPrefix(z.String(), "//"), "", nil
 }
 
 // GenGodror generates a godror DSN from the passed URL.
-func GenGodror(u *URL) (string, error) {
+func GenGodror(u *URL) (string, string, error) {
 	// Easy Connect Naming method enables clients to connect to a database server
 	// without any configuration. Clients use a connect string for a simple TCP/IP
 	// address, which includes a host name and optional port and service name:
@@ -265,11 +265,11 @@ func GenGodror(u *URL) (string, error) {
 	if instance != "" {
 		dsn += "/" + instance
 	}
-	return dsn, nil
+	return dsn, "", nil
 }
 
 // GenIgnite generates an ignite DSN from the passed URL.
-func GenIgnite(u *URL) (string, error) {
+func GenIgnite(u *URL) (string, string, error) {
 	host, port, dbname := "localhost", "10800", strings.TrimPrefix(u.Path, "/")
 	if h := u.Hostname(); h != "" {
 		host = h
@@ -289,11 +289,11 @@ func GenIgnite(u *URL) (string, error) {
 	if dbname != "" {
 		dbname = "/" + dbname
 	}
-	return "tcp://" + host + ":" + port + dbname + genQueryOptions(q), nil
+	return "tcp://" + host + ":" + port + dbname + genQueryOptions(q), "", nil
 }
 
 // GenMymysql generates a mymysql DSN from the passed URL.
-func GenMymysql(u *URL) (string, error) {
+func GenMymysql(u *URL) (string, string, error) {
 	host, port, dbname := u.Hostname(), u.Port(), strings.TrimPrefix(u.Path, "/")
 	// resolve path
 	if u.Transport == "unix" {
@@ -332,11 +332,11 @@ func GenMymysql(u *URL) (string, error) {
 	} else if strings.HasSuffix(dsn, "*") {
 		dsn += "//"
 	}
-	return dsn, nil
+	return dsn, "", nil
 }
 
 // GenMysql generates a mysql DSN from the passed URL.
-func GenMysql(u *URL) (string, error) {
+func GenMysql(u *URL) (string, string, error) {
 	host, port, dbname := u.Hostname(), u.Port(), strings.TrimPrefix(u.Path, "/")
 	// build dsn
 	var dsn string
@@ -374,11 +374,11 @@ func GenMysql(u *URL) (string, error) {
 	}
 	// add proto and database
 	dsn += u.Transport + "(" + host + port + ")" + "/" + dbname
-	return dsn + genQueryOptions(u.Query()), nil
+	return dsn + genQueryOptions(u.Query()), "", nil
 }
 
 // GenOdbc generates a odbc DSN from the passed URL.
-func GenOdbc(u *URL) (string, error) {
+func GenOdbc(u *URL) (string, string, error) {
 	// save host, port, dbname
 	host, port, dbname := u.Hostname(), u.Port(), strings.TrimPrefix(u.Path, "/")
 	if u.hostPortDB == nil {
@@ -410,23 +410,23 @@ func GenOdbc(u *URL) (string, error) {
 		p, _ := u.User.Password()
 		q.Set("PWD", p)
 	}
-	return genOptionsOdbc(q, true), nil
+	return genOptionsOdbc(q, true), "", nil
 }
 
 // GenOleodbc generates a oleodbc DSN from the passed URL.
-func GenOleodbc(u *URL) (string, error) {
-	props, err := GenOdbc(u)
+func GenOleodbc(u *URL) (string, string, error) {
+	props, _, err := GenOdbc(u)
 	if err != nil {
-		return "", nil
+		return "", "", nil
 	}
-	return `Provider=MSDASQL.1;Extended Properties="` + props + `"`, nil
+	return `Provider=MSDASQL.1;Extended Properties="` + props + `"`, "", nil
 }
 
 // GenPostgres generates a postgres DSN from the passed URL.
-func GenPostgres(u *URL) (string, error) {
+func GenPostgres(u *URL) (string, string, error) {
 	host, port, dbname := u.Hostname(), u.Port(), strings.TrimPrefix(u.Path, "/")
 	if host == "." {
-		return "", ErrRelativePathNotSupported
+		return "", "", ErrRelativePathNotSupported
 	}
 	// resolve path
 	if u.Transport == "unix" {
@@ -450,11 +450,11 @@ func GenPostgres(u *URL) (string, error) {
 	if u.hostPortDB == nil {
 		u.hostPortDB = []string{host, port, dbname}
 	}
-	return genOptions(q, "", "=", " ", ",", true), nil
+	return genOptions(q, "", "=", " ", ",", true), "", nil
 }
 
 // GenPresto generates a presto DSN from the passed URL.
-func GenPresto(u *URL) (string, error) {
+func GenPresto(u *URL) (string, string, error) {
 	z := &url.URL{
 		Scheme:   "http",
 		Opaque:   u.Opaque,
@@ -496,50 +496,50 @@ func GenPresto(u *URL) (string, error) {
 		q.Set("schema", schema)
 	}
 	z.RawQuery = q.Encode()
-	return z.String(), nil
+	return z.String(), "", nil
 }
 
 // GenSnowflake generates a snowflake DSN from the passed URL.
-func GenSnowflake(u *URL) (string, error) {
+func GenSnowflake(u *URL) (string, string, error) {
 	host, port, dbname := u.Hostname(), u.Port(), strings.TrimPrefix(u.Path, "/")
 	if host == "" {
-		return "", ErrMissingHost
+		return "", "", ErrMissingHost
 	}
 	if port != "" {
 		port = ":" + port
 	}
 	// add user/pass
 	if u.User == nil {
-		return "", ErrMissingUser
+		return "", "", ErrMissingUser
 	}
 	user := u.User.Username()
 	if pass, _ := u.User.Password(); pass != "" {
 		user += ":" + pass
 	}
-	return user + "@" + host + port + "/" + dbname + genQueryOptions(u.Query()), nil
+	return user + "@" + host + port + "/" + dbname + genQueryOptions(u.Query()), "", nil
 }
 
 // GenSpanner generates a spanner DSN from the passed URL.
-func GenSpanner(u *URL) (string, error) {
+func GenSpanner(u *URL) (string, string, error) {
 	project, instance, dbname := u.Hostname(), "", strings.TrimPrefix(u.Path, "/")
 	if project == "" {
-		return "", ErrMissingHost
+		return "", "", ErrMissingHost
 	}
 	i := strings.Index(dbname, "/")
 	if i == -1 {
-		return "", ErrMissingPath
+		return "", "", ErrMissingPath
 	}
 	instance, dbname = dbname[:i], dbname[i+1:]
 	if instance == "" || dbname == "" {
-		return "", ErrMissingPath
+		return "", "", ErrMissingPath
 	}
-	return fmt.Sprintf(`projects/%s/instances/%s/databases/%s`, project, instance, dbname), nil
+	return fmt.Sprintf(`projects/%s/instances/%s/databases/%s`, project, instance, dbname), "", nil
 }
 
 // GenSqlserver generates a sqlserver DSN from the passed URL.
-func GenSqlserver(u *URL) (string, error) {
+func GenSqlserver(u *URL) (string, string, error) {
 	z := &url.URL{
-		Scheme:   sqlserverDriver(u),
+		Scheme:   "sqlserver",
 		Opaque:   u.Opaque,
 		User:     u.User,
 		Host:     u.Host,
@@ -550,36 +550,31 @@ func GenSqlserver(u *URL) (string, error) {
 	if z.Host == "" {
 		z.Host = "localhost"
 	}
+	driver := "sqlserver"
+	if strings.Contains(strings.ToLower(u.Scheme), "azuresql") ||
+		u.Query().Get("fedauth") != "" {
+		driver = "azuresql"
+	}
 	v := strings.Split(strings.TrimPrefix(z.Path, "/"), "/")
 	if n, q := len(v), z.Query(); !q.Has("database") && n != 0 && len(v[0]) != 0 {
 		q.Set("database", v[n-1])
 		z.Path, z.RawQuery = "/"+strings.Join(v[:n-1], "/"), q.Encode()
 	}
-	return z.String(), nil
-}
-
-// sqlserverDriver returns the driver used for a Microsoft SQL Server URL.
-func sqlserverDriver(u *URL) string {
-	switch {
-	case u.Query().Has("fedauth"),
-		strings.Contains(strings.ToLower(u.OriginalScheme), "azuresql"):
-		return "azuresql"
-	}
-	return "sqlserver"
+	return z.String(), driver, nil
 }
 
 // GenTableStore generates a tablestore DSN from the passed URL.
-func GenTableStore(u *URL) (string, error) {
+func GenTableStore(u *URL) (string, string, error) {
 	var transport string
 	splits := strings.Split(u.OriginalScheme, "+")
 	if len(splits) == 0 {
-		return "", ErrInvalidDatabaseScheme
+		return "", "", ErrInvalidDatabaseScheme
 	} else if len(splits) == 1 || splits[1] == "https" {
 		transport = "https"
 	} else if splits[1] == "http" {
 		transport = "http"
 	} else {
-		return "", ErrInvalidTransportProtocol
+		return "", "", ErrInvalidTransportProtocol
 	}
 	z := &url.URL{
 		Scheme:   transport,
@@ -591,11 +586,11 @@ func GenTableStore(u *URL) (string, error) {
 		RawQuery: u.RawQuery,
 		Fragment: u.Fragment,
 	}
-	return z.String(), nil
+	return z.String(), "", nil
 }
 
 // GenVoltdb generates a voltdb DSN from the passed URL.
-func GenVoltdb(u *URL) (string, error) {
+func GenVoltdb(u *URL) (string, string, error) {
 	host, port := "localhost", "21212"
 	if h := u.Hostname(); h != "" {
 		host = h
@@ -603,7 +598,7 @@ func GenVoltdb(u *URL) (string, error) {
 	if p := u.Port(); p != "" {
 		port = p
 	}
-	return host + ":" + port, nil
+	return host + ":" + port, "", nil
 }
 
 // convertOptions converts an option value based on name, value pairs.

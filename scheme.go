@@ -32,7 +32,7 @@ type Scheme struct {
 	// URL information.
 	//
 	// Note: this func should not modify the passed URL.
-	Generator func(*URL) (string, error)
+	Generator func(*URL) (string, string, error)
 	// Transport are allowed protocol transport types for the scheme.
 	Transport Transport
 	// Opaque toggles Parse to not re-process URLs with an "opaque" component.
