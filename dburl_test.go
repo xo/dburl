@@ -124,10 +124,10 @@ func TestParse(t *testing.T) {
 		{`mssql://user:pass@localhost/dbname`, `sqlserver`, `sqlserver://user:pass@localhost/?database=dbname`, ``},
 		{`mssql://user@localhost/service/dbname`, `sqlserver`, `sqlserver://user@localhost/service?database=dbname`, ``},
 		{`mssql://user:!234%23$@localhost:1580/dbname`, `sqlserver`, `sqlserver://user:%21234%23$@localhost:1580/?database=dbname`, ``},
-		{`mssql://user:!234%23$@localhost:1580/service/dbname?fedauth=true`, `azuresql`, `azuresql://user:%21234%23$@localhost:1580/service?database=dbname&fedauth=true`, ``},
-		{`azuresql://user:pass@localhost:100/dbname`, `azuresql`, `azuresql://user:pass@localhost:100/?database=dbname`, ``},
-		{`sqlserver://xxx.database.windows.net?database=xxx&fedauth=ActiveDirectoryMSI`, `azuresql`, `azuresql://xxx.database.windows.net?database=xxx&fedauth=ActiveDirectoryMSI`, ``},
-		{`azuresql://xxx.database.windows.net/dbname?fedauth=ActiveDirectoryMSI`, `azuresql`, `azuresql://xxx.database.windows.net/?database=dbname&fedauth=ActiveDirectoryMSI`, ``},
+		{`mssql://user:!234%23$@localhost:1580/service/dbname?fedauth=true`, `sqlserver`, `azuresql://user:%21234%23$@localhost:1580/service?database=dbname&fedauth=true`, ``},
+		{`azuresql://user:pass@localhost:100/dbname`, `sqlserver`, `azuresql://user:pass@localhost:100/?database=dbname`, ``},
+		{`sqlserver://xxx.database.windows.net?database=xxx&fedauth=ActiveDirectoryMSI`, `sqlserver`, `azuresql://xxx.database.windows.net?database=xxx&fedauth=ActiveDirectoryMSI`, ``},
+		{`azuresql://xxx.database.windows.net/dbname?fedauth=ActiveDirectoryMSI`, `sqlserver`, `azuresql://xxx.database.windows.net/?database=dbname&fedauth=ActiveDirectoryMSI`, ``},
 		{
 			`adodb://Microsoft.ACE.OLEDB.12.0?Extended+Properties=%22Text%3BHDR%3DNO%3BFMT%3DDelimited%22`, `adodb`, // 30
 			`Data Source=.;Extended Properties="Text;HDR=NO;FMT=Delimited";Provider=Microsoft.ACE.OLEDB.12.0`, ``,

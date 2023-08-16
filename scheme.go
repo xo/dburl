@@ -43,11 +43,6 @@ type Scheme struct {
 	//
 	// Used for "wire compatible" driver schemes.
 	Override string
-	// Actual is a func that can be used to inspect the URL that changes the
-	// actual Driver name returned. Used for drivers that have registered
-	// multiple driver names using a single package import (ie, Microsoft's SQL
-	// Server driver).
-	Actual func(*URL) string
 }
 
 // BaseSchemes returns the supported base schemes.
@@ -60,35 +55,30 @@ func BaseSchemes() []Scheme {
 			false,
 			[]string{"mariadb", "maria", "percona", "aurora"},
 			"",
-			nil,
 		},
 		{
 			"oracle",
 			GenFromURL("oracle://localhost:1521"), 0, false,
 			[]string{"ora", "oci", "oci8", "odpi", "odpi-c"},
 			"",
-			nil,
 		},
 		{
 			"postgres",
 			GenPostgres, TransportUnix, false,
 			[]string{"pg", "postgresql", "pgsql"},
 			"",
-			nil,
 		},
 		{
 			"sqlite3",
 			GenOpaque, 0, true,
 			[]string{"sqlite", "file"},
 			"",
-			nil,
 		},
 		{
 			"sqlserver",
 			GenSqlserver, 0, false,
 			[]string{"ms", "mssql", "azuresql"},
 			"",
-			sqlserverDriver,
 		},
 		// wire compatibles
 		{
@@ -96,31 +86,26 @@ func BaseSchemes() []Scheme {
 			GenFromURL("postgres://localhost:26257/?sslmode=disable"), 0, false,
 			[]string{"cr", "cockroach", "crdb", "cdb"},
 			"postgres",
-			nil,
 		},
 		{
 			"memsql",
 			GenMysql, 0, false, nil, "mysql",
-			nil,
 		},
 		{
 			"redshift",
 			GenFromURL("postgres://localhost:5439/"), 0, false,
 			[]string{"rs"},
 			"postgres",
-			nil,
 		},
 		{
 			"tidb",
 			GenMysql, 0, false, nil, "mysql",
-			nil,
 		},
 		{
 			"vitess",
 			GenMysql, 0, false,
 			[]string{"vt"},
 			"mysql",
-			nil,
 		},
 		// alternate implementations
 		{
@@ -128,28 +113,24 @@ func BaseSchemes() []Scheme {
 			GenGodror, 0, false,
 			[]string{"gr"},
 			"",
-			nil,
 		},
 		{
 			"moderncsqlite",
 			GenOpaque, 0, true,
 			[]string{"mq", "modernsqlite"},
 			"",
-			nil,
 		},
 		{
 			"mymysql",
 			GenMymysql, TransportTCP | TransportUDP | TransportUnix, false,
 			[]string{"zm", "mymy"},
 			"",
-			nil,
 		},
 		{
 			"pgx",
 			GenFromURL("postgres://localhost:5432/"), TransportUnix, false,
 			[]string{"px"},
 			"",
-			nil,
 		},
 		// other databases
 		{
@@ -157,214 +138,182 @@ func BaseSchemes() []Scheme {
 			GenAdodb, 0, false,
 			[]string{"ado"},
 			"",
-			nil,
 		},
 		{
 			"awsathena",
 			GenScheme("s3"), 0, false,
 			[]string{"s3", "aws", "athena"},
 			"",
-			nil,
 		},
 		{
 			"avatica",
 			GenFromURL("http://localhost:8765/"), 0, false,
 			[]string{"phoenix"},
 			"",
-			nil,
 		},
 		{
 			"bigquery",
 			GenScheme("bigquery"), 0, false,
 			[]string{"bq"},
 			"",
-			nil,
 		},
 		{
 			"clickhouse",
 			GenFromURL("clickhouse://localhost:9000/"), 0, false,
 			[]string{"ch"},
 			"",
-			nil,
 		},
 		{
 			"cosmos",
 			GenCosmos, 0, false,
 			[]string{"cm"},
 			"",
-			nil,
 		},
 		{
 			"cql",
 			GenCassandra, 0, false,
 			[]string{"ca", "cassandra", "datastax", "scy", "scylla"},
 			"",
-			nil,
 		},
 		{
 			"csvq",
 			GenOpaque, 0, true,
 			[]string{"csv", "tsv", "json"},
 			"",
-			nil,
 		},
 		{
 			"databend",
 			GenDatabend, 0, false,
 			[]string{"dd", "bend"},
 			"",
-			nil,
 		},
 		{
 			"exasol",
 			GenExasol, 0, false,
 			[]string{"ex", "exa"},
 			"",
-			nil,
 		},
 		{
 			"firebirdsql",
 			GenFirebird, 0, false,
 			[]string{"fb", "firebird"},
 			"",
-			nil,
 		},
 		{
 			"flightsql",
 			GenScheme("flightsql"), 0, false,
 			[]string{"fl", "flight"},
 			"",
-			nil,
 		},
 		{
 			"genji",
 			GenOpaque, 0, true,
 			[]string{"gj"},
 			"",
-			nil,
 		},
 		{
 			"h2",
 			GenFromURL("h2://localhost:9092/"), 0, false, nil, "",
-			nil,
 		},
 		{
 			"hdb",
 			GenScheme("hdb"), 0, false,
 			[]string{"sa", "saphana", "sap", "hana"},
 			"",
-			nil,
 		},
 		{
 			"hive",
 			GenSchemeTruncate, 0, false, nil, "",
-			nil,
 		},
 		{
 			"ignite",
 			GenIgnite, 0, false,
 			[]string{"ig", "gridgain"},
 			"",
-			nil,
 		},
 		{
 			"impala",
 			GenScheme("impala"), 0, false, nil, "",
-			nil,
 		},
 		{
 			"maxcompute",
 			GenSchemeTruncate, 0, false,
 			[]string{"mc"},
 			"",
-			nil,
 		},
 		{
 			"n1ql",
 			GenFromURL("http://localhost:9000/"), 0, false,
 			[]string{"couchbase"},
 			"",
-			nil,
 		},
 		{
 			"nzgo",
 			GenPostgres, TransportUnix, false,
 			[]string{"nz", "netezza"},
 			"",
-			nil,
 		},
 		{
 			"odbc",
 			GenOdbc, TransportAny, false, nil, "",
-			nil,
 		},
 		{
 			"oleodbc",
 			GenOleodbc, TransportAny, false,
 			[]string{"oo", "ole"},
 			"adodb",
-			nil,
 		},
 		{
 			"ots",
 			GenTableStore, TransportAny, false,
 			[]string{"tablestore"},
 			"",
-			nil,
 		},
 		{
 			"presto",
 			GenPresto, 0, false,
 			[]string{"prestodb", "prestos", "prs", "prestodbs"},
 			"",
-			nil,
 		},
 		{
 			"ql",
 			GenOpaque, 0, true,
 			[]string{"ql", "cznic", "cznicql"},
 			"",
-			nil,
 		},
 		{
 			"snowflake",
 			GenSnowflake, 0, false,
 			[]string{"sf"},
 			"",
-			nil,
 		},
 		{
 			"spanner",
 			GenSpanner, 0, false,
 			[]string{"sp"},
 			"",
-			nil,
 		},
 		{
 			"tds",
 			GenFromURL("http://localhost:5000/"), 0, false,
 			[]string{"ax", "ase", "sapase"},
 			"",
-			nil,
 		},
 		{
 			"trino",
 			GenPresto, 0, false,
 			[]string{"trino", "trinos", "trs"},
 			"",
-			nil,
 		},
 		{
 			"vertica",
 			GenFromURL("vertica://localhost:5433/"), 0, false, nil, "",
-			nil,
 		},
 		{
 			"voltdb",
 			GenVoltdb, 0, false,
 			[]string{"volt", "vdb"},
 			"",
-			nil,
 		},
 	}
 }
@@ -426,7 +375,6 @@ func Register(scheme Scheme) {
 		Transport: scheme.Transport,
 		Opaque:    scheme.Opaque,
 		Override:  scheme.Override,
-		Actual:    scheme.Actual,
 	}
 	schemeMap[scheme.Driver] = sz
 	// add aliases

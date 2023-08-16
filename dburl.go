@@ -131,10 +131,6 @@ func Parse(urlstr string) (*URL, error) {
 	if u.DSN, err = scheme.Generator(u); err != nil {
 		return nil, err
 	}
-	// fix actual driver
-	if scheme.Actual != nil {
-		u.Driver = scheme.Actual(u)
-	}
 	return u, nil
 }
 
