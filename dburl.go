@@ -97,17 +97,13 @@ func Parse(urlstr string) (*URL, error) {
 		return nil, err
 	}
 
-	// decode the password twice
+	// decode the password
 	if pass, isPwdSet := v.User.Password(); isPwdSet {
 		passDecode, err := url.QueryUnescape(pass)
 		if err != nil {
 			return nil, err
 		}
 
-		passDecode, err = url.QueryUnescape(passDecode)
-		if err != nil {
-			return nil, err
-		}
 		v.User = url.UserPassword(v.User.Username(), passDecode)
 	}
 
