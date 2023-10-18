@@ -91,21 +91,19 @@ func Parse(urlstr string) (*URL, error) {
 	}
 
 	// parse url
-	var v = &url.URL{}
-	var err error
-	v, err = url.Parse(urlstr)
+	v, err := url.Parse(urlstr)
 	if err != nil {
 		return nil, err
 	}
 
 	// decode the password
-	if pass, isPwdSet := v.User.Password(); isPwdSet {
-		passDecode, err := url.QueryUnescape(pass)
+	if password, isPasswordSet := v.User.Password(); isPasswordSet {
+		passwordDecode, err := url.QueryUnescape(password)
 		if err != nil {
 			return nil, err
 		}
 
-		v.User = url.UserPassword(v.User.Username(), passDecode)
+		v.User = url.UserPassword(v.User.Username(), passwordDecode)
 	}
 
 	if v.Scheme == "" {
