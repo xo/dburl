@@ -11,7 +11,9 @@ package dburl
 
 import (
 	"database/sql"
+	"fmt"
 	"net/url"
+	"regexp"
 	"strings"
 )
 
@@ -70,11 +72,28 @@ type URL struct {
 // "scheme://" but "scheme:"), and the database scheme does not support opaque
 // components, Parse will attempt to re-process the URL as "scheme://<opaque>".
 func Parse(urlstr string) (*URL, error) {
+	// Use regex to find and encode the password
+	userPassRe := regexp.MustCompile(`^([^:/]*:/{2})([^:]*):([^@]*)@`)
+	prefixRe := regexp.MustCompile(`^([^:/]*:/{1,2})`)
+	switch {
+	case userPassRe.MatchString(urlstr):
+		urlstr = userPassRe.ReplaceAllStringFunc(urlstr, func(m string) string {
+			parts := userPassRe.FindStringSubmatch(m)
+			prefix := parts[1]
+			return fmt.Sprintf("%s%s:%s@", prefix, parts[2], url.QueryEscape(parts[3]))
+		})
+	case prefixRe.MatchString(urlstr):
+		// no need to do anything
+	default:
+		// for strings like "file:myfile.sqlite3?loc=auto", also no need to do anything
+	}
+
 	// parse url
 	v, err := url.Parse(urlstr)
 	if err != nil {
 		return nil, err
 	}
+
 	if v.Scheme == "" {
 		return nil, ErrInvalidDatabaseScheme
 	}
