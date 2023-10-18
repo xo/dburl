@@ -12,7 +12,6 @@ package dburl
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"net/url"
 	"regexp"
 	"strings"
