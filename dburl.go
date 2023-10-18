@@ -73,7 +73,8 @@ type URL struct {
 // components, Parse will attempt to re-process the URL as "scheme://<opaque>".
 func Parse(urlstr string) (*URL, error) {
 	// Use regex to find and encode the password twice to handle comlicated
-	// password like: A7p0@jch5Vj_+-,&=!@$%^*()
+	// password like: A7p0jch5Vj_+-,&=!@#$%^*(). Since inside the url.Parse will
+	// call unescape(`parse` --> `parseAuthority` --> `unescape`)
 	userPassRe := regexp.MustCompile(`^([^:/]*:/{2})([^:]*):(.*)@`)
 	prefixRe := regexp.MustCompile(`^([^:/]*:/{1,2})`)
 	switch {
