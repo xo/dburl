@@ -1,3 +1,3 @@
-module github.com/xo/dburl
+github.com/LisaIsCoding/dburl
 
 go 1.20
