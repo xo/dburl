@@ -1,3 +1,3 @@
-github.com/LisaIsCoding/dburl
+github.com/xo/dburl
 
 go 1.20
