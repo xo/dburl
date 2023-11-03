@@ -108,6 +108,7 @@ additional aliases, and the related Go driver:
 | Database             | Scheme / Tag    | Scheme Aliases                                  | Driver Package / Notes                                                      |
 |----------------------|-----------------|-------------------------------------------------|-----------------------------------------------------------------------------|
 | PostgreSQL           | `postgres`      | `pg`, `pgsql`, `postgresql`                     | [github.com/lib/pq][d-postgres]                                             |
+| ClickHouse           | `clickhouse`    | `ch`                                            | [github.com/ClickHouse/clickhouse-go/v2][d-clickhouse]                      |
 | MySQL                | `mysql`         | `my`, `maria`, `aurora`, `mariadb`, `percona`   | [github.com/go-sql-driver/mysql][d-mysql]                                   |
 | Microsoft SQL Server | `sqlserver`     | `ms`, `mssql`, `azuresql`                       | [github.com/microsoft/go-mssqldb][d-sqlserver]                              |
 | Oracle Database      | `oracle`        | `or`, `ora`, `oci`, `oci8`, `odpi`, `odpi-c`    | [github.com/sijms/go-ora/v2][d-oracle]                                      |
@@ -122,14 +123,13 @@ additional aliases, and the related Go driver:
 | AWS Athena           | `athena`        | `s3`, `aws`, `awsathena`                        | [github.com/uber/athenadriver/go][d-athena]                                 |
 | Azure CosmosDB       | `cosmos`        | `cm`                                            | [github.com/btnguyen2k/gocosmos][d-cosmos]                                  |
 | Cassandra            | `cassandra`     | `ca`, `scy`, `scylla`, `datastax`, `cql`        | [github.com/MichaelS11/go-cql-driver][d-cassandra]                          |
-| ClickHouse           | `clickhouse`    | `ch`                                            | [github.com/ClickHouse/clickhouse-go/v2][d-clickhouse]                      |
 | Couchbase            | `couchbase`     | `n1`, `n1ql`                                    | [github.com/couchbase/go_n1ql][d-couchbase]                                 |
 | Cznic QL             | `ql`            | `cznic`, `cznicql`                              | [modernc.org/ql][d-ql]                                                      |
 | Databend             | `databend`      | `dd`, `bend`                                    | [github.com/databendcloud/databend-go][d-databend]                          |
+| DuckDB               | `duckdb`        | `dk`, `ddb`, `duck`                             | [github.com/marcboeker/go-duckdb][d-duckdb]                                 |
 | Exasol               | `exasol`        | `ex`, `exa`                                     | [github.com/exasol/exasol-driver-go][d-exasol]                              |
 | Firebird             | `firebird`      | `fb`, `firebirdsql`                             | [github.com/nakagami/firebirdsql][d-firebird]                               |
 | FlightSQL            | `flightsql`     | `fl`, `flight`                                  | [github.com/apache/arrow/go/v12/arrow/flight/flightsql/driver][d-flightsql] |
-| Genji                | `genji`         | `gj`                                            | [github.com/genjidb/genji/driver][d-genji]                                  |
 | Google BigQuery      | `bigquery`      | `bq`                                            | [gorm.io/driver/bigquery/driver][d-bigquery]                                |
 | Google Spanner       | `spanner`       | `sp`                                            | [github.com/googleapis/go-sql-spanner][d-spanner]                           |
 | Microsoft ADODB      | `adodb`         | `ad`, `ado`                                     | [github.com/mattn/go-adodb][d-adodb]                                        |
@@ -157,6 +157,7 @@ additional aliases, and the related Go driver:
 |                      |                 |                                                 |                                                                             |
 | Apache Hive          | `hive`          | `hi`                                            | [sqlflow.org/gohive][d-hive]                                                |
 | Apache Impala        | `impala`        | `im`                                            | [github.com/bippio/go-impala][d-impala]                                     |
+| Genji                | `genji`         | `gj`                                            | [github.com/genjidb/genji/driver][d-genji]                                  |
 
 [d-adodb]: https://github.com/mattn/go-adodb
 [d-athena]: https://github.com/uber/athenadriver
@@ -168,6 +169,7 @@ additional aliases, and the related Go driver:
 [d-couchbase]: https://github.com/couchbase/go_n1ql
 [d-csvq]: https://github.com/mithrandie/csvq-driver
 [d-databend]: https://github.com/databendcloud/databend-go
+[d-duckdb]: https://github.com/marcboeker/go-duckdb
 [d-exasol]: https://github.com/exasol/exasol-driver-go
 [d-firebird]: https://github.com/nakagami/firebirdsql
 [d-flightsql]: https://github.com/apache/arrow/tree/main/go/arrow/flight/flightsql/driver
