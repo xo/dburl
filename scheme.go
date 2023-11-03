@@ -164,6 +164,12 @@ func BaseSchemes() []Scheme {
 			"",
 		},
 		{
+			"duckdb",
+			GenOpaque, 0, true,
+			[]string{"dk", "ddb", "duck"},
+			"",
+		},
+		{
 			"cosmos",
 			GenCosmos, 0, false,
 			[]string{"cm"},

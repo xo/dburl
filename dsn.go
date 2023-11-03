@@ -13,14 +13,14 @@ import (
 
 // Stat is the default stat func.
 //
-// Used within the package to stat files, which is used when generating the
-// DSNs for postgres, mysql, and sqlite3 URL schemes.
+// Used internally to stat files, and is subsequently used when generating the
+// DSNs for postgres://, mysql://, and sqlite3:// [URL] schemes.
 var Stat = func(name string) (fs.FileInfo, error) {
 	return fs.Stat(os.DirFS(filepath.Dir(name)), filepath.Base(name))
 }
 
-// GenScheme returns a func that generates a scheme:// style DSN from the
-// passed URL.
+// GenScheme returns a generator that will generate a scheme based on the
+// passed scheme DSN.
 func GenScheme(scheme string) func(*URL) (string, string, error) {
 	return func(u *URL) (string, string, error) {
 		z := &url.URL{

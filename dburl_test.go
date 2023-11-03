@@ -208,6 +208,8 @@ func TestParse(t *testing.T) {
 		{`bend://user:pass@localhost/instance_name?sslmode=disabled&warehouse=wh`, `databend`, `bend://user:pass@localhost/instance_name?sslmode=disabled&warehouse=wh`, ``},
 		{`databend://user:pass@localhost/instance_name?tenant=tn&warehouse=wh`, `databend`, `databend://user:pass@localhost/instance_name?tenant=tn&warehouse=wh`, ``},
 		{`flightsql://user:pass@localhost?timeout=3s&token=foobar&tls=enabled`, `flightsql`, `flightsql://user:pass@localhost?timeout=3s&token=foobar&tls=enabled`, ``},
+		{`duckdb:/path/to/foo.db?access_mode=read_only&threads=4`, `duckdb`, `/path/to/foo.db?access_mode=read_only&threads=4`, ``},
+		{`dk:///path/to/foo.db?access_mode=read_only&threads=4`, `duckdb`, `/path/to/foo.db?access_mode=read_only&threads=4`, ``},
 	}
 	for i, test := range tests {
 		u, err := Parse(test.s)

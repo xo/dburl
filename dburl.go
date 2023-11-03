@@ -1,8 +1,8 @@
-// Package dburl provides a standard, URL style mechanism for parsing and
-// opening SQL database connection strings for Go. Provides standardized way to
-// parse and open URLs for popular databases PostgreSQL, MySQL, SQLite3, Oracle
-// Database, Microsoft SQL Server, in addition to most other SQL databases with
-// a publicly available Go driver.
+// Package dburl provides a standard, [net/url.URL] style mechanism for parsing
+// and opening SQL database connection strings for Go. Provides standardized
+// way to parse and open [URL]'s for popular databases PostgreSQL, MySQL, SQLite3,
+// Oracle Database, Microsoft SQL Server, in addition to most other SQL
+// databases with a publicly available Go driver.
 //
 // See the [package documentation README section] for more details.
 //
@@ -15,10 +15,11 @@ import (
 	"strings"
 )
 
-// Open takes a URL like "protocol+transport://user:pass@host/dbname?option1=a&option2=b"
-// and opens a standard sql.DB connection.
+// Open takes a URL string, also known as a DSN, in the form of
+// "protocol+transport://user:pass@host/dbname?option1=a&option2=b" and opens a
+// standard [sql.DB] connection.
 //
-// See [Parse] for information on formatting URLs to work properly with Open.
+// See [Parse] for information on formatting URL strings to work properly with Open.
 func Open(urlstr string) (*sql.DB, error) {
 	u, err := Parse(urlstr)
 	if err != nil {
@@ -34,7 +35,7 @@ func Open(urlstr string) (*sql.DB, error) {
 // URL wraps the standard [net/url.URL] type, adding OriginalScheme, Transport,
 // Driver, Unaliased, and DSN strings.
 type URL struct {
-	// URL is the base net/url/URL.
+	// URL is the base [net/url.URL].
 	url.URL
 	// OriginalScheme is the original parsed scheme (ie, "sq", "mysql+unix", "sap", etc).
 	OriginalScheme string
@@ -42,26 +43,26 @@ type URL struct {
 	// "unix", ...), if provided.
 	Transport string
 	// Driver is the non-aliased SQL driver name that should be used in a call
-	// to sql/Open.
+	// to [sql.Open].
 	Driver string
 	// GoDriver is the Go SQL driver name to use when opening a connection to
-	// the database. Used by Microsoft SQL Server's azuresql URLs, as the
+	// the database. Used by Microsoft SQL Server's azuresql:// URLs, as the
 	// wire-compatible alias style uses a different syntax style.
 	GoDriver string
 	// UnaliasedDriver is the unaliased driver name.
 	UnaliasedDriver string
 	// DSN is the built connection "data source name" that can be used in a
-	// call to sql/Open.
+	// call to [sql.Open].
 	DSN string
 	// hostPortDB will be set by Gen*() funcs after determining the host, port,
 	// database.
 	//
-	// when empty, indicates that these values are not special, and can be
+	// When empty, indicates that these values are not special, and can be
 	// retrieved as the host, port, and path[1:] as usual.
 	hostPortDB []string
 }
 
-// Parse parses a URL, similar to the standard [net/url.Parse].
+// Parse parses a URL string, similar to the standard [net/url.Parse].
 //
 // Handles parsing OriginalScheme, Transport, Driver, Unaliased, and DSN
 // fields.
