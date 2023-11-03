@@ -1,7 +1,9 @@
 package dburl
 
 import (
+	"bytes"
 	"fmt"
+	"regexp"
 	"sort"
 )
 
@@ -48,6 +50,12 @@ type Scheme struct {
 // BaseSchemes returns the supported base schemes.
 func BaseSchemes() []Scheme {
 	return []Scheme{
+		{
+			"file",
+			GenOpaque, 0, true,
+			[]string{"file"},
+			"",
+		},
 		// core databases
 		{
 			"mysql",
@@ -71,7 +79,7 @@ func BaseSchemes() []Scheme {
 		{
 			"sqlite3",
 			GenOpaque, 0, true,
-			[]string{"sqlite", "file"},
+			[]string{"sqlite"},
 			"",
 		},
 		{
@@ -88,8 +96,7 @@ func BaseSchemes() []Scheme {
 			"postgres",
 		},
 		{
-			"memsql",
-			GenMysql, 0, false, nil, "mysql",
+			"memsql", GenMysql, 0, false, nil, "mysql",
 		},
 		{
 			"redshift",
@@ -331,6 +338,8 @@ func init() {
 	for _, scheme := range schemes {
 		Register(scheme)
 	}
+	RegisterHeaderType("duckdb", isDuckdbHeader)
+	RegisterHeaderType("sqlite3", isSqlite3Header)
 }
 
 // schemeMap is the map of registered schemes.
@@ -431,6 +440,32 @@ func RegisterAlias(name, alias string) {
 	registerAlias(name, alias, true)
 }
 
+// headerTypes are registered header recognition funcs.
+var headerTypes []headerType
+
+// RegisterHeaderType registers a file header recognition func.
+func RegisterHeaderType(driver string, f func([]byte) bool) {
+	headerTypes = append(headerTypes, headerType{
+		driver: driver,
+		f:      f,
+	})
+}
+
+// headerType wraps a header recognition func.
+type headerType struct {
+	driver string
+	f      func([]byte) bool
+}
+
+// HeaderTypes returns the registered header types.
+func HeaderTypes() []string {
+	var v []string
+	for _, header := range headerTypes {
+		v = append(v, header.driver)
+	}
+	return v
+}
+
 // Protocols returns list of all valid protocol aliases for a registered
 // [Scheme] name.
 func Protocols(name string) []string {
@@ -473,6 +508,27 @@ func SchemeDriverAndAliases(name string) (string, []string) {
 func ShortAlias(name string) string {
 	return schemeMap[name].Aliases[0]
 }
+
+// isSqlite3Header returns true when the passed header is empty or starts with
+// the SQLite3 header.
+//
+// See: https://www.sqlite.org/fileformat.html
+func isSqlite3Header(buf []byte) bool {
+	return len(buf) == 0 || bytes.HasPrefix(buf, sqlite3Header)
+}
+
+// sqlite3Header is the sqlite3 header.
+var sqlite3Header = []byte("SQLite format 3\000")
+
+// isDuckdbHeader returns true when the passed header is a DuckDB header.
+//
+// See: https://duckdb.org/internals/storage
+func isDuckdbHeader(buf []byte) bool {
+	return duckdbRE.Match(buf)
+}
+
+// duckdbRE is the duckdb storage header regexp.
+var duckdbRE = regexp.MustCompile(`^.{8}DUCK.{8}`)
 
 // contains determines if v contains s.
 func contains(v []string, s string) bool {

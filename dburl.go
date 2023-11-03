@@ -12,6 +12,7 @@ package dburl
 import (
 	"database/sql"
 	"net/url"
+	"os"
 	"strings"
 )
 
@@ -73,10 +74,10 @@ type URL struct {
 func Parse(urlstr string) (*URL, error) {
 	// parse url
 	v, err := url.Parse(urlstr)
-	if err != nil {
+	switch {
+	case err != nil:
 		return nil, err
-	}
-	if v.Scheme == "" {
+	case v.Scheme == "":
 		return nil, ErrInvalidDatabaseScheme
 	}
 	// create url
@@ -96,6 +97,15 @@ func Parse(urlstr string) (*URL, error) {
 	scheme, ok := schemeMap[u.Scheme]
 	if !ok {
 		return nil, ErrUnknownDatabaseScheme
+	}
+	// load real scheme for file:
+	if scheme.Driver == "file" {
+		typ, err := SchemeType(u.Opaque)
+		if err == nil {
+			if s, ok := schemeMap[typ]; ok {
+				scheme = s
+			}
+		}
 	}
 	// if scheme does not understand opaque URLs, retry parsing after building
 	// fully qualified URL
@@ -230,6 +240,25 @@ func (u *URL) Normalize(sep, empty string, cut int) string {
 	return strings.Join(s, sep)
 }
 
+// SchemeType returns the scheme type for a file on disk.
+func SchemeType(name string) (string, error) {
+	f, err := os.OpenFile(name, os.O_RDONLY, 0)
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+	buf := make([]byte, 128)
+	if _, err := f.Read(buf); err != nil {
+		return "", err
+	}
+	for _, header := range headerTypes {
+		if header.f(buf) {
+			return header.driver, nil
+		}
+	}
+	return "", ErrUnknownFileHeader
+}
+
 // Error is an error.
 type Error string
 
@@ -244,6 +273,8 @@ const (
 	ErrInvalidDatabaseScheme Error = "invalid database scheme"
 	// ErrUnknownDatabaseScheme is the unknown database type error.
 	ErrUnknownDatabaseScheme Error = "unknown database scheme"
+	// ErrUnknownFileHeader is the unknown file header error.
+	ErrUnknownFileHeader Error = "unknown file header"
 	// ErrInvalidTransportProtocol is the invalid transport protocol error.
 	ErrInvalidTransportProtocol Error = "invalid transport protocol"
 	// ErrRelativePathNotSupported is the relative paths not supported error.

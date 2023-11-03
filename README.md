@@ -112,7 +112,7 @@ additional aliases, and the related Go driver:
 | MySQL                | `mysql`         | `my`, `maria`, `aurora`, `mariadb`, `percona`   | [github.com/go-sql-driver/mysql][d-mysql]                                   |
 | Microsoft SQL Server | `sqlserver`     | `ms`, `mssql`, `azuresql`                       | [github.com/microsoft/go-mssqldb][d-sqlserver]                              |
 | Oracle Database      | `oracle`        | `or`, `ora`, `oci`, `oci8`, `odpi`, `odpi-c`    | [github.com/sijms/go-ora/v2][d-oracle]                                      |
-| SQLite3              | `sqlite3`       | `sq`, `file`, `sqlite`                          | [github.com/mattn/go-sqlite3][d-sqlite3] <sup>[†][f-cgo]</sup>              |
+| SQLite3              | `sqlite3`       | `sq`, `sqlite`, `file`                          | [github.com/mattn/go-sqlite3][d-sqlite3] <sup>[†][f-cgo]</sup>              |
 | CSVQ                 | `csvq`          | `cs`, `csv`, `tsv`, `json`                      | [github.com/mithrandie/csvq-driver][d-csvq]                                 |
 |                      |                 |                                                 |                                                                             |
 | Alibaba MaxCompute   | `maxcompute`    | `mc`                                            | [sqlflow.org/gomaxcompute][d-maxcompute]                                    |
@@ -126,7 +126,7 @@ additional aliases, and the related Go driver:
 | Couchbase            | `couchbase`     | `n1`, `n1ql`                                    | [github.com/couchbase/go_n1ql][d-couchbase]                                 |
 | Cznic QL             | `ql`            | `cznic`, `cznicql`                              | [modernc.org/ql][d-ql]                                                      |
 | Databend             | `databend`      | `dd`, `bend`                                    | [github.com/databendcloud/databend-go][d-databend]                          |
-| DuckDB               | `duckdb`        | `dk`, `ddb`, `duck`                             | [github.com/marcboeker/go-duckdb][d-duckdb] <sup>[†][f-cgo]</sup>           |
+| DuckDB               | `duckdb`        | `dk`, `ddb`, `duck`, `file`                     | [github.com/marcboeker/go-duckdb][d-duckdb] <sup>[†][f-cgo]</sup>           |
 | Exasol               | `exasol`        | `ex`, `exa`                                     | [github.com/exasol/exasol-driver-go][d-exasol]                              |
 | Firebird             | `firebird`      | `fb`, `firebirdsql`                             | [github.com/nakagami/firebirdsql][d-firebird]                               |
 | FlightSQL            | `flightsql`     | `fl`, `flight`                                  | [github.com/apache/arrow/go/v12/arrow/flight/flightsql/driver][d-flightsql] |

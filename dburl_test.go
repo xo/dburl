@@ -43,8 +43,9 @@ func TestBadParse(t *testing.T) {
 		{`file+tcp://`, ErrInvalidTransportProtocol},
 		{`file://`, ErrMissingPath},
 		{`ql://`, ErrMissingPath},
+		{`duckdb://`, ErrMissingPath},
 		{`mssql+tcp://user:pass@host/dbname`, ErrInvalidTransportProtocol},
-		{`mssql+aoeu://`, ErrInvalidTransportProtocol},
+		{`mssql+foobar://`, ErrInvalidTransportProtocol},
 		{`mssql+unix:/var/run/mssql.sock`, ErrInvalidTransportProtocol},
 		{`mssql+udp:localhost:155`, ErrInvalidTransportProtocol},
 		{`adodb+foo+bar://provider/database`, ErrInvalidTransportProtocol},
@@ -140,7 +141,6 @@ func TestParse(t *testing.T) {
 			`oo+Postgres+Unicode://user:pass@host:5432/dbname`, `adodb`,
 			`Provider=MSDASQL.1;Extended Properties="Database=dbname;Driver={Postgres Unicode};PWD=pass;Port=5432;Server=host;UID=user"`, ``,
 		},
-		{`file:/path/to/file.sqlite3`, `sqlite3`, `/path/to/file.sqlite3`, ``}, // 33
 		{`sqlite:///path/to/file.sqlite3`, `sqlite3`, `/path/to/file.sqlite3`, ``},
 		{`sq://path/to/file.sqlite3`, `sqlite3`, `path/to/file.sqlite3`, ``},
 		{`sq:path/to/file.sqlite3`, `sqlite3`, `path/to/file.sqlite3`, ``},
@@ -210,6 +210,8 @@ func TestParse(t *testing.T) {
 		{`flightsql://user:pass@localhost?timeout=3s&token=foobar&tls=enabled`, `flightsql`, `flightsql://user:pass@localhost?timeout=3s&token=foobar&tls=enabled`, ``},
 		{`duckdb:/path/to/foo.db?access_mode=read_only&threads=4`, `duckdb`, `/path/to/foo.db?access_mode=read_only&threads=4`, ``},
 		{`dk:///path/to/foo.db?access_mode=read_only&threads=4`, `duckdb`, `/path/to/foo.db?access_mode=read_only&threads=4`, ``},
+		{`file:./testdata/test.sqlite3?a=b`, `sqlite3`, `./testdata/test.sqlite3?a=b`, ``},
+		{`file:./testdata/test.duckdb?a=b`, `duckdb`, `./testdata/test.duckdb?a=b`, ``},
 	}
 	for i, test := range tests {
 		u, err := Parse(test.s)
