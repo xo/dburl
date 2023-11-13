@@ -338,8 +338,8 @@ func init() {
 	for _, scheme := range schemes {
 		Register(scheme)
 	}
-	RegisterHeaderType("duckdb", isDuckdbHeader)
-	RegisterHeaderType("sqlite3", isSqlite3Header)
+	RegisterFileType("duckdb", isDuckdbHeader, `(?i)\.duckdb$`)
+	RegisterFileType("sqlite3", isSqlite3Header, `(?i)\.(db|sqlite|sqlite3)$`)
 }
 
 // schemeMap is the map of registered schemes.
@@ -440,28 +440,34 @@ func RegisterAlias(name, alias string) {
 	registerAlias(name, alias, true)
 }
 
-// headerTypes are registered header recognition funcs.
-var headerTypes []headerType
+// fileTypes are registered header recognition funcs.
+var fileTypes []fileType
 
-// RegisterHeaderType registers a file header recognition func.
-func RegisterHeaderType(driver string, f func([]byte) bool) {
-	headerTypes = append(headerTypes, headerType{
+// RegisterFileType registers a file header recognition func, and extension regexp.
+func RegisterFileType(driver string, f func([]byte) bool, ext string) {
+	extRE, err := regexp.Compile(ext)
+	if err != nil {
+		panic(fmt.Sprintf("invalid extension regexp %q: %v", ext, err))
+	}
+	fileTypes = append(fileTypes, fileType{
 		driver: driver,
 		f:      f,
+		ext:    extRE,
 	})
 }
 
-// headerType wraps a header recognition func.
-type headerType struct {
+// fileType wraps file type information.
+type fileType struct {
 	driver string
 	f      func([]byte) bool
+	ext    *regexp.Regexp
 }
 
-// HeaderTypes returns the registered header types.
-func HeaderTypes() []string {
+// FileTypes returns the registered file types.
+func FileTypes() []string {
 	var v []string
-	for _, header := range headerTypes {
-		v = append(v, header.driver)
+	for _, typ := range fileTypes {
+		v = append(v, typ.driver)
 	}
 	return v
 }
@@ -514,7 +520,7 @@ func ShortAlias(name string) string {
 //
 // See: https://www.sqlite.org/fileformat.html
 func isSqlite3Header(buf []byte) bool {
-	return len(buf) == 0 || bytes.HasPrefix(buf, sqlite3Header)
+	return bytes.HasPrefix(buf, sqlite3Header)
 }
 
 // sqlite3Header is the sqlite3 header.

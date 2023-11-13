@@ -2,22 +2,11 @@ package dburl
 
 import (
 	"fmt"
-	"io/fs"
 	"net/url"
-	"os"
 	"path"
-	"path/filepath"
 	"sort"
 	"strings"
 )
-
-// Stat is the default stat func.
-//
-// Used internally to stat files, and is subsequently used when generating the
-// DSNs for postgres://, mysql://, and sqlite3:// [URL] schemes.
-var Stat = func(name string) (fs.FileInfo, error) {
-	return fs.Stat(os.DirFS(filepath.Dir(name)), filepath.Base(name))
-}
 
 // GenScheme returns a generator that will generate a scheme based on the
 // passed scheme DSN.
@@ -674,53 +663,4 @@ func genOptions(q url.Values, joiner, assign, sep, valSep string, skipWhenEmpty 
 		return joiner + strings.Join(opts, sep)
 	}
 	return ""
-}
-
-// resolveSocket tries to resolve a path to a Unix domain socket based on the
-// form "/path/to/socket/dbname" returning either the original path and the
-// empty string, or the components "/path/to/socket" and "dbname", when
-// /path/to/socket/dbname is reported by Stat as a socket.
-//
-// Used for MySQL DSNs.
-func resolveSocket(s string) (string, string) {
-	dir, dbname := s, ""
-	for dir != "" && dir != "/" && dir != "." {
-		if mode(dir)&fs.ModeSocket != 0 {
-			return dir, dbname
-		}
-		dir, dbname = path.Dir(dir), path.Base(dir)
-	}
-	return s, ""
-}
-
-// resolveDir resolves a directory with a :port list.
-//
-// Used for PostgreSQL DSNs.
-func resolveDir(s string) (string, string, string) {
-	dir := s
-	for dir != "" && dir != "/" && dir != "." {
-		port := ""
-		i, j := strings.LastIndex(dir, ":"), strings.LastIndex(dir, "/")
-		if i != -1 && i > j {
-			port, dir = dir[i+1:], dir[:i]
-		}
-		if mode(dir)&fs.ModeDir != 0 {
-			rest := strings.TrimPrefix(strings.TrimPrefix(strings.TrimPrefix(s, dir), ":"+port), "/")
-			return dir, port, rest
-		}
-		if j != -1 {
-			dir = dir[:j]
-		} else {
-			dir = ""
-		}
-	}
-	return s, "", ""
-}
-
-// mode returns the mode of the path.
-func mode(s string) os.FileMode {
-	if fi, err := Stat(s); err == nil {
-		return fi.Mode()
-	}
-	return 0
 }

@@ -7,12 +7,8 @@ import (
 	"github.com/xo/dburl"
 )
 
-func Example_parse() {
-	u, err := dburl.Parse("pg://user:pass@host:1234/dbname")
-	if err != nil {
-		log.Fatal(err)
-	}
-	db, err := sql.Open(u.Driver, u.DSN)
+func Example() {
+	db, err := dburl.Open("my://user:pass@host:1234/dbname")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -28,8 +24,12 @@ func Example_parse() {
 	}
 }
 
-func Example_open() {
-	db, err := dburl.Open("my://user:pass@host:1234/dbname")
+func Example_parse() {
+	u, err := dburl.Parse("pg://user:pass@host:1234/dbname")
+	if err != nil {
+		log.Fatal(err)
+	}
+	db, err := sql.Open(u.Driver, u.DSN)
 	if err != nil {
 		log.Fatal(err)
 	}
