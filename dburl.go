@@ -105,16 +105,23 @@ func Parse(urlstr string) (*URL, error) {
 	switch {
 	case !ok:
 		return nil, ErrUnknownDatabaseScheme
-	case scheme.Driver == "file" && u.Opaque != "":
+	case scheme.Driver == "file":
 		// determine scheme for file
-		if typ, err := SchemeType(u.Opaque); err == nil {
-			return Parse(typ + ":" + buildOpaque(u))
+		s := u.opaqueOrPath()
+		switch {
+		case u.Transport != "tcp", strings.Index(u.OriginalScheme, "+") != -1:
+			return nil, ErrInvalidTransportProtocol
+		case s == "":
+			return nil, ErrMissingPath
+		}
+		if typ, err := SchemeType(s); err == nil {
+			return Parse(typ + ":" + u.buildOpaque())
 		}
 		return nil, ErrUnknownFileExtension
 	case !scheme.Opaque && u.Opaque != "":
 		// if scheme does not understand opaque URLs, retry parsing after
 		// building fully qualified URL
-		return Parse(u.OriginalScheme + "://" + buildOpaque(u))
+		return Parse(u.OriginalScheme + "://" + u.buildOpaque())
 	case scheme.Opaque && u.Opaque == "":
 		// force Opaque
 		u.Opaque, u.Host, u.Path, u.RawPath = u.Host+u.Path, "", "", ""
@@ -234,10 +241,31 @@ func (u *URL) Normalize(sep, empty string, cut int) string {
 	return strings.Join(s, sep)
 }
 
+// buildOpaque builds a opaque path.
+func (u *URL) buildOpaque() string {
+	var q string
+	if u.RawQuery != "" {
+		q = "?" + u.RawQuery
+	}
+	var f string
+	if u.Fragment != "" {
+		f = "#" + u.Fragment
+	}
+	return u.Opaque + q + f
+}
+
+// opaqueOrPath returns the opaque or path value.
+func (u *URL) opaqueOrPath() string {
+	if u.Opaque != "" {
+		return u.Opaque
+	}
+	return u.Path
+}
+
 // SchemeType returns the scheme type for a path.
 func SchemeType(name string) (string, error) {
 	// try to resolve the path on unix systems
-	if runtime.GOOS != "windows" /*&& !mode(name).IsRegular()*/ {
+	if runtime.GOOS != "windows" {
 		if typ, ok := resolveType(name); ok {
 			return typ, nil
 		}
@@ -315,21 +343,13 @@ var OpenFile = func(name string) (fs.File, error) {
 	return f, nil
 }
 
-// buildOpaque builds a opaque path from u.
-func buildOpaque(u *URL) string {
-	var q string
-	if u.RawQuery != "" {
-		q = "?" + u.RawQuery
-	}
-	var f string
-	if u.Fragment != "" {
-		f = "#" + u.Fragment
-	}
-	return u.Opaque + q + f
-}
-
 // resolveType tries to resolve a path to a Unix domain socket or directory.
 func resolveType(s string) (string, bool) {
+	if i := strings.LastIndex(s, "?"); i != -1 {
+		if _, err := Stat(s[:i]); err == nil {
+			s = s[:i]
+		}
+	}
 	dir := s
 	for dir != "" && dir != "/" && dir != "." {
 		// chop off :4444 port
