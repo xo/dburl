@@ -816,10 +816,51 @@ func TestParse(t *testing.T) {
 			`fake.dk`,
 			``,
 		},
+		{
+			`file:/var/run/mysqld/mysqld.sock/mydb?timeout=90`,
+			`mysql`,
+			`unix(/var/run/mysqld/mysqld.sock)/mydb?timeout=90`,
+			`/var/run/mysqld/mysqld.sock`,
+		},
+		{
+			`file:/var/run/postgresql`,
+			`postgres`,
+			`host=/var/run/postgresql`,
+			`/var/run/postgresql`,
+		},
+		{
+			`file:/var/run/postgresql:6666/mydb`,
+			`postgres`,
+			`dbname=mydb host=/var/run/postgresql port=6666`,
+			`/var/run/postgresql`,
+		},
+		{
+			`file:/var/run/postgresql/mydb`,
+			`postgres`,
+			`dbname=mydb host=/var/run/postgresql`,
+			`/var/run/postgresql`,
+		},
+		{
+			`file:/var/run/postgresql:7777`,
+			`postgres`,
+			`host=/var/run/postgresql port=7777`,
+			`/var/run/postgresql`,
+		},
+		{
+			`file://user:pass@/var/run/postgresql/mydb`,
+			`postgres`,
+			`dbname=mydb host=/var/run/postgresql password=pass user=user`,
+			`/var/run/postgresql`,
+		},
 	}
+	m := make(map[string]bool)
 	for i, tt := range tests {
 		test := tt
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			if _, ok := m[test.s]; ok {
+				t.Fatalf("%s is already tested", test.s)
+			}
+			m[test.s] = true
 			testParse(t, test.s, test.d, test.exp, test.path)
 		})
 	}

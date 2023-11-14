@@ -512,7 +512,10 @@ func SchemeDriverAndAliases(name string) (string, []string) {
 
 // ShortAlias returns the short alias for the scheme name.
 func ShortAlias(name string) string {
-	return schemeMap[name].Aliases[0]
+	if scheme, ok := schemeMap[name]; ok {
+		return scheme.Aliases[0]
+	}
+	return ""
 }
 
 // isSqlite3Header returns true when the passed header is empty or starts with
