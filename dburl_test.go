@@ -852,6 +852,24 @@ func TestParse(t *testing.T) {
 			`dbname=mydb host=/var/run/postgresql password=pass user=user`,
 			`/var/run/postgresql`,
 		},
+		{
+			`hive://myhost/mydb`,
+			`hive`,
+			`myhost:10000/mydb`,
+			``,
+		},
+		{
+			`hi://myhost:9999/mydb?auth=PLAIN`,
+			`hive`,
+			`myhost:9999/mydb?auth=PLAIN`,
+			``,
+		},
+		{
+			`hive2://user:pass@myhost:9999/mydb?auth=PLAIN`,
+			`hive`,
+			`user:pass@myhost:9999/mydb?auth=PLAIN`,
+			``,
+		},
 	}
 	m := make(map[string]bool)
 	for i, tt := range tests {

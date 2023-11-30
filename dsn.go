@@ -29,15 +29,6 @@ func GenScheme(scheme string) func(*URL) (string, string, error) {
 	}
 }
 
-// GenSchemeTruncate generates a DSN by truncating the scheme://.
-func GenSchemeTruncate(u *URL) (string, string, error) {
-	s := u.String()
-	if i := strings.Index(s, "://"); i != -1 {
-		return s[i+3:], "", nil
-	}
-	return s, "", nil
-}
-
 // GenFromURL returns a func that generates a DSN based on parameters of the
 // passed URL.
 func GenFromURL(urlstr string) func(*URL) (string, string, error) {
@@ -90,7 +81,7 @@ func GenFromURL(urlstr string) func(*URL) (string, string, error) {
 			RawQuery: q.Encode(),
 			Fragment: fragment,
 		}
-		return y.String(), "", nil
+		return strings.TrimPrefix(y.String(), "truncate://"), "", nil
 	}
 }
 

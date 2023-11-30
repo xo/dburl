@@ -236,7 +236,9 @@ func BaseSchemes() []Scheme {
 		},
 		{
 			"hive",
-			GenSchemeTruncate, 0, false, nil, "",
+			GenFromURL("truncate://localhost:10000/"), 0, false,
+			[]string{"hive2"},
+			"",
 		},
 		{
 			"ignite",
@@ -250,7 +252,7 @@ func BaseSchemes() []Scheme {
 		},
 		{
 			"maxcompute",
-			GenSchemeTruncate, 0, false,
+			GenFromURL("truncate://localhost/"), 0, false,
 			[]string{"mc"},
 			"",
 		},
