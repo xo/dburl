@@ -895,6 +895,12 @@ func TestParse(t *testing.T) {
 			``,
 		},
 		{
+			`yds://`,
+			`ydb`,
+			`grpcs://localhost:2135/`,
+			``,
+		},
+		{
 			`ydbs://user:pass@localhost:8888/?opt1=a&opt2=b`,
 			`ydb`,
 			`grpcs://user:pass@localhost:8888/?opt1=a&opt2=b`,

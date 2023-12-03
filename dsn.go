@@ -619,11 +619,10 @@ func GenVoltdb(u *URL) (string, string, error) {
 
 // GenYDB generates a ydb dsn from the passed URL.
 func GenYDB(u *URL) (string, string, error) {
-	scheme := "grpc"
+	scheme, host, port := "grpc", "localhost", "2136"
 	if strings.HasSuffix(strings.ToLower(u.OriginalScheme), "s") {
-		scheme += "s"
+		scheme, port = "grpcs", "2135"
 	}
-	host, port := "localhost", "2136"
 	if h := u.Hostname(); h != "" {
 		host = h
 	}
