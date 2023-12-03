@@ -171,12 +171,6 @@ func BaseSchemes() []Scheme {
 			"",
 		},
 		{
-			"duckdb",
-			GenOpaque, 0, true,
-			[]string{"dk", "ddb", "duck"},
-			"",
-		},
-		{
 			"cosmos",
 			GenCosmos, 0, false,
 			[]string{"cm"},
@@ -198,6 +192,24 @@ func BaseSchemes() []Scheme {
 			"databend",
 			GenDatabend, 0, false,
 			[]string{"dd", "bend"},
+			"",
+		},
+		{
+			"databricks",
+			GenDatabricks, 0, false,
+			[]string{"br", "brick", "bricks", "databrick"},
+			"",
+		},
+		{
+			"duckdb",
+			GenOpaque, 0, true,
+			[]string{"dk", "ddb", "duck"},
+			"",
+		},
+		{
+			"godynamo",
+			GenDynamo, 0, false,
+			[]string{"dy", "dyn", "dynamo", "dynamodb"},
 			"",
 		},
 		{
@@ -328,6 +340,12 @@ func BaseSchemes() []Scheme {
 			"voltdb",
 			GenVoltdb, 0, false,
 			[]string{"volt", "vdb"},
+			"",
+		},
+		{
+			"ydb",
+			GenYDB, 0, false,
+			[]string{"yd", "yds", "ydbs"},
 			"",
 		},
 	}

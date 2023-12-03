@@ -870,6 +870,36 @@ func TestParse(t *testing.T) {
 			`user:pass@myhost:9999/mydb?auth=PLAIN`,
 			``,
 		},
+		{
+			`dy://user:pass@myhost:9999?TimeoutMs=1000`,
+			`godynamo`,
+			`Region=myhost;AkId=user;Secret_Key=pass;TimeoutMs=1000`,
+			``,
+		},
+		{
+			`br://user:pass@dbname`,
+			`databricks`,
+			`token:user@pass.databricks.com:443/sql/1.0/endpoints/dbname`,
+			``,
+		},
+		{
+			`brick://user:pass@dbname?timeout=1000&maxRows=1000`,
+			`databricks`,
+			`token:user@pass.databricks.com:443/sql/1.0/endpoints/dbname?maxRows=1000&timeout=1000`,
+			``,
+		},
+		{
+			`ydb://`,
+			`ydb`,
+			`grpc://localhost:2136/`,
+			``,
+		},
+		{
+			`ydbs://user:pass@localhost:8888/?opt1=a&opt2=b`,
+			`ydb`,
+			`grpcs://user:pass@localhost:8888/?opt1=a&opt2=b`,
+			``,
+		},
 	}
 	m := make(map[string]bool)
 	for i, tt := range tests {

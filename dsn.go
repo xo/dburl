@@ -180,6 +180,42 @@ func GenDatabend(u *URL) (string, string, error) {
 	return u.String(), "", nil
 }
 
+// GenDynamo generates a dynamo DSN from the passed URL.
+func GenDynamo(u *URL) (string, string, error) {
+	var v []string
+	if host := u.Hostname(); host != "" {
+		v = append(v, "Region="+host)
+	}
+	if u.User != nil {
+		v = append(v, "AkId="+u.User.Username())
+		if pass, ok := u.User.Password(); ok {
+			v = append(v, "Secret_Key="+pass)
+		}
+	}
+	return strings.Join(v, ";") + genOptions(u.Query(), ";", "=", ";", ",", true, "Region", "Secret_Key", "AkId"), "", nil
+}
+
+// GenDatabricks generates a databricks DSN from the passed URL.
+func GenDatabricks(u *URL) (string, string, error) {
+	if u.User == nil {
+		return "", "", ErrMissingUser
+	}
+	user := u.User.Username()
+	pass, ok := u.User.Password()
+	if !ok || pass == "" {
+		return "", "", ErrMissingUser
+	}
+	host, port := u.Hostname(), u.Port()
+	if host == "" {
+		return "", "", ErrMissingHost
+	}
+	if port == "" {
+		port = "443"
+	}
+	s := fmt.Sprintf("token:%s@%s.databricks.com:%s/sql/1.0/endpoints/%s", user, pass, port, host)
+	return s + genOptions(u.Query(), "?", "=", "&", ",", true), "", nil
+}
+
 // GenExasol generates a exasol DSN from the passed URL.
 func GenExasol(u *URL) (string, string, error) {
 	host, port, dbname := u.Hostname(), u.Port(), strings.TrimPrefix(u.Path, "/")
@@ -579,6 +615,27 @@ func GenVoltdb(u *URL) (string, string, error) {
 		port = p
 	}
 	return host + ":" + port, "", nil
+}
+
+// GenYDB generates a ydb dsn from the passed URL.
+func GenYDB(u *URL) (string, string, error) {
+	scheme := "grpc"
+	if strings.HasSuffix(strings.ToLower(u.OriginalScheme), "s") {
+		scheme += "s"
+	}
+	host, port := "localhost", "2136"
+	if h := u.Hostname(); h != "" {
+		host = h
+	}
+	if p := u.Port(); p != "" {
+		port = p
+	}
+	var userpass string
+	if u.User != nil {
+		userpass = u.User.String() + "@"
+	}
+	s := scheme + "://" + userpass + host + ":" + port + "/" + strings.TrimPrefix(u.Path, "/")
+	return s + genOptions(u.Query(), "?", "=", "&", ",", true), "", nil
 }
 
 // convertOptions converts an option value based on name, value pairs.

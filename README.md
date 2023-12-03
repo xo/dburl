@@ -119,6 +119,7 @@ additional aliases, and the related Go driver:
 | Alibaba Tablestore   | `ots`           | `ot`, `tablestore`                              | [github.com/aliyun/aliyun-tablestore-go-sql-driver][d-ots]                  |
 | Apache Avatica       | `avatica`       | `av`, `phoenix`                                 | [github.com/apache/calcite-avatica-go/v5][d-avatica]                        |
 | Apache H2            | `h2`            |                                                 | [github.com/jmrobles/h2go][d-h2]                                            |
+| Apache Hive          | `hive`          | `hi`, `hive2`                                   | [sqlflow.org/gohive][d-hive]                                                |
 | Apache Ignite        | `ignite`        | `ig`, `gridgain`                                | [github.com/amsokol/ignite-go-client/sql][d-ignite]                         |
 | AWS Athena           | `athena`        | `s3`, `aws`, `awsathena`                        | [github.com/uber/athenadriver/go][d-athena]                                 |
 | Azure CosmosDB       | `cosmos`        | `cm`                                            | [github.com/btnguyen2k/gocosmos][d-cosmos]                                  |
@@ -126,7 +127,9 @@ additional aliases, and the related Go driver:
 | Couchbase            | `couchbase`     | `n1`, `n1ql`                                    | [github.com/couchbase/go_n1ql][d-couchbase]                                 |
 | Cznic QL             | `ql`            | `cznic`, `cznicql`                              | [modernc.org/ql][d-ql]                                                      |
 | Databend             | `databend`      | `dd`, `bend`                                    | [github.com/databendcloud/databend-go][d-databend]                          |
+| Databricks           | `databricks`    | `br`, `brick`, `bricks`, `databrick`            | [github.com/databricks/databricks-sql-go][d-databricks]                     |
 | DuckDB               | `duckdb`        | `dk`, `ddb`, `duck`, `file`                     | [github.com/marcboeker/go-duckdb][d-duckdb] <sup>[†][f-cgo]</sup>           |
+| DynamoDb             | `dynamodb`      | `dy`, `dyn`, `dynamo`, `dynamodb`               | [github.com/btnguyen2k/godynamo][d-dynamodb]                                |
 | Exasol               | `exasol`        | `ex`, `exa`                                     | [github.com/exasol/exasol-driver-go][d-exasol]                              |
 | Firebird             | `firebird`      | `fb`, `firebirdsql`                             | [github.com/nakagami/firebirdsql][d-firebird]                               |
 | FlightSQL            | `flightsql`     | `fl`, `flight`                                  | [github.com/apache/arrow/go/v12/arrow/flight/flightsql/driver][d-flightsql] |
@@ -144,6 +147,7 @@ additional aliases, and the related Go driver:
 | Trino                | `trino`         | `tr`, `trs`, `trinos`                           | [github.com/trinodb/trino-go-client/trino][d-trino]                         |
 | Vertica              | `vertica`       | `ve`                                            | [github.com/vertica/vertica-sql-go][d-vertica]                              |
 | VoltDB               | `voltdb`        | `vo`, `vdb`, `volt`                             | [github.com/VoltDB/voltdb-client-go/voltdbclient][d-voltdb]                 |
+| YDB                  | `ydb`           | `yd`, `yds`, `ydbs`                             | [github.com/ydb-platform/ydb-go-sdk/v3][d-ydb]                              |
 |                      |                 |                                                 |                                                                             |
 | GO DRiver for ORacle | `godror`        | `gr`                                            | [github.com/godror/godror][d-godror] <sup>[†][f-cgo]</sup>                  |
 | ODBC                 | `odbc`          | `od`                                            | [github.com/alexbrainman/odbc][d-odbc] <sup>[†][f-cgo]</sup>                |
@@ -155,7 +159,6 @@ additional aliases, and the related Go driver:
 | TiDB                 | `mysql`         | `ti`, `tidb`                                    | [github.com/go-sql-driver/mysql][d-mysql] <sup>[‡][f-wire]</sup>            |
 | Vitess Database      | `mysql`         | `vt`, `vitess`                                  | [github.com/go-sql-driver/mysql][d-mysql] <sup>[‡][f-wire]</sup>            |
 |                      |                 |                                                 |                                                                             |
-| Apache Hive          | `hive`          | `hi`                                            | [sqlflow.org/gohive][d-hive]                                                |
 | Apache Impala        | `impala`        | `im`                                            | [github.com/bippio/go-impala][d-impala]                                     |
 | Genji                | `genji`         | `gj`                                            | [github.com/genjidb/genji/driver][d-genji]                                  |
 
@@ -169,7 +172,9 @@ additional aliases, and the related Go driver:
 [d-couchbase]: https://github.com/couchbase/go_n1ql
 [d-csvq]: https://github.com/mithrandie/csvq-driver
 [d-databend]: https://github.com/databendcloud/databend-go
+[d-databricks]: https://github.com/databricks/databricks-sql-go
 [d-duckdb]: https://github.com/marcboeker/go-duckdb
+[d-dynamodb]: https://github.com/btnguyen2k/godynamo
 [d-exasol]: https://github.com/exasol/exasol-driver-go
 [d-firebird]: https://github.com/nakagami/firebirdsql
 [d-flightsql]: https://github.com/apache/arrow/tree/main/go/arrow/flight/flightsql/driver
@@ -200,6 +205,7 @@ additional aliases, and the related Go driver:
 [d-trino]: https://github.com/trinodb/trino-go-client
 [d-vertica]: https://github.com/vertica/vertica-sql-go
 [d-voltdb]: https://github.com/VoltDB/voltdb-client-go
+[d-ydb]: https://github.com/ydb-platform/ydb-go-sdk
 <!-- DRIVER DETAILS END -->
 
 [f-cgo]: #f-cgo (Requires CGO)
