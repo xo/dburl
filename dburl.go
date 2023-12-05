@@ -20,6 +20,11 @@ import (
 	"strings"
 )
 
+// ResolveSchemeType is a configuration setting to open paths on disk using
+// [SchemeType], [Stat], and [OpenFile]. Set this to false in an `init()` func
+// in order to disable this behavior.
+var ResolveSchemeType = true
+
 // Open takes a URL string, also known as a DSN, in the form of
 // "protocol+transport://user:pass@host/dbname?option1=a&option2=b" and opens a
 // standard [sql.DB] connection.
@@ -82,8 +87,10 @@ func Parse(urlstr string) (*URL, error) {
 	case err != nil:
 		return nil, err
 	case v.Scheme == "":
-		if typ, err := SchemeType(urlstr); err == nil {
-			return Parse(typ + ":" + urlstr)
+		if ResolveSchemeType {
+			if typ, err := SchemeType(urlstr); err == nil {
+				return Parse(typ + ":" + urlstr)
+			}
 		}
 		return nil, ErrInvalidDatabaseScheme
 	}
@@ -113,9 +120,10 @@ func Parse(urlstr string) (*URL, error) {
 			return nil, ErrInvalidTransportProtocol
 		case s == "":
 			return nil, ErrMissingPath
-		}
-		if typ, err := SchemeType(s); err == nil {
-			return Parse(typ + "://" + u.buildOpaque())
+		case ResolveSchemeType:
+			if typ, err := SchemeType(s); err == nil {
+				return Parse(typ + "://" + u.buildOpaque())
+			}
 		}
 		return nil, ErrUnknownFileExtension
 	case !scheme.Opaque && u.Opaque != "":

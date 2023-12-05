@@ -9,13 +9,13 @@ driver.
 
 [Overview][] | [Quickstart][] | [Examples][] | [Schemes][] | [Installing][] | [Using][] | [About][]
 
-[Overview]: #database-connection-url-overview (Database Connection URL Overview)
-[Quickstart]: #quickstart (Quickstart)
-[Examples]: #example-urls (Example URLs)
-[Schemes]: #database-schemes-aliases-and-drivers (Database Schemes, Aliases, and Drivers)
-[Installing]: #installing (Installing)
-[Using]: #using (Using)
-[About]: #about (About)
+[Overview]: #database-connection-url-overview "Database Connection URL Overview"
+[Quickstart]: #quickstart "Quickstart"
+[Examples]: #example-urls "Example URLs"
+[Schemes]: #database-schemes-aliases-and-drivers "Database Schemes, Aliases, and Drivers"
+[Installing]: #installing "Installing"
+[Using]: #using "Using"
+[About]: #about "About"
 
 [![Unit Tests][dburl-ci-status]][dburl-ci]
 [![Go Reference][goref-dburl-status]][goref-dburl]
@@ -25,8 +25,8 @@ driver.
 [dburl-ci-status]: https://github.com/xo/dburl/actions/workflows/test.yml/badge.svg
 [goref-dburl]: https://pkg.go.dev/github.com/xo/dburl
 [goref-dburl-status]: https://pkg.go.dev/badge/github.com/xo/dburl.svg
-[discord]: https://discord.gg/yJKEzc7prt (Discord Discussion)
-[discord-status]: https://img.shields.io/discord/829150509658013727.svg?label=Discord&logo=Discord&colorB=7289da&style=flat-square (Discord Discussion)
+[discord]: https://discord.gg/yJKEzc7prt "Discord Discussion"
+[discord-status]: https://img.shields.io/discord/829150509658013727.svg?label=Discord&logo=Discord&colorB=7289da&style=flat-square "Discord Discussion"
 
 ## Database Connection URL Overview
 
@@ -39,17 +39,17 @@ protocol:/path/to/file
 
 Where:
 
-| Component          | Description                                                                          |
-|--------------------|--------------------------------------------------------------------------------------|
-| protocol           | driver name or alias (see below)                                                     |
-| transport          | "tcp", "udp", "unix" or driver name (odbc/oleodbc)                                   |
-| user               | username                                                                             |
-| pass               | password                                                                             |
-| host               | host                                                                                 |
-| dbname<sup>*</sup> | database, instance, or service name/ID to connect to                                 |
-| ?opt1=...          | additional database driver options (see respective SQL driver for available options) |
+| Component           | Description                                                                          |
+| ------------------- | ------------------------------------------------------------------------------------ |
+| protocol            | driver name or alias (see below)                                                     |
+| transport           | "tcp", "udp", "unix" or driver name (odbc/oleodbc)                                   |
+| user                | username                                                                             |
+| pass                | password                                                                             |
+| host                | host                                                                                 |
+| dbname<sup>\*</sup> | database, instance, or service name/ID to connect to                                 |
+| ?opt1=...           | additional database driver options (see respective SQL driver for available options) |
 
-<i><sup><b>*</b></sup> for Microsoft SQL Server, `/dbname` can be
+<i><sup><b>\*</b></sup> for Microsoft SQL Server, `/dbname` can be
 `/instance/dbname`, where `/instance` is optional. For Oracle Database,
 `/dbname` is of the form `/service/dbname` where `/service` is the service name
 or SID, and `/dbname` is optional. Please see below for examples.</i>
@@ -63,6 +63,7 @@ Database connection URLs in the above format can be parsed with the
 import (
     "github.com/xo/dburl"
 )
+
 u, err := dburl.Parse("postgresql://user:pass@localhost/mydatabase/?sslmode=disable")
 if err != nil { /* ... */ }
 ```
@@ -75,6 +76,7 @@ connection:
 import (
     "github.com/xo/dburl"
 )
+
 db, err := dburl.Open("sqlite:mydatabase.sqlite3?loc=auto")
 if err != nil { /* ... */ }
 ```
@@ -105,8 +107,9 @@ The following table lists the supported `dburl` protocol schemes (ie, driver),
 additional aliases, and the related Go driver:
 
 <!-- DRIVER DETAILS START -->
+
 | Database             | Scheme / Tag    | Scheme Aliases                                  | Driver Package / Notes                                                      |
-|----------------------|-----------------|-------------------------------------------------|-----------------------------------------------------------------------------|
+| -------------------- | --------------- | ----------------------------------------------- | --------------------------------------------------------------------------- |
 | PostgreSQL           | `postgres`      | `pg`, `pgsql`, `postgresql`                     | [github.com/lib/pq][d-postgres]                                             |
 | MySQL                | `mysql`         | `my`, `maria`, `aurora`, `mariadb`, `percona`   | [github.com/go-sql-driver/mysql][d-mysql]                                   |
 | Microsoft SQL Server | `sqlserver`     | `ms`, `mssql`, `azuresql`                       | [github.com/microsoft/go-mssqldb][d-sqlserver]                              |
@@ -206,10 +209,11 @@ additional aliases, and the related Go driver:
 [d-vertica]: https://github.com/vertica/vertica-sql-go
 [d-voltdb]: https://github.com/VoltDB/voltdb-client-go
 [d-ydb]: https://github.com/ydb-platform/ydb-go-sdk
+
 <!-- DRIVER DETAILS END -->
 
-[f-cgo]: #f-cgo (Requires CGO)
-[f-wire]: #f-wire (Wire compatible)
+[f-cgo]: #f-cgo "Requires CGO"
+[f-wire]: #f-wire "Wire compatible"
 
 <p>
   <i>
@@ -226,7 +230,7 @@ work identically with [`dburl.Parse`][goref-parse] and [`dburl.Open`][goref-open
 Install in the usual Go fashion:
 
 ```sh
-$ go get -u github.com/xo/dburl
+$ go get github.com/xo/dburl@latest
 ```
 
 ## Using
@@ -284,19 +288,44 @@ func main() {
 }
 ```
 
+## Scheme Resolution
+
+By default on non-Windows systems, `dburl` will resolve paths on disk, and URLs
+with `file:` schemes to an appropriate database driver:
+
+1. Directories will resolve as `postgres:` URLs
+2. Unix sockets will resolve as `mysql:` URLs
+3. Regular files will have their headers checked to determine if they are
+   either `sqlite3:` or `duckdb:` files
+4. Non-existent files will test their file extension against well-known
+   `sqlite3:` and `duckdb:` file extensions and open with the appropriate
+   scheme
+
+If this behavior is undesired, it can be disabled by providing different
+implementations for [`dburl.Stat`][goref-variables] and [`dburl.OpenFile`][goref-variables],
+or alternately by setting [`dburl.ResolveSchemeType`][goref-variables] to false:
+
+```go
+import "github.com/xo/dburl"
+
+func init() {
+    dburl.ResolveSchemeType = false
+}
+```
+
 ## About
 
 `dburl` was built primarily to support these projects:
 
-* [usql][usql] - a universal command-line interface for SQL databases
-* [xo][xo] - a command-line tool to generate code for SQL databases
+- [usql][usql] - a universal command-line interface for SQL databases
+- [xo][xo] - a command-line tool to generate code for SQL databases
 
-[go-project]: https://golang.org/project
+[go-project]: https://go.dev/project
 [goref-open]: https://pkg.go.dev/github.com/xo/dburl#Open
+[goref-variables]: https://pkg.go.dev/github.com/xo/dburl#pkg-variables
 [goref-parse]: https://pkg.go.dev/github.com/xo/dburl#Parse
 [goref-sql-db]: https://pkg.go.dev/database/sql#DB
 [goref-net-url]: https://pkg.go.dev/net/url#URL
 [goref-net-url-parse]: https://pkg.go.dev/net/url#URL.Parse
-
 [usql]: https://github.com/xo/usql
 [xo]: https://github.com/xo/xo
