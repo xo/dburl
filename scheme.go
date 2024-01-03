@@ -231,9 +231,9 @@ func BaseSchemes() []Scheme {
 			"",
 		},
 		{
-			"genji",
+			"chai",
 			GenOpaque, 0, true,
-			[]string{"gj"},
+			[]string{"ci", "chaisql", "genji"},
 			"",
 		},
 		{
