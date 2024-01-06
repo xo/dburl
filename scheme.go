@@ -309,6 +309,12 @@ func BaseSchemes() []Scheme {
 			"",
 		},
 		{
+			"ramsql",
+			GenFromURL("truncate://ramsql"), 0, false,
+			[]string{"rm", "ram"},
+			"",
+		},
+		{
 			"snowflake",
 			GenSnowflake, 0, false,
 			[]string{"sf"},
