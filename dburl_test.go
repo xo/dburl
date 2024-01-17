@@ -326,9 +326,21 @@ func TestParse(t *testing.T) {
 			``,
 		},
 		{
+			`adodb://user:pass@Provider.Name:1542/Oracle8i/dbname?not_ignored=1&usql_ignore=1`,
+			`adodb`,
+			`Data Source=Oracle8i;Database=dbname;Password=pass;Port=1542;Provider=Provider.Name;User ID=user;not_ignored=1`,
+			``,
+		},
+		{
 			`oo+Postgres+Unicode://user:pass@host:5432/dbname`,
 			`adodb`,
 			`Provider=MSDASQL.1;Extended Properties="Database=dbname;Driver={Postgres Unicode};PWD=pass;Port=5432;Server=host;UID=user"`,
+			``,
+		},
+		{
+			`oo+Postgres+Unicode://user:pass@host:5432/dbname?not_ignored=1&usql_ignore=1`,
+			`adodb`,
+			`Provider=MSDASQL.1;Extended Properties="Database=dbname;Driver={Postgres Unicode};PWD=pass;Port=5432;Server=host;UID=user;not_ignored=1"`,
 			``,
 		},
 		{

@@ -130,7 +130,7 @@ func GenAdodb(u *URL) (string, string, error) {
 		}
 		u.hostPortDB = []string{host, port, n}
 	}
-	return genOptionsOdbc(q, true, nil, nil), "", nil
+	return genOptionsOdbc(q, true, nil, OdbcIgnoreQueryPrefixes), "", nil
 }
 
 // GenCassandra generates a cassandra DSN from the passed URL.
