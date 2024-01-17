@@ -8,6 +8,10 @@ import (
 	"strings"
 )
 
+// OdbcIgnoreQueryPrefixes are the query prefixes to ignore when generating the
+// odbc DSN. Used by GenOdbc
+var OdbcIgnoreQueryPrefixes []string
+
 // GenScheme returns a generator that will generate a scheme based on the
 // passed scheme DSN.
 func GenScheme(scheme string) func(*URL) (string, string, error) {
@@ -126,7 +130,7 @@ func GenAdodb(u *URL) (string, string, error) {
 		}
 		u.hostPortDB = []string{host, port, n}
 	}
-	return genOptionsOdbc(q, true), "", nil
+	return genOptionsOdbc(q, true, nil, nil), "", nil
 }
 
 // GenCassandra generates a cassandra DSN from the passed URL.
@@ -169,7 +173,7 @@ func GenCosmos(u *URL) (string, string, error) {
 	if dbname != "" {
 		q.Set("Db", dbname)
 	}
-	return genOptionsOdbc(q, true), "", nil
+	return genOptionsOdbc(q, true, nil, nil), "", nil
 }
 
 // GenDatabend generates a databend DSN from the passed URL.
@@ -192,7 +196,7 @@ func GenDynamo(u *URL) (string, string, error) {
 			v = append(v, "Secret_Key="+pass)
 		}
 	}
-	return strings.Join(v, ";") + genOptions(u.Query(), ";", "=", ";", ",", true, "Region", "Secret_Key", "AkId"), "", nil
+	return strings.Join(v, ";") + genOptions(u.Query(), ";", "=", ";", ",", true, []string{"Region", "Secret_Key", "AkId"}, nil), "", nil
 }
 
 // GenDatabricks generates a databricks DSN from the passed URL.
@@ -213,7 +217,7 @@ func GenDatabricks(u *URL) (string, string, error) {
 		port = "443"
 	}
 	s := fmt.Sprintf("token:%s@%s.databricks.com:%s/sql/1.0/endpoints/%s", user, pass, port, host)
-	return s + genOptions(u.Query(), "?", "=", "&", ",", true), "", nil
+	return s + genOptions(u.Query(), "?", "=", "&", ",", true, nil, nil), "", nil
 }
 
 // GenExasol generates a exasol DSN from the passed URL.
@@ -234,7 +238,7 @@ func GenExasol(u *URL) (string, string, error) {
 		pass, _ := u.User.Password()
 		q.Set("password", pass)
 	}
-	return fmt.Sprintf("exa:%s:%s%s", host, port, genOptions(q, ";", "=", ";", ",", true)), "", nil
+	return fmt.Sprintf("exa:%s:%s%s", host, port, genOptions(q, ";", "=", ";", ",", true, nil, nil)), "", nil
 }
 
 // GenFirebird generates a firebird DSN from the passed URL.
@@ -340,6 +344,7 @@ func GenMymysql(u *URL) (string, string, error) {
 	dsn += genOptions(
 		convertOptions(u.Query(), "true", ""),
 		",", "=", ",", " ", false,
+		nil, nil,
 	)
 	dsn += "*" + dbname
 	if u.User != nil {
@@ -426,7 +431,7 @@ func GenOdbc(u *URL) (string, string, error) {
 		p, _ := u.User.Password()
 		q.Set("PWD", p)
 	}
-	return genOptionsOdbc(q, true), "", nil
+	return genOptionsOdbc(q, true, nil, OdbcIgnoreQueryPrefixes), "", nil
 }
 
 // GenOleodbc generates a oleodbc DSN from the passed URL.
@@ -466,7 +471,7 @@ func GenPostgres(u *URL) (string, string, error) {
 	if u.hostPortDB == nil {
 		u.hostPortDB = []string{host, port, dbname}
 	}
-	return genOptions(q, "", "=", " ", ",", true), "", nil
+	return genOptions(q, "", "=", " ", ",", true, nil, nil), "", nil
 }
 
 // GenPresto generates a presto DSN from the passed URL.
@@ -634,7 +639,7 @@ func GenYDB(u *URL) (string, string, error) {
 		userpass = u.User.String() + "@"
 	}
 	s := scheme + "://" + userpass + host + ":" + port + "/" + strings.TrimPrefix(u.Path, "/")
-	return s + genOptions(u.Query(), "?", "=", "&", ",", true), "", nil
+	return s + genOptions(u.Query(), "?", "=", "&", ",", true, nil, nil), "", nil
 }
 
 // convertOptions converts an option value based on name, value pairs.
@@ -665,8 +670,8 @@ func genQueryOptions(q url.Values) string {
 
 // genOptionsOdbc is a util wrapper around genOptions that uses the fixed
 // settings for ODBC style connection strings.
-func genOptionsOdbc(q url.Values, skipWhenEmpty bool, ignore ...string) string {
-	return genOptions(q, "", "=", ";", ",", skipWhenEmpty, ignore...)
+func genOptionsOdbc(q url.Values, skipWhenEmpty bool, ignore, ignorePrefixes []string) string {
+	return genOptions(q, "", "=", ";", ",", skipWhenEmpty, ignore, ignorePrefixes)
 }
 
 // genOptions takes URL values and generates options, joining together with
@@ -677,7 +682,7 @@ func genOptionsOdbc(q url.Values, skipWhenEmpty bool, ignore ...string) string {
 // following:
 //
 //	genOptions(u.Query(), "", "=", ";", ",", false)
-func genOptions(q url.Values, joiner, assign, sep, valSep string, skipWhenEmpty bool, ignore ...string) string {
+func genOptions(q url.Values, joiner, assign, sep, valSep string, skipWhenEmpty bool, ignore, ignorePrefixes []string) string {
 	if len(q) == 0 {
 		return ""
 	}
@@ -696,7 +701,7 @@ func genOptions(q url.Values, joiner, assign, sep, valSep string, skipWhenEmpty 
 	sort.Strings(s)
 	var opts []string
 	for _, k := range s {
-		if !ig[strings.ToLower(k)] {
+		if s := strings.ToLower(k); !ig[s] && !hasPrefix(s, ignorePrefixes) {
 			val := strings.Join(q[k], valSep)
 			if !skipWhenEmpty || val != "" {
 				if val != "" {
@@ -710,4 +715,14 @@ func genOptions(q url.Values, joiner, assign, sep, valSep string, skipWhenEmpty 
 		return joiner + strings.Join(opts, sep)
 	}
 	return ""
+}
+
+// hasPrefix returns true when s begins with any listed prefix.
+func hasPrefix(s string, prefixes []string) bool {
+	for _, prefix := range prefixes {
+		if strings.HasPrefix(s, prefix) {
+			return true
+		}
+	}
+	return false
 }

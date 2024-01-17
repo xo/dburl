@@ -78,6 +78,7 @@ func testBadParse(t *testing.T, s string, exp error) {
 }
 
 func TestParse(t *testing.T) {
+	OdbcIgnoreQueryPrefixes = []string{"usql_"}
 	tests := []struct {
 		s    string
 		d    string
@@ -328,6 +329,18 @@ func TestParse(t *testing.T) {
 			`oo+Postgres+Unicode://user:pass@host:5432/dbname`,
 			`adodb`,
 			`Provider=MSDASQL.1;Extended Properties="Database=dbname;Driver={Postgres Unicode};PWD=pass;Port=5432;Server=host;UID=user"`,
+			``,
+		},
+		{
+			`odbc+Postgres+Unicode://user:pass@host:5432/dbname?not_ignored=1`,
+			`odbc`,
+			`Database=dbname;Driver={Postgres Unicode};PWD=pass;Port=5432;Server=host;UID=user;not_ignored=1`,
+			``,
+		},
+		{
+			`odbc+Postgres+Unicode://user:pass@host:5432/dbname?usql_ignore=1&not_ignored=1`,
+			`odbc`,
+			`Database=dbname;Driver={Postgres Unicode};PWD=pass;Port=5432;Server=host;UID=user;not_ignored=1`,
 			``,
 		},
 		{
