@@ -270,7 +270,7 @@ func BaseSchemes() []Scheme {
 		},
 		{
 			"n1ql",
-			GenFromURL("http://localhost:9000/"), 0, false,
+			GenFromURL("http://localhost:8093/"), 0, false,
 			[]string{"couchbase"},
 			"",
 		},
