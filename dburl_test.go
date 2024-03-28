@@ -560,9 +560,27 @@ func TestParse(t *testing.T) {
 			``,
 		},
 		{
+			`ve://`,
+			`vertica`,
+			`vertica://localhost:5433/`,
+			``,
+		},
+		{
 			`ve://user:pass@vertica-host/dbvertica?tlsmode=server-strict`,
 			`vertica`,
 			`vertica://user:pass@vertica-host:5433/dbvertica?tlsmode=server-strict`,
+			``,
+		},
+		{
+			`vertica://vertica:P4ssw0rd@localhost/vertica`,
+			`vertica`,
+			`vertica://vertica:P4ssw0rd@localhost:5433/vertica`,
+			``,
+		},
+		{
+			`ve://vertica:P4ssw0rd@localhost:5433/vertica`,
+			`vertica`,
+			`vertica://vertica:P4ssw0rd@localhost:5433/vertica`,
 			``,
 		},
 		{
