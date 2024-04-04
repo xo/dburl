@@ -11,6 +11,7 @@ package dburl
 
 import (
 	"database/sql"
+	"fmt"
 	"io/fs"
 	"net/url"
 	"os"
@@ -40,6 +41,17 @@ func Open(urlstr string) (*sql.DB, error) {
 		driver = u.GoDriver
 	}
 	return sql.Open(driver, u.DSN)
+}
+
+// OpenMap takes a map of URL components and opens a standard [sql.DB] connection.
+//
+// See [BuildURL] for information on the recognized map components.
+func OpenMap(components map[string]interface{}) (*sql.DB, error) {
+	urlstr, err := BuildURL(components)
+	if err != nil {
+		return nil, err
+	}
+	return Open(urlstr)
 }
 
 // URL wraps the standard [net/url.URL] type, adding OriginalScheme, Transport,
@@ -160,6 +172,30 @@ func Parse(urlstr string) (*URL, error) {
 		return nil, err
 	}
 	return u, nil
+}
+
+// FromMap creates a [URL] using the mapped components.
+//
+// Recognized components are:
+//
+//	protocol, proto, scheme
+//	transport
+//	username, user
+//	password, pass
+//	hostname, host
+//	port
+//	path, file, opaque
+//	database, dbname, db
+//	instance
+//	parameters, params, options, opts, query, q
+//
+// See [BuildURL] for more information.
+func FromMap(components map[string]interface{}) (*URL, error) {
+	urlstr, err := BuildURL(components)
+	if err != nil {
+		return nil, err
+	}
+	return Parse(urlstr)
 }
 
 // String satisfies the [fmt.Stringer] interface.
@@ -334,6 +370,8 @@ const (
 	ErrMissingPath Error = "missing path"
 	// ErrMissingUser is the missing user error.
 	ErrMissingUser Error = "missing user"
+	// ErrInvalidQuery is the invalid query error.
+	ErrInvalidQuery Error = "invalid query"
 )
 
 // Stat is the default stat func.
@@ -353,6 +391,88 @@ var OpenFile = func(name string) (fs.File, error) {
 		return nil, err
 	}
 	return f, nil
+}
+
+// BuildURL creates a dsn using the mapped components.
+//
+// Recognized components are:
+//
+//	protocol, proto, scheme
+//	transport
+//	username, user
+//	password, pass
+//	hostname, host
+//	port
+//	path, file, opaque
+//	database, dbname, db
+//	instance
+//	parameters, params, options, opts, query, q
+//
+// See [BuildURL] for more information.
+func BuildURL(components map[string]interface{}) (string, error) {
+	if components == nil {
+		return "", ErrInvalidDatabaseScheme
+	}
+	var urlstr string
+	if proto, ok := getComponent(components, "protocol", "proto", "scheme"); ok {
+		if transport, ok := getComponent(components, "transport"); ok {
+			proto += "+" + transport
+		}
+		urlstr = proto + ":"
+	}
+	if host, ok := getComponent(components, "hostname", "host"); ok {
+		hostinfo := url.QueryEscape(host)
+		if port, ok := getComponent(components, "port"); ok {
+			hostinfo += ":" + port
+		}
+		var userinfo string
+		if user, ok := getComponent(components, "username", "user"); ok {
+			userinfo += url.QueryEscape(user)
+			if pass, ok := getComponent(components, "password", "pass"); ok {
+				userinfo += ":" + url.QueryEscape(pass)
+			}
+			hostinfo = userinfo + "@" + hostinfo
+		}
+		urlstr += "//" + hostinfo
+	}
+	if pathstr, ok := getComponent(components, "path", "file", "opaque"); ok {
+		if urlstr == "" {
+			urlstr += "file:"
+		}
+		urlstr += pathstr
+	} else {
+		var v []string
+		if instance, ok := getComponent(components, "instance"); ok {
+			v = append(v, url.PathEscape(instance))
+		}
+		if dbname, ok := getComponent(components, "database", "dbname", "db"); ok {
+			v = append(v, url.PathEscape(dbname))
+		}
+		if len(v) != 0 {
+			if s := path.Join(v...); s != "" {
+				urlstr += "/" + s
+			}
+		}
+	}
+	if v, ok := getFirst(components, "parameters", "params", "options", "opts", "query", "q"); ok {
+		switch z := v.(type) {
+		case string:
+			if z != "" {
+				urlstr += "?" + z
+			}
+		case map[string]interface{}:
+			q := url.Values{}
+			for k, v := range z {
+				q.Set(k, fmt.Sprintf("%v", v))
+			}
+			if s := q.Encode(); s != "" {
+				urlstr += "?" + s
+			}
+		default:
+			return "", ErrInvalidQuery
+		}
+	}
+	return urlstr, nil
 }
 
 // resolveType tries to resolve a path to a Unix domain socket or directory.
@@ -429,4 +549,24 @@ func mode(s string) os.FileMode {
 		return fi.Mode()
 	}
 	return 0
+}
+
+// getComponent returns the first defined component in the map.
+func getComponent(m map[string]interface{}, v ...string) (string, bool) {
+	if z, ok := getFirst(m, v...); ok {
+		str := fmt.Sprintf("%v", z)
+		return str, str != ""
+
+	}
+	return "", false
+}
+
+// getFirst returns the first value in the map.
+func getFirst(m map[string]interface{}, v ...string) (interface{}, bool) {
+	for _, s := range v {
+		if z, ok := m[s]; ok {
+			return z, ok
+		}
+	}
+	return nil, false
 }

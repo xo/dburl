@@ -983,6 +983,87 @@ func testParse(t *testing.T, s, d, exp, path string) {
 	}
 }
 
+func TestBuildURL(t *testing.T) {
+	tests := []struct {
+		m   map[string]interface{}
+		exp string
+		err error
+	}{
+		{nil, "", ErrInvalidDatabaseScheme},
+		{
+			map[string]interface{}{
+				"proto":     "mysql",
+				"transport": "tcp",
+				"host":      "localhost",
+				"port":      999,
+				"q": map[string]interface{}{
+					"foo":  "bar",
+					"opt1": "b",
+				},
+			},
+			"mysql+tcp://localhost:999?foo=bar&opt1=b", nil,
+		},
+		{
+			map[string]interface{}{
+				"proto":    "sqlserver",
+				"host":     "localhost",
+				"port":     "5555",
+				"instance": "instance",
+				"database": "dbname",
+				"q": map[string]interface{}{
+					"foo":  "bar",
+					"opt1": "b",
+				},
+			},
+			"sqlserver://localhost:5555/instance/dbname?foo=bar&opt1=b", nil,
+		},
+		{
+			map[string]interface{}{
+				"proto":    "pg",
+				"host":     "host name",
+				"user":     "user name",
+				"password": "P!!!@@@@ 👀",
+				"database": "my awesome db",
+				"q": map[string]interface{}{
+					"foo":  "bar is cool",
+					"opt1": "b zzzz@@@:/",
+				},
+			},
+			"pg://user+name:P%21%21%21%40%40%40%40+%F0%9F%91%80@host+name/my%20awesome%20db?foo=bar+is+cool&opt1=b+zzzz%40%40%40%3A%2F", nil,
+		},
+		{
+			map[string]interface{}{
+				"file": "fake.sqlite3",
+				"q": map[string]interface{}{
+					"foo":  "bar",
+					"opt1": "b",
+				},
+			},
+			"file:fake.sqlite3?foo=bar&opt1=b", nil,
+		},
+	}
+	for i, test := range tests {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			switch s, err := BuildURL(test.m); {
+			case err != nil && !errors.Is(err, test.err):
+				t.Fatalf("expected error %v, got: %v", test.err, err)
+			case err != nil && test.err == nil:
+				t.Fatalf("expected no error, got: %v", err)
+			case s != test.exp:
+				t.Errorf("expected %q, got: %q", test.exp, s)
+			default:
+				t.Logf("dsn: %q", s)
+			}
+			switch u, err := FromMap(test.m); {
+			case err != nil:
+				t.Logf("parse error: %v", err)
+			default:
+				t.Logf("url: %q", u.String())
+			}
+		})
+	}
+}
+
 func init() {
 	statFile, openFile := Stat, OpenFile
 	Stat = func(name string) (fs.FileInfo, error) {
