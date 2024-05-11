@@ -949,6 +949,24 @@ func TestParse(t *testing.T) {
 			`grpcs://user:pass@localhost:8888/?opt1=a&opt2=b`,
 			``,
 		},
+		{
+			`clickhouse://user:pass@localhost/?opt1=a&opt2=b`,
+			`clickhouse`,
+			`clickhouse://user:pass@localhost:9000/?opt1=a&opt2=b`,
+			``,
+		},
+		{
+			`clickhouse+http://user:pass@localhost/?opt1=a&opt2=b`,
+			`clickhouse`,
+			`http://user:pass@localhost/?opt1=a&opt2=b`,
+			``,
+		},
+		{
+			`clickhouse+https://user:pass@host/?opt1=a&opt2=b`,
+			`clickhouse`,
+			`https://user:pass@host/?opt1=a&opt2=b`,
+			``,
+		},
 	}
 	m := make(map[string]bool)
 	for i, tt := range tests {

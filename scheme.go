@@ -166,7 +166,7 @@ func BaseSchemes() []Scheme {
 		},
 		{
 			"clickhouse",
-			GenFromURL("clickhouse://localhost:9000/"), 0, false,
+			GenClickhouse, TransportAny, false,
 			[]string{"ch"},
 			"",
 		},

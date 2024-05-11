@@ -157,6 +157,26 @@ func GenCassandra(u *URL) (string, string, error) {
 	return host + ":" + port + genQueryOptions(q), "", nil
 }
 
+// GenClickhouse generates a clickhouse DSN from the passed URL.
+func GenClickhouse(u *URL) (string, string, error) {
+	switch strings.ToLower(u.Transport) {
+	case "", "tcp":
+		return clickhouseTCP(u)
+	case "http":
+		return clickhouseHTTP(u)
+	case "https":
+		return clickhouseHTTPS(u)
+	}
+	return "", "", ErrInvalidTransportProtocol
+}
+
+// clickhouse generators.
+var (
+	clickhouseTCP   = GenFromURL("clickhouse://localhost:9000/")
+	clickhouseHTTP  = GenFromURL("http://localhost/")
+	clickhouseHTTPS = GenFromURL("https://localhost/")
+)
+
 // GenCosmos generates a cosmos DSN from the passed URL.
 func GenCosmos(u *URL) (string, string, error) {
 	host, port, dbname := u.Hostname(), u.Port(), strings.TrimPrefix(u.Path, "/")
