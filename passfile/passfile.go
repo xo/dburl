@@ -104,7 +104,11 @@ func ParseFile(file string) ([]Entry, error) {
 func (entry Entry) Equals(v Entry, protocols ...string) bool {
 	return (entry.Protocol == "*" || contains(protocols, entry.Protocol)) &&
 		(entry.Host == "*" || entry.Host == v.Host) &&
-		(entry.Port == "*" || entry.Port == v.Port)
+		(entry.Port == "*" || entry.Port == v.Port) &&
+		(entry.DBName == "*" || entry.DBName == v.DBName) &&
+		(entry.Username == v.Username ||
+			(entry.Username != "*" && v.Username == "") ||
+			(entry.Username == "*" && v.Username != ""))
 }
 
 // MatchEntries returns a Userinfo when the normalized v is found in entries.
@@ -118,11 +122,12 @@ func MatchEntries(u *dburl.URL, entries []Entry, protocols ...string) (*url.User
 		}
 	}
 	// find matching entry
-	n := strings.SplitN(u.Normalize(":", "", 3), ":", 6)
+	n := strings.SplitN(u.Normalize(":", "", 4), ":", 6)
 	if len(n) < 3 {
 		return nil, ErrUnableToNormalizeURL
 	}
 	m := NewEntry(n)
+	m.Username = username
 	for _, entry := range entries {
 		if entry.Equals(m, protocols...) {
 			u := entry.Username
