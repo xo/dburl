@@ -82,6 +82,8 @@ type URL struct {
 	// When empty, indicates that these values are not special, and can be
 	// retrieved as the host, port, and path[1:] as usual.
 	hostPortDB []string
+
+	DriverScheme *Scheme
 }
 
 // Parse parses a URL string, similar to the standard [net/url.Parse].
@@ -171,6 +173,7 @@ func Parse(urlstr string) (*URL, error) {
 	if u.DSN, u.GoDriver, err = scheme.Generator(u); err != nil {
 		return nil, err
 	}
+	u.DriverScheme = scheme
 	return u, nil
 }
 
