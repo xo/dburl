@@ -83,6 +83,13 @@ type URL struct {
 	// retrieved as the host, port, and path[1:] as usual.
 	hostPortDB []string
 
+	// DriverScheme can be use for calling scheme.Generator(u) after URL
+	// changes (like remove some querys in URL)
+	// e.g. customized urlstr 'oracle://user:pass@127.0.0.1:1521/orcl?schema=MSP_AUTH'
+	// can be picked out from the query schema parameter, then be removed from
+	// the query in URL and re-generate DSN by scheme.Generator(u), then the schema
+	// can be used in code `go_ora.AddSessionParam(db, 'CURRENT_SCHEMA', 'MSP_AUTH')`
+	// to set the current schema for all the new connections.
 	DriverScheme *Scheme
 }
 
