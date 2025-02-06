@@ -24,7 +24,6 @@ func TestBadParse(t *testing.T) {
 		{`file+tcp://`, ErrInvalidTransportProtocol},
 		{`file://`, ErrMissingPath},
 		{`ql://`, ErrMissingPath},
-		{`duckdb://`, ErrMissingPath},
 		{`mssql+tcp://user:pass@host/dbname`, ErrInvalidTransportProtocol},
 		{`mssql+foobar://`, ErrInvalidTransportProtocol},
 		{`mssql+unix:/var/run/mssql.sock`, ErrInvalidTransportProtocol},
@@ -785,6 +784,24 @@ func TestParse(t *testing.T) {
 			`dk:///path/to/foo.db?access_mode=read_only&threads=4`,
 			`duckdb`,
 			`/path/to/foo.db?access_mode=read_only&threads=4`,
+			``,
+		},
+		{
+			`duckdb://`,
+			`duckdb`,
+			``,
+			``,
+		},
+		{
+			`duckdb://:memory:`,
+			`duckdb`,
+			`:memory:`,
+			``,
+		},
+		{
+			`duckdb:?threads=4`,
+			`duckdb`,
+			`?threads=4`,
 			``,
 		},
 		{

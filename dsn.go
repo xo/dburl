@@ -662,6 +662,12 @@ func GenYDB(u *URL) (string, string, error) {
 	return s + genOptions(u.Query(), "?", "=", "&", ",", true, nil, nil), "", nil
 }
 
+// GenDuckDB generates a duckdb dsn from the passed URL.
+func GenDuckDB(u *URL) (string, string, error) {
+	// Same as GenOpaque but accepts empty path which refers to in-memory DB
+	return u.Opaque + genQueryOptions(u.Query()), "", nil
+}
+
 // convertOptions converts an option value based on name, value pairs.
 func convertOptions(q url.Values, pairs ...string) url.Values {
 	n := make(url.Values)
