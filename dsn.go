@@ -193,7 +193,7 @@ func GenCosmos(u *URL) (string, string, error) {
 	if dbname != "" {
 		q.Set("Db", dbname)
 	}
-	return genOptionsOdbc(q, true, nil, nil), "", nil
+	return genOptionsOdbc(q, true, nil, nil), "gocosmos", nil
 }
 
 // GenDatabend generates a databend DSN from the passed URL.
