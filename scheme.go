@@ -173,7 +173,7 @@ func BaseSchemes() []Scheme {
 		{
 			"cosmos",
 			GenCosmos, 0, false,
-			[]string{"cm"},
+			[]string{"cm", "gocosmos"},
 			"",
 		},
 		{
