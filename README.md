@@ -188,7 +188,7 @@ additional aliases, and the related Go driver:
 [d-h2]: https://github.com/jmrobles/h2go
 [d-hive]: https://github.com/sql-machine-learning/gohive
 [d-ignite]: https://github.com/amsokol/ignite-go-client
-[d-impala]: https://github.com/bippio/go-impala
+[d-impala]: https://github.com/sclgo/impala-go
 [d-maxcompute]: https://github.com/sql-machine-learning/gomaxcompute
 [d-moderncsqlite]: https://gitlab.com/cznic/sqlite
 [d-mymysql]: https://github.com/ziutek/mymysql
