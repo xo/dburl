@@ -124,15 +124,16 @@ additional aliases, and the related Go driver:
 | Apache H2            | `h2`            |                                                 | [github.com/jmrobles/h2go][d-h2]                                            |
 | Apache Hive          | `hive`          | `hi`, `hive2`                                   | [sqlflow.org/gohive][d-hive]                                                |
 | Apache Ignite        | `ignite`        | `ig`, `gridgain`                                | [github.com/amsokol/ignite-go-client/sql][d-ignite]                         |
+| Apache Impala        | `impala`        | `im`                                            | [github.com/sclgo/impala-go][d-impala]                                      |
 | AWS Athena           | `athena`        | `s3`, `aws`, `awsathena`                        | [github.com/uber/athenadriver/go][d-athena]                                 |
-| Azure CosmosDB       | `cosmos`        | `cm`                                            | [github.com/btnguyen2k/gocosmos][d-cosmos]                                  |
+| Azure CosmosDB       | `cosmos`        | `cm`, `gocosmos`                                | [github.com/btnguyen2k/gocosmos][d-cosmos]                                  |
 | Cassandra            | `cassandra`     | `ca`, `scy`, `scylla`, `datastax`, `cql`        | [github.com/MichaelS11/go-cql-driver][d-cassandra]                          |
 | ChaiSQL              | `chai`          | `ci`, `genji`, `chaisql`                        | [github.com/chaisql/chai/driver][d-chai]                                    |
 | Couchbase            | `couchbase`     | `n1`, `n1ql`                                    | [github.com/couchbase/go_n1ql][d-couchbase]                                 |
 | Cznic QL             | `ql`            | `cznic`, `cznicql`                              | [modernc.org/ql][d-ql]                                                      |
 | Databend             | `databend`      | `dd`, `bend`                                    | [github.com/datafuselabs/databend-go][d-databend]                           |
 | Databricks           | `databricks`    | `br`, `brick`, `bricks`, `databrick`            | [github.com/databricks/databricks-sql-go][d-databricks]                     |
-| DuckDB               | `duckdb`        | `dk`, `ddb`, `duck`, `file`                     | [github.com/marcboeker/go-duckdb][d-duckdb] <sup>[†][f-cgo]</sup>           |
+| DuckDB               | `duckdb`        | `dk`, `ddb`, `duck`, `file`                     | [github.com/marcboeker/go-duckdb/v2][d-duckdb] <sup>[†][f-cgo]</sup>        |
 | DynamoDb             | `dynamodb`      | `dy`, `dyn`, `dynamo`, `dynamodb`               | [github.com/btnguyen2k/godynamo][d-dynamodb]                                |
 | Exasol               | `exasol`        | `ex`, `exa`                                     | [github.com/exasol/exasol-driver-go][d-exasol]                              |
 | Firebird             | `firebird`      | `fb`, `firebirdsql`                             | [github.com/nakagami/firebirdsql][d-firebird]                               |
@@ -164,7 +165,7 @@ additional aliases, and the related Go driver:
 | TiDB                 | `mysql`         | `ti`, `tidb`                                    | [github.com/go-sql-driver/mysql][d-mysql] <sup>[‡][f-wire]</sup>            |
 | Vitess Database      | `mysql`         | `vt`, `vitess`                                  | [github.com/go-sql-driver/mysql][d-mysql] <sup>[‡][f-wire]</sup>            |
 |                      |                 |                                                 |                                                                             |
-| Apache Impala        | `impala`        | `im`                                            | [github.com/bippio/go-impala][d-impala]                                     |
+|                      |                 |                                                 |                                                                             |
 
 [d-adodb]: https://github.com/mattn/go-adodb
 [d-athena]: https://github.com/uber/athenadriver
