@@ -46,7 +46,7 @@ func Open(urlstr string) (*sql.DB, error) {
 // OpenMap takes a map of URL components and opens a standard [sql.DB] connection.
 //
 // See [BuildURL] for information on the recognized map components.
-func OpenMap(components map[string]interface{}) (*sql.DB, error) {
+func OpenMap(components map[string]any) (*sql.DB, error) {
 	urlstr, err := BuildURL(components)
 	if err != nil {
 		return nil, err
@@ -190,7 +190,7 @@ func Parse(urlstr string) (*URL, error) {
 //	parameters, params, options, opts, query, q
 //
 // See [BuildURL] for more information.
-func FromMap(components map[string]interface{}) (*URL, error) {
+func FromMap(components map[string]any) (*URL, error) {
 	urlstr, err := BuildURL(components)
 	if err != nil {
 		return nil, err
@@ -409,7 +409,7 @@ var OpenFile = func(name string) (fs.File, error) {
 //	parameters, params, options, opts, query, q
 //
 // See [BuildURL] for more information.
-func BuildURL(components map[string]interface{}) (string, error) {
+func BuildURL(components map[string]any) (string, error) {
 	if components == nil {
 		return "", ErrInvalidDatabaseScheme
 	}
@@ -460,7 +460,7 @@ func BuildURL(components map[string]interface{}) (string, error) {
 			if z != "" {
 				urlstr += "?" + z
 			}
-		case map[string]interface{}:
+		case map[string]any:
 			q := url.Values{}
 			for k, v := range z {
 				q.Set(k, fmt.Sprintf("%v", v))
@@ -552,7 +552,7 @@ func mode(s string) os.FileMode {
 }
 
 // getComponent returns the first defined component in the map.
-func getComponent(m map[string]interface{}, v ...string) (string, bool) {
+func getComponent(m map[string]any, v ...string) (string, bool) {
 	if z, ok := getFirst(m, v...); ok {
 		str := fmt.Sprintf("%v", z)
 		return str, str != ""
@@ -562,7 +562,7 @@ func getComponent(m map[string]interface{}, v ...string) (string, bool) {
 }
 
 // getFirst returns the first value in the map.
-func getFirst(m map[string]interface{}, v ...string) (interface{}, bool) {
+func getFirst(m map[string]any, v ...string) (any, bool) {
 	for _, s := range v {
 		if z, ok := m[s]; ok {
 			return z, ok

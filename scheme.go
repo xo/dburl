@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"regexp"
+	"slices"
 	"sort"
 )
 
@@ -377,7 +378,7 @@ func registerAlias(name, alias string, doSort bool) {
 	if !ok {
 		panic(fmt.Sprintf("scheme %s not registered", name))
 	}
-	if doSort && contains(scheme.Aliases, alias) {
+	if doSort && slices.Contains(scheme.Aliases, alias) {
 		panic(fmt.Sprintf("scheme %s already has alias %s", name, alias))
 	}
 	if _, ok := schemeMap[alias]; ok {
@@ -564,13 +565,3 @@ func isDuckdbHeader(buf []byte) bool {
 
 // duckdbRE is the duckdb storage header regexp.
 var duckdbRE = regexp.MustCompile(`^.{8}DUCK.{8}`)
-
-// contains determines if v contains s.
-func contains(v []string, s string) bool {
-	for _, z := range v {
-		if z == s {
-			return true
-		}
-	}
-	return false
-}

@@ -1020,18 +1020,18 @@ func testParse(t *testing.T, s, d, exp, path string) {
 
 func TestBuildURL(t *testing.T) {
 	tests := []struct {
-		m   map[string]interface{}
+		m   map[string]any
 		exp string
 		err error
 	}{
 		{nil, "", ErrInvalidDatabaseScheme},
 		{
-			map[string]interface{}{
+			map[string]any{
 				"proto":     "mysql",
 				"transport": "tcp",
 				"host":      "localhost",
 				"port":      999,
-				"q": map[string]interface{}{
+				"q": map[string]any{
 					"foo":  "bar",
 					"opt1": "b",
 				},
@@ -1039,13 +1039,13 @@ func TestBuildURL(t *testing.T) {
 			"mysql+tcp://localhost:999?foo=bar&opt1=b", nil,
 		},
 		{
-			map[string]interface{}{
+			map[string]any{
 				"proto":    "sqlserver",
 				"host":     "localhost",
 				"port":     "5555",
 				"instance": "instance",
 				"database": "dbname",
-				"q": map[string]interface{}{
+				"q": map[string]any{
 					"foo":  "bar",
 					"opt1": "b",
 				},
@@ -1053,13 +1053,13 @@ func TestBuildURL(t *testing.T) {
 			"sqlserver://localhost:5555/instance/dbname?foo=bar&opt1=b", nil,
 		},
 		{
-			map[string]interface{}{
+			map[string]any{
 				"proto":    "pg",
 				"host":     "host name",
 				"user":     "user name",
 				"password": "P!!!@@@@ 👀",
 				"database": "my awesome db",
-				"q": map[string]interface{}{
+				"q": map[string]any{
 					"foo":  "bar is cool",
 					"opt1": "b zzzz@@@:/",
 				},
@@ -1067,9 +1067,9 @@ func TestBuildURL(t *testing.T) {
 			"pg://user+name:P%21%21%21%40%40%40%40+%F0%9F%91%80@host+name/my%20awesome%20db?foo=bar+is+cool&opt1=b+zzzz%40%40%40%3A%2F", nil,
 		},
 		{
-			map[string]interface{}{
+			map[string]any{
 				"file": "fake.sqlite3",
-				"q": map[string]interface{}{
+				"q": map[string]any{
 					"foo":  "bar",
 					"opt1": "b",
 				},
@@ -1148,7 +1148,7 @@ func (s stat) Size() int64        { return int64(len(s.content)) }
 func (s stat) Mode() fs.FileMode  { return s.mode }
 func (s stat) ModTime() time.Time { return time.Now() }
 func (s stat) IsDir() bool        { return s.mode&fs.ModeDir != 0 }
-func (s stat) Sys() interface{}   { return nil }
+func (s stat) Sys() any           { return nil }
 func (s stat) Close() error       { return nil }
 
 func (s stat) Stat() (fs.FileInfo, error) {

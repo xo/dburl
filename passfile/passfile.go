@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"slices"
 	"strings"
 
 	"github.com/xo/dburl"
@@ -55,7 +56,7 @@ func Parse(r io.Reader) ([]Entry, error) {
 			return nil, &ErrInvalidEntry{i}
 		}
 		// make sure no blank entries exist
-		for j := 0; j < len(v); j++ {
+		for j := range v {
 			if v[j] == "" {
 				return nil, &ErrEmptyField{i, j}
 			}
@@ -102,7 +103,7 @@ func ParseFile(file string) ([]Entry, error) {
 
 // Equals returns true when v matches the entry.
 func (entry Entry) Equals(v Entry, protocols ...string) bool {
-	return (entry.Protocol == "*" || contains(protocols, entry.Protocol)) &&
+	return (entry.Protocol == "*" || slices.Contains(protocols, entry.Protocol)) &&
 		(entry.Host == "*" || entry.Host == v.Host) &&
 		(entry.Port == "*" || entry.Port == v.Port)
 }
@@ -278,14 +279,4 @@ type ErrEmptyField struct {
 // Error satisfies the error interface.
 func (err *ErrEmptyField) Error() string {
 	return fmt.Sprintf("line %d has empty field %d", err.Line, err.Field)
-}
-
-// contains determines if v contains s.
-func contains(v []string, s string) bool {
-	for _, z := range v {
-		if z == s {
-			return true
-		}
-	}
-	return false
 }
