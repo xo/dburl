@@ -53,12 +53,12 @@ func Parse(r io.Reader) ([]Entry, error) {
 		// split and check length
 		v := strings.Split(line, ":")
 		if len(v) != 6 {
-			return nil, &ErrInvalidEntry{i}
+			return nil, &InvalidEntryError{i}
 		}
 		// make sure no blank entries exist
 		for j := range v {
 			if v[j] == "" {
-				return nil, &ErrEmptyField{i, j}
+				return nil, &EmptyFieldError{i, j}
 			}
 		}
 		entries = append(entries, NewEntry(v))
@@ -260,23 +260,23 @@ func (err *FileError) Unwrap() error {
 	return err.Err
 }
 
-// ErrInvalidEntry is the invalid entry error.
-type ErrInvalidEntry struct {
+// InvalidEntryError is the invalid entry error.
+type InvalidEntryError struct {
 	Line int
 }
 
 // Error satisfies the error interface.
-func (err *ErrInvalidEntry) Error() string {
+func (err *InvalidEntryError) Error() string {
 	return fmt.Sprintf("invalid entry at line %d", err.Line)
 }
 
-// ErrEmptyField is the empty field error.
-type ErrEmptyField struct {
+// EmptyFieldError is the empty field error.
+type EmptyFieldError struct {
 	Line  int
 	Field int
 }
 
 // Error satisfies the error interface.
-func (err *ErrEmptyField) Error() string {
+func (err *EmptyFieldError) Error() string {
 	return fmt.Sprintf("line %d has empty field %d", err.Line, err.Field)
 }

@@ -57,8 +57,7 @@ func TestBadParse(t *testing.T) {
 		{`databend://`, ErrMissingHost},
 		{`unknown_file.ext3`, ErrInvalidDatabaseScheme},
 	}
-	for i, tt := range tests {
-		test := tt
+	for i, test := range tests {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
 			testBadParse(t, test.s, test.exp)
 		})
@@ -986,8 +985,7 @@ func TestParse(t *testing.T) {
 		},
 	}
 	m := make(map[string]bool)
-	for i, tt := range tests {
-		test := tt
+	for i, test := range tests {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
 			if _, ok := m[test.s]; ok {
 				t.Fatalf("%s is already tested", test.s)

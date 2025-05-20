@@ -1,0 +1,37 @@
+version: "2"
+linters:
+  default: all
+  disable:
+    - cyclop
+    - depguard
+    - err113
+    - errcheck
+    - exhaustruct
+    - funlen
+    - gochecknoglobals
+    - gochecknoinits
+    - gocognit
+    - goconst
+    - lll
+    - maintidx
+    - mnd
+    - nestif
+    - nilnil
+    - nlreturn
+    - paralleltest
+    - prealloc
+    - sqlclosecheck
+    - testableexamples
+    - testpackage
+    - varnamelen
+    - wrapcheck
+    - wsl
+  settings:
+    gosec:
+      excludes:
+        - G101
+        - G304
+        - G390
+    gocritic:
+      disabled-checks:
+        - exitAfterDefer

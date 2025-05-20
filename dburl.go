@@ -128,7 +128,8 @@ func Parse(urlstr string) (*URL, error) {
 		// determine scheme for file
 		s := u.opaqueOrPath()
 		switch {
-		case u.Transport != "tcp", strings.Index(u.OriginalScheme, "+") != -1:
+		case u.Transport != "tcp",
+			strings.Contains(u.OriginalScheme, "+"):
 			return nil, ErrInvalidTransportProtocol
 		case s == "":
 			return nil, ErrMissingPath
@@ -386,11 +387,7 @@ var Stat = func(name string) (fs.FileInfo, error) {
 //
 // Used internally to read file headers.
 var OpenFile = func(name string) (fs.File, error) {
-	f, err := os.OpenFile(name, os.O_RDONLY, 0)
-	if err != nil {
-		return nil, err
-	}
-	return f, nil
+	return os.OpenFile(name, os.O_RDONLY, 0)
 }
 
 // BuildURL creates a dsn using the mapped components.
@@ -556,7 +553,6 @@ func getComponent(m map[string]any, v ...string) (string, bool) {
 	if z, ok := getFirst(m, v...); ok {
 		str := fmt.Sprintf("%v", z)
 		return str, str != ""
-
 	}
 	return "", false
 }

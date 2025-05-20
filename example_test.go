@@ -12,6 +12,7 @@ func Example() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer db.Close()
 	res, err := db.Query("SELECT ...")
 	if err != nil {
 		log.Fatal(err)
@@ -33,6 +34,7 @@ func Example_parse() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer db.Close()
 	res, err := db.Query("SELECT ...")
 	if err != nil {
 		log.Fatal(err)

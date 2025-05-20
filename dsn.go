@@ -9,7 +9,7 @@ import (
 )
 
 // OdbcIgnoreQueryPrefixes are the query prefixes to ignore when generating the
-// odbc DSN. Used by GenOdbc
+// odbc DSN. Used by [GenOdbc].
 var OdbcIgnoreQueryPrefixes []string
 
 // GenScheme returns a generator that will generate a scheme based on the
@@ -427,7 +427,7 @@ func GenOdbc(u *URL) (string, string, error) {
 	}
 	// build q
 	q := u.Query()
-	q.Set("Driver", "{"+strings.Replace(u.Transport, "+", " ", -1)+"}")
+	q.Set("Driver", "{"+strings.ReplaceAll(u.Transport, "+", " ")+"}")
 	q.Set("Server", host)
 	if port == "" {
 		proto := strings.ToLower(u.Transport)
@@ -458,7 +458,7 @@ func GenOdbc(u *URL) (string, string, error) {
 func GenOleodbc(u *URL) (string, string, error) {
 	props, _, err := GenOdbc(u)
 	if err != nil {
-		return "", "", nil
+		return "", "", err
 	}
 	return `Provider=MSDASQL.1;Extended Properties="` + props + `"`, "", nil
 }
@@ -518,9 +518,10 @@ func GenPresto(u *URL) (string, string, error) {
 	}
 	// force port
 	if z.Port() == "" {
-		if z.Scheme == "http" {
+		switch z.Scheme {
+		case "http":
 			z.Host += ":8080"
-		} else if z.Scheme == "https" {
+		case "https":
 			z.Host += ":8443"
 		}
 	}
@@ -562,16 +563,12 @@ func GenSnowflake(u *URL) (string, string, error) {
 
 // GenSpanner generates a spanner DSN from the passed URL.
 func GenSpanner(u *URL) (string, string, error) {
-	project, instance, dbname := u.Hostname(), "", strings.TrimPrefix(u.Path, "/")
+	project := u.Hostname()
 	if project == "" {
 		return "", "", ErrMissingHost
 	}
-	i := strings.Index(dbname, "/")
-	if i == -1 {
-		return "", "", ErrMissingPath
-	}
-	instance, dbname = dbname[:i], dbname[i+1:]
-	if instance == "" || dbname == "" {
+	instance, dbname, ok := strings.Cut(strings.TrimPrefix(u.Path, "/"), "/")
+	if !ok || instance == "" || dbname == "" {
 		return "", "", ErrMissingPath
 	}
 	return fmt.Sprintf(`projects/%s/instances/%s/databases/%s`, project, instance, dbname), "", nil
@@ -608,13 +605,14 @@ func GenSqlserver(u *URL) (string, string, error) {
 func GenTableStore(u *URL) (string, string, error) {
 	var transport string
 	splits := strings.Split(u.OriginalScheme, "+")
-	if len(splits) == 0 {
+	switch {
+	case len(splits) == 0:
 		return "", "", ErrInvalidDatabaseScheme
-	} else if len(splits) == 1 || splits[1] == "https" {
+	case len(splits) == 1, splits[1] == "https":
 		transport = "https"
-	} else if splits[1] == "http" {
+	case splits[1] == "http":
 		transport = "http"
-	} else {
+	default:
 		return "", "", ErrInvalidTransportProtocol
 	}
 	z := &url.URL{
@@ -708,6 +706,8 @@ func genOptionsOdbc(q url.Values, skipWhenEmpty bool, ignore, ignorePrefixes []s
 // following:
 //
 //	genOptions(u.Query(), "", "=", ";", ",", false)
+//
+//nolint:unparam
 func genOptions(q url.Values, joiner, assign, sep, valSep string, skipWhenEmpty bool, ignore, ignorePrefixes []string) string {
 	if len(q) == 0 {
 		return ""
