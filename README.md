@@ -133,7 +133,7 @@ additional aliases, and the related Go driver:
 | Cznic QL             | `ql`            | `cznic`, `cznicql`                              | [modernc.org/ql][d-ql]                                                      |
 | Databend             | `databend`      | `dd`, `bend`                                    | [github.com/datafuselabs/databend-go][d-databend]                           |
 | Databricks           | `databricks`    | `br`, `brick`, `bricks`, `databrick`            | [github.com/databricks/databricks-sql-go][d-databricks]                     |
-| DuckDB               | `duckdb`        | `dk`, `ddb`, `duck`, `file`                     | [github.com/marcboeker/go-duckdb/v2][d-duckdb] <sup>[†][f-cgo]</sup>        |
+| DuckDB               | `duckdb`        | `dk`, `ddb`, `duck`, `file`                     | [github.com/duckdb/duckdb-go/v2][d-duckdb] <sup>[†][f-cgo]</sup>            |
 | DynamoDb             | `dynamodb`      | `dy`, `dyn`, `dynamo`, `dynamodb`               | [github.com/btnguyen2k/godynamo][d-dynamodb]                                |
 | Exasol               | `exasol`        | `ex`, `exa`                                     | [github.com/exasol/exasol-driver-go][d-exasol]                              |
 | Firebird             | `firebird`      | `fb`, `firebirdsql`                             | [github.com/nakagami/firebirdsql][d-firebird]                               |
@@ -179,7 +179,7 @@ additional aliases, and the related Go driver:
 [d-csvq]: https://github.com/mithrandie/csvq-driver
 [d-databend]: https://github.com/datafuselabs/databend-go
 [d-databricks]: https://github.com/databricks/databricks-sql-go
-[d-duckdb]: https://github.com/marcboeker/go-duckdb
+[d-duckdb]: https://github.com/duckdb/duckdb-go
 [d-dynamodb]: https://github.com/btnguyen2k/godynamo
 [d-exasol]: https://github.com/exasol/exasol-driver-go
 [d-firebird]: https://github.com/nakagami/firebirdsql
@@ -188,7 +188,7 @@ additional aliases, and the related Go driver:
 [d-h2]: https://github.com/jmrobles/h2go
 [d-hive]: https://github.com/sql-machine-learning/gohive
 [d-ignite]: https://github.com/amsokol/ignite-go-client
-[d-impala]: https://github.com/sclgo/impala-go
+[d-impala]: https://github.com/bippio/go-impala
 [d-maxcompute]: https://github.com/sql-machine-learning/gomaxcompute
 [d-moderncsqlite]: https://gitlab.com/cznic/sqlite
 [d-mymysql]: https://github.com/ziutek/mymysql
