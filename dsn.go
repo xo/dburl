@@ -97,6 +97,13 @@ func GenOpaque(u *URL) (string, string, error) {
 	return u.Opaque + genQueryOptions(u.Query()), "", nil
 }
 
+// GenModerncSqlite generates an opaque SQLite DSN and selects the "sqlite"
+// driver name registered by modernc.org/sqlite.
+func GenModerncSqlite(u *URL) (string, string, error) {
+	dsn, _, err := GenOpaque(u)
+	return dsn, "sqlite", err
+}
+
 // GenAdodb generates a adodb DSN from the passed URL.
 func GenAdodb(u *URL) (string, string, error) {
 	// grab data source

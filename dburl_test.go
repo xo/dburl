@@ -583,49 +583,49 @@ func TestParse(t *testing.T) {
 		},
 		{
 			`moderncsqlite:///path/to/file.sqlite3`,
-			`moderncsqlite`,
+			`sqlite`,
 			`/path/to/file.sqlite3`,
 			``,
 		},
 		{
 			`modernsqlite:///path/to/file.sqlite3`,
-			`moderncsqlite`,
+			`sqlite`,
 			`/path/to/file.sqlite3`,
 			``,
 		},
 		{
 			`mq://path/to/file.sqlite3`,
-			`moderncsqlite`,
+			`sqlite`,
 			`path/to/file.sqlite3`,
 			``,
 		},
 		{
 			`mq:path/to/file.sqlite3`,
-			`moderncsqlite`,
+			`sqlite`,
 			`path/to/file.sqlite3`,
 			``,
 		},
 		{
 			`mq:./path/to/file.sqlite3`,
-			`moderncsqlite`,
+			`sqlite`,
 			`./path/to/file.sqlite3`,
 			``,
 		},
 		{
 			`mq://./path/to/file.sqlite3?loc=auto`,
-			`moderncsqlite`,
+			`sqlite`,
 			`./path/to/file.sqlite3?loc=auto`,
 			``,
 		},
 		{
 			`mq::memory:?loc=auto`,
-			`moderncsqlite`,
+			`sqlite`,
 			`:memory:?loc=auto`,
 			``,
 		},
 		{
 			`mq://:memory:?loc=auto`,
-			`moderncsqlite`,
+			`sqlite`,
 			`:memory:?loc=auto`,
 			``,
 		},
@@ -1013,6 +1013,19 @@ func testParse(t *testing.T, s, d, exp, path string) {
 		} else {
 			t.Errorf("%q expected:\n%q\ngot:\n%q", s, exp, u.DSN)
 		}
+	}
+}
+
+func TestParseModerncSqliteDriver(t *testing.T) {
+	u, err := Parse("moderncsqlite::memory:")
+	if err != nil {
+		t.Fatalf("expected no error, got: %v", err)
+	}
+	if u.Driver != "moderncsqlite" {
+		t.Errorf("expected scheme driver %q, got: %q", "moderncsqlite", u.Driver)
+	}
+	if u.GoDriver != "sqlite" {
+		t.Errorf("expected Go driver %q, got: %q", "sqlite", u.GoDriver)
 	}
 }
 

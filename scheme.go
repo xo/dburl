@@ -124,7 +124,7 @@ func BaseSchemes() []Scheme {
 		},
 		{
 			"moderncsqlite",
-			GenOpaque, 0, true,
+			GenModerncSqlite, 0, true,
 			[]string{"mq", "modernsqlite"},
 			"",
 		},

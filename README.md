@@ -252,6 +252,11 @@ import (
 See the [database schemes table][Schemes] above for a list of the
 expected Go driver `import`'s.
 
+For pure Go SQLite support, import `_ "modernc.org/sqlite"` and use the
+`moderncsqlite:`, `modernsqlite:`, or `mq:` URL scheme. The driver package
+registers the Go SQL driver name `sqlite`; `dburl` selects it automatically for
+these schemes.
+
 Additional examples and API details can be found in [the `dburl` package
 documentation][goref-dburl].
 
