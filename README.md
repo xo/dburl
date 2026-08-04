@@ -114,6 +114,7 @@ additional aliases, and the related Go driver:
 | MySQL                | `mysql`         | `my`, `maria`, `aurora`, `mariadb`, `percona`   | [github.com/go-sql-driver/mysql][d-mysql]                                   |
 | Microsoft SQL Server | `sqlserver`     | `ms`, `mssql`, `azuresql`                       | [github.com/microsoft/go-mssqldb][d-sqlserver]                              |
 | Oracle Database      | `oracle`        | `or`, `ora`, `oci`, `oci8`, `odpi`, `odpi-c`    | [github.com/sijms/go-ora/v2][d-oracle]                                      |
+| Dameng DM8           | `dm`            | `dm8`, `dameng`                                 | [github.com/godoes/gorm-dameng/dm8][d-dameng]                              |
 | SQLite3              | `sqlite3`       | `sq`, `sqlite`, `file`                          | [github.com/mattn/go-sqlite3][d-sqlite3] <sup>[†][f-cgo]</sup>              |
 | ClickHouse           | `clickhouse`    | `ch`                                            | [github.com/ClickHouse/clickhouse-go/v2][d-clickhouse]                      |
 | CSVQ                 | `csvq`          | `cs`, `csv`, `tsv`, `json`                      | [github.com/mithrandie/csvq-driver][d-csvq]                                 |
@@ -179,6 +180,7 @@ additional aliases, and the related Go driver:
 [d-csvq]: https://github.com/mithrandie/csvq-driver
 [d-databend]: https://github.com/datafuselabs/databend-go
 [d-databricks]: https://github.com/databricks/databricks-sql-go
+[d-dameng]: https://github.com/godoes/gorm-dameng
 [d-duckdb]: https://github.com/duckdb/duckdb-go
 [d-dynamodb]: https://github.com/btnguyen2k/godynamo
 [d-exasol]: https://github.com/exasol/exasol-driver-go

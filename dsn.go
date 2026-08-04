@@ -200,11 +200,73 @@ func GenCosmos(u *URL) (string, string, error) {
 // GenDameng generates a Dameng DM8 DSN from the passed URL.
 func GenDameng(u *URL) (string, string, error) {
 	// query is a mutable copy of the native DM8 options.
-	query := u.Query()
+	query, err := url.ParseQuery(u.RawQuery)
+	// Reject malformed options instead of using ParseQuery's partial result.
+	if err != nil {
+		return "", "", fmt.Errorf("%w: invalid dameng options: %w", ErrInvalidQuery, err)
+	}
+	// Reject fragments because the native DM8 DSN has no fragment component.
+	if u.Fragment != "" {
+		return "", "", fmt.Errorf(
+			"%w: dameng connection URLs cannot contain fragments",
+			ErrInvalidQuery,
+		)
+	}
+	// configuredSchema is the optional native schema query value.
+	configuredSchema := ""
+	// seenOptions tracks names using the DM8 driver's case-insensitive semantics.
+	seenOptions := make(map[string]string, len(query))
+	// Inspect every native option because the DM8 driver does not URL-decode it.
+	for key, values := range query {
+		// Reject empty names because the DM8 driver cannot apply them.
+		if key == "" {
+			return "", "", fmt.Errorf("%w: dameng option name cannot be empty", ErrInvalidQuery)
+		}
+		// normalizedKey matches the key stored by the DM8 driver.
+		normalizedKey := strings.ToLower(key)
+		// Reject differently cased names that the DM8 driver would merge.
+		if previousKey, ok := seenOptions[normalizedKey]; ok {
+			return "", "", fmt.Errorf(
+				"%w: dameng options %q and %q refer to the same property",
+				ErrInvalidQuery,
+				previousKey,
+				key,
+			)
+		}
+		seenOptions[normalizedKey] = key
+		// Reject repeated options because the DM8 driver silently keeps the last value.
+		if len(values) != 1 {
+			return "", "", fmt.Errorf(
+				"%w: dameng option %q must be specified exactly once",
+				ErrInvalidQuery,
+				key,
+			)
+		}
+		// Reject option names that would change the raw query boundaries.
+		if strings.ContainsAny(key, "&=?") {
+			return "", "", fmt.Errorf(
+				"%w: dameng option name %q cannot contain '&', '=', or '?'",
+				ErrInvalidQuery,
+				key,
+			)
+		}
+		// value is the single native option value accepted above.
+		value := values[0]
+		// Reject value delimiters that would create another raw option.
+		if strings.ContainsAny(value, "&?") {
+			return "", "", fmt.Errorf(
+				"%w: dameng option %q cannot contain '&' or '?'",
+				ErrInvalidQuery,
+				key,
+			)
+		}
+		// Capture schema using the DM8 driver's case-insensitive key semantics.
+		if normalizedKey == "schema" {
+			configuredSchema = value
+		}
+	}
 	// pathSchema is the optional default schema from the URL path.
 	pathSchema := strings.TrimPrefix(u.Path, "/")
-	// configuredSchema is the optional native schema query value.
-	configuredSchema := query.Get("schema")
 	// Reject paths with more than one schema segment.
 	if strings.Contains(pathSchema, "/") {
 		return "", "", fmt.Errorf(
@@ -223,21 +285,6 @@ func GenDameng(u *URL) (string, string, error) {
 	// Translate a path schema only when the native query omits it.
 	if pathSchema != "" && configuredSchema == "" {
 		query.Set("schema", pathSchema)
-	}
-
-	// sslMode is the PostgreSQL-style compatibility option, when present.
-	sslMode := strings.ToLower(strings.TrimSpace(query.Get("sslmode")))
-	// Reject secure PostgreSQL modes because DM8 uses native SSL parameters.
-	if sslMode != "" && sslMode != "disable" {
-		return "", "", fmt.Errorf(
-			"%w: unsupported dameng sslmode %q; use sslFilesPath, sslCertPath, and sslKeyPath",
-			ErrInvalidQuery,
-			sslMode,
-		)
-	}
-	// Remove the compatible disabled mode to retain the DM8 default.
-	if sslMode == "disable" {
-		query.Del("sslmode")
 	}
 
 	// host is the requested server or dburl's conventional localhost default.
@@ -267,33 +314,11 @@ func GenDameng(u *URL) (string, string, error) {
 		)
 	}
 
-	// Inspect every native option because the DM8 driver does not URL-decode it.
-	for key, values := range query {
-		// Reject option names that would change the raw query boundaries.
-		if strings.ContainsAny(key, "&=?") {
-			return "", "", fmt.Errorf(
-				"%w: dameng option name %q cannot contain '&', '=', or '?'",
-				ErrInvalidQuery,
-				key,
-			)
-		}
-		// Inspect each repeated value for unrepresentable delimiters.
-		for _, value := range values {
-			// Reject value delimiters that would create another raw option.
-			if strings.ContainsAny(value, "&?") {
-				return "", "", fmt.Errorf(
-					"%w: dameng option %q cannot contain '&' or '?'",
-					ErrInvalidQuery,
-					key,
-				)
-			}
-		}
-	}
 	// rawQuery is sorted and decoded for DM8; err reports unexpected decoding failures.
 	rawQuery, err := url.QueryUnescape(query.Encode())
 	// Return any unexpected decoding error instead of producing a partial DSN.
 	if err != nil {
-		return "", "", fmt.Errorf("%w: invalid dameng options: %v", ErrInvalidQuery, err)
+		return "", "", fmt.Errorf("%w: invalid dameng options: %w", ErrInvalidQuery, err)
 	}
 	// dsn is the path-free connection string accepted by the DM8 driver.
 	dsn := "dm://" + username + ":" + password + "@" + net.JoinHostPort(host, port)
