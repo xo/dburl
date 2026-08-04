@@ -59,6 +59,12 @@ func BaseSchemes() []Scheme {
 		},
 		// core databases
 		{
+			"dm",
+			GenDameng, TransportTCP, false,
+			[]string{"dm8", "dameng"},
+			"",
+		},
+		{
 			"mysql",
 			GenMysql, TransportTCP | TransportUDP | TransportUnix,
 			false,

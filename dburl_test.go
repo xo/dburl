@@ -55,6 +55,13 @@ func TestBadParse(t *testing.T) {
 		{`tablestore+tcp://`, ErrInvalidTransportProtocol},
 		{`bend://`, ErrMissingHost},
 		{`databend://`, ErrMissingHost},
+		{`dm://SYSDBA:pwd@localhost/ONE/TWO`, ErrInvalidQuery},
+		{`dm://SYSDBA:pwd@localhost/ONE?schema=TWO`, ErrInvalidQuery},
+		{`dm://SYSDBA:pwd@localhost/APPDB?sslmode=verify-full`, ErrInvalidQuery},
+		{`dm://SYS%3ADBA:pwd@localhost/APPDB`, ErrInvalidQuery},
+		{`dm://SYSDBA:pwd%3Fword@localhost/APPDB`, ErrInvalidQuery},
+		{`dm://SYSDBA:pwd@localhost/APPDB?sslFilesPath=%2Fcerts%26backup`, ErrInvalidQuery},
+		{`dm+unix://SYSDBA:pwd@localhost/APPDB`, ErrInvalidTransportProtocol},
 		{`unknown_file.ext3`, ErrInvalidDatabaseScheme},
 	}
 	for i, test := range tests {
@@ -159,6 +166,48 @@ func TestParse(t *testing.T) {
 			`pg:user:pass@/really/bad/path`,
 			`postgres`,
 			`host=/really/bad/path password=pass user=user`,
+			``,
+		},
+		{
+			`dm://SYSDBA:pwd@db.example:5237`,
+			`dm`,
+			`dm://SYSDBA:pwd@db.example:5237`,
+			``,
+		},
+		{
+			`dm8://SYSDBA:pwd@localhost/APPDB`,
+			`dm`,
+			`dm://SYSDBA:pwd@localhost:5236?schema=APPDB`,
+			``,
+		},
+		{
+			`dameng://SYSDBA:pwd@db.example?schema=APPDB&sslFilesPath=%2Fcerts`,
+			`dm`,
+			`dm://SYSDBA:pwd@db.example:5236?schema=APPDB&sslFilesPath=/certs`,
+			``,
+		},
+		{
+			`dm://SYSDBA:pwd@`,
+			`dm`,
+			`dm://SYSDBA:pwd@localhost:5236`,
+			``,
+		},
+		{
+			`dm://SYSDBA@localhost/APPDB`,
+			`dm`,
+			`dm://SYSDBA:@localhost:5236?schema=APPDB`,
+			``,
+		},
+		{
+			`dm://SYSDBA:pwd@[::1]/APPDB?schema=appdb`,
+			`dm`,
+			`dm://SYSDBA:pwd@[::1]:5236?schema=appdb`,
+			``,
+		},
+		{
+			`dm://SYSDBA:pwd@localhost/APPDB?rwSeparate=1&sslmode=disable`,
+			`dm`,
+			`dm://SYSDBA:pwd@localhost:5236?rwSeparate=1&schema=APPDB`,
 			``,
 		},
 		{

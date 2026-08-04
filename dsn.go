@@ -2,6 +2,7 @@ package dburl
 
 import (
 	"fmt"
+	"net"
 	"net/url"
 	"path"
 	"sort"
@@ -194,6 +195,113 @@ func GenCosmos(u *URL) (string, string, error) {
 		q.Set("Db", dbname)
 	}
 	return genOptionsOdbc(q, true, nil, nil), "gocosmos", nil
+}
+
+// GenDameng generates a Dameng DM8 DSN from the passed URL.
+func GenDameng(u *URL) (string, string, error) {
+	// query is a mutable copy of the native DM8 options.
+	query := u.Query()
+	// pathSchema is the optional default schema from the URL path.
+	pathSchema := strings.TrimPrefix(u.Path, "/")
+	// configuredSchema is the optional native schema query value.
+	configuredSchema := query.Get("schema")
+	// Reject paths with more than one schema segment.
+	if strings.Contains(pathSchema, "/") {
+		return "", "", fmt.Errorf(
+			"%w: dameng schema path must contain exactly one segment",
+			ErrInvalidQuery,
+		)
+	}
+	// Reject conflicting path and query schema declarations.
+	if pathSchema != "" && configuredSchema != "" &&
+		!strings.EqualFold(pathSchema, configuredSchema) {
+		return "", "", fmt.Errorf(
+			"%w: dameng schema is specified by both path and query with different values",
+			ErrInvalidQuery,
+		)
+	}
+	// Translate a path schema only when the native query omits it.
+	if pathSchema != "" && configuredSchema == "" {
+		query.Set("schema", pathSchema)
+	}
+
+	// sslMode is the PostgreSQL-style compatibility option, when present.
+	sslMode := strings.ToLower(strings.TrimSpace(query.Get("sslmode")))
+	// Reject secure PostgreSQL modes because DM8 uses native SSL parameters.
+	if sslMode != "" && sslMode != "disable" {
+		return "", "", fmt.Errorf(
+			"%w: unsupported dameng sslmode %q; use sslFilesPath, sslCertPath, and sslKeyPath",
+			ErrInvalidQuery,
+			sslMode,
+		)
+	}
+	// Remove the compatible disabled mode to retain the DM8 default.
+	if sslMode == "disable" {
+		query.Del("sslmode")
+	}
+
+	// host is the requested server or dburl's conventional localhost default.
+	host := u.Hostname()
+	// Supply the default host only when it was omitted.
+	if host == "" {
+		host = "localhost"
+	}
+	// port is the requested listener or DM8's standard port.
+	port := u.Port()
+	// Supply the standard port only when it was omitted.
+	if port == "" {
+		port = "5236"
+	}
+	// username and password are the decoded URL credentials.
+	username, password := "", ""
+	// Read credentials only when user information is present.
+	if u.User != nil {
+		username = u.User.Username()
+		password, _ = u.User.Password()
+	}
+	// Reject delimiters that the DM8 driver's raw credential parser cannot represent.
+	if strings.ContainsAny(username, ":?") || strings.Contains(password, "?") {
+		return "", "", fmt.Errorf(
+			"%w: dameng username cannot contain ':' or '?', and password cannot contain '?'",
+			ErrInvalidQuery,
+		)
+	}
+
+	// Inspect every native option because the DM8 driver does not URL-decode it.
+	for key, values := range query {
+		// Reject option names that would change the raw query boundaries.
+		if strings.ContainsAny(key, "&=?") {
+			return "", "", fmt.Errorf(
+				"%w: dameng option name %q cannot contain '&', '=', or '?'",
+				ErrInvalidQuery,
+				key,
+			)
+		}
+		// Inspect each repeated value for unrepresentable delimiters.
+		for _, value := range values {
+			// Reject value delimiters that would create another raw option.
+			if strings.ContainsAny(value, "&?") {
+				return "", "", fmt.Errorf(
+					"%w: dameng option %q cannot contain '&' or '?'",
+					ErrInvalidQuery,
+					key,
+				)
+			}
+		}
+	}
+	// rawQuery is sorted and decoded for DM8; err reports unexpected decoding failures.
+	rawQuery, err := url.QueryUnescape(query.Encode())
+	// Return any unexpected decoding error instead of producing a partial DSN.
+	if err != nil {
+		return "", "", fmt.Errorf("%w: invalid dameng options: %v", ErrInvalidQuery, err)
+	}
+	// dsn is the path-free connection string accepted by the DM8 driver.
+	dsn := "dm://" + username + ":" + password + "@" + net.JoinHostPort(host, port)
+	// Append native options only when at least one option remains.
+	if rawQuery != "" {
+		dsn += "?" + rawQuery
+	}
+	return dsn, "", nil
 }
 
 // GenDatabend generates a databend DSN from the passed URL.
