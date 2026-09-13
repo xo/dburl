@@ -107,14 +107,12 @@ The following table lists the supported `dburl` protocol schemes (ie, driver),
 additional aliases, and the related Go driver:
 
 <!-- DRIVER DETAILS START -->
-
 | Database             | Scheme / Tag    | Scheme Aliases                                  | Driver Package / Notes                                                      |
-| -------------------- | --------------- | ----------------------------------------------- | --------------------------------------------------------------------------- |
+|----------------------|-----------------|-------------------------------------------------|-----------------------------------------------------------------------------|
 | PostgreSQL           | `postgres`      | `pg`, `pgsql`, `postgresql`                     | [github.com/lib/pq][d-postgres]                                             |
 | MySQL                | `mysql`         | `my`, `maria`, `aurora`, `mariadb`, `percona`   | [github.com/go-sql-driver/mysql][d-mysql]                                   |
 | Microsoft SQL Server | `sqlserver`     | `ms`, `mssql`, `azuresql`                       | [github.com/microsoft/go-mssqldb][d-sqlserver]                              |
 | Oracle Database      | `oracle`        | `or`, `ora`, `oci`, `oci8`, `odpi`, `odpi-c`    | [github.com/sijms/go-ora/v2][d-oracle]                                      |
-| Dameng DM8           | `dm`            | `dm8`, `dameng`                                 | [github.com/godoes/gorm-dameng/dm8][d-dameng]                              |
 | SQLite3              | `sqlite3`       | `sq`, `sqlite`, `file`                          | [github.com/mattn/go-sqlite3][d-sqlite3] <sup>[†][f-cgo]</sup>              |
 | ClickHouse           | `clickhouse`    | `ch`                                            | [github.com/ClickHouse/clickhouse-go/v2][d-clickhouse]                      |
 | CSVQ                 | `csvq`          | `cs`, `csv`, `tsv`, `json`                      | [github.com/mithrandie/csvq-driver][d-csvq]                                 |
@@ -132,6 +130,7 @@ additional aliases, and the related Go driver:
 | ChaiSQL              | `chai`          | `ci`, `genji`, `chaisql`                        | [github.com/chaisql/chai][d-chai]                                           |
 | Couchbase            | `couchbase`     | `n1`, `n1ql`                                    | [github.com/couchbase/go_n1ql][d-couchbase]                                 |
 | Cznic QL             | `ql`            | `cznic`, `cznicql`                              | [modernc.org/ql][d-ql]                                                      |
+| Dameng DM8           | `dameng`        | `dm`, `dm8`                                     | [github.com/godoes/gorm-dameng/dm8][d-dameng]                               |
 | Databend             | `databend`      | `dd`, `bend`                                    | [github.com/datafuselabs/databend-go][d-databend]                           |
 | Databricks           | `databricks`    | `br`, `brick`, `bricks`, `databrick`            | [github.com/databricks/databricks-sql-go][d-databricks]                     |
 | DuckDB               | `duckdb`        | `dk`, `ddb`, `duck`, `file`                     | [github.com/duckdb/duckdb-go/v2][d-duckdb] <sup>[†][f-cgo]</sup>            |
@@ -146,11 +145,11 @@ additional aliases, and the related Go driver:
 | MySQL MyMySQL        | `mymysql`       | `zm`, `mymy`                                    | [github.com/ziutek/mymysql/godrv][d-mymysql]                                |
 | Netezza              | `netezza`       | `nz`, `nzgo`                                    | [github.com/IBM/nzgo/v12][d-netezza]                                        |
 | PostgreSQL PGX       | `pgx`           | `px`                                            | [github.com/jackc/pgx/v5/stdlib][d-pgx]                                     |
-| Presto               | `presto`        | `pr`, `prs`, `prestos`, `prestodb`, `prestodbs` | [github.com/prestodb/presto-go-client/presto][d-presto]                     |
+| Presto               | `presto`        | `pr`, `prs`, `prestos`, `prestodb`, `prestodbs` | [github.com/prestodb/presto-go-client/v2][d-presto]                         |
 | RamSQL               | `ramsql`        | `rm`, `ram`                                     | [github.com/proullon/ramsql/driver][d-ramsql]                               |
 | SAP ASE              | `sapase`        | `ax`, `ase`, `tds`                              | [github.com/thda/tds][d-sapase]                                             |
 | SAP HANA             | `saphana`       | `sa`, `sap`, `hana`, `hdb`                      | [github.com/SAP/go-hdb/driver][d-saphana]                                   |
-| Snowflake            | `snowflake`     | `sf`                                            | [github.com/snowflakedb/gosnowflake][d-snowflake]                           |
+| Snowflake            | `snowflake`     | `sf`                                            | [github.com/snowflakedb/gosnowflake/v2][d-snowflake]                        |
 | Trino                | `trino`         | `tr`, `trs`, `trinos`                           | [github.com/trinodb/trino-go-client/trino][d-trino]                         |
 | Vertica              | `vertica`       | `ve`                                            | [github.com/vertica/vertica-sql-go][d-vertica]                              |
 | VoltDB               | `voltdb`        | `vo`, `vdb`, `volt`                             | [github.com/VoltDB/voltdb-client-go/voltdbclient][d-voltdb]                 |
@@ -178,9 +177,9 @@ additional aliases, and the related Go driver:
 [d-cosmos]: https://github.com/btnguyen2k/gocosmos
 [d-couchbase]: https://github.com/couchbase/go_n1ql
 [d-csvq]: https://github.com/mithrandie/csvq-driver
+[d-dameng]: https://github.com/godoes/gorm-dameng
 [d-databend]: https://github.com/datafuselabs/databend-go
 [d-databricks]: https://github.com/databricks/databricks-sql-go
-[d-dameng]: https://github.com/godoes/gorm-dameng
 [d-duckdb]: https://github.com/duckdb/duckdb-go
 [d-dynamodb]: https://github.com/btnguyen2k/godynamo
 [d-exasol]: https://github.com/exasol/exasol-driver-go
@@ -190,7 +189,7 @@ additional aliases, and the related Go driver:
 [d-h2]: https://github.com/jmrobles/h2go
 [d-hive]: https://github.com/sql-machine-learning/gohive
 [d-ignite]: https://github.com/amsokol/ignite-go-client
-[d-impala]: https://github.com/sclgo/impala-go
+[d-impala]: https://github.com/bippio/go-impala
 [d-maxcompute]: https://github.com/sql-machine-learning/gomaxcompute
 [d-moderncsqlite]: https://gitlab.com/cznic/sqlite
 [d-mymysql]: https://github.com/ziutek/mymysql
@@ -214,7 +213,6 @@ additional aliases, and the related Go driver:
 [d-vertica]: https://github.com/vertica/vertica-sql-go
 [d-voltdb]: https://github.com/VoltDB/voltdb-client-go
 [d-ydb]: https://github.com/ydb-platform/ydb-go-sdk
-
 <!-- DRIVER DETAILS END -->
 
 [f-cgo]: #f-cgo "Requires CGO"
