@@ -59,12 +59,6 @@ func BaseSchemes() []Scheme {
 		},
 		// core databases
 		{
-			"dm",
-			GenDameng, TransportTCP, false,
-			[]string{"dm8", "dameng"},
-			"",
-		},
-		{
 			"mysql",
 			GenMysql, TransportTCP | TransportUDP | TransportUnix,
 			false,
@@ -193,6 +187,12 @@ func BaseSchemes() []Scheme {
 			"csvq",
 			GenOpaque, 0, true,
 			[]string{"csv", "tsv", "json"},
+			"",
+		},
+		{
+			"dameng",
+			GenDameng, TransportTCP, false,
+			[]string{"dm", "dm8"},
 			"",
 		},
 		{
