@@ -193,7 +193,7 @@ func BaseSchemes() []Scheme {
 			"dameng",
 			GenDameng, TransportTCP, false,
 			[]string{"dm", "dm8"},
-			"",
+			"dm",
 		},
 		{
 			"databend",
