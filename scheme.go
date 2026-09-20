@@ -190,10 +190,10 @@ func BaseSchemes() []Scheme {
 			"",
 		},
 		{
-			"dameng",
-			GenDameng, TransportTCP, false,
-			[]string{"dm", "dm8"},
 			"dm",
+			GenDameng, 0, false,
+			[]string{"dm8", "dameng"},
+			"",
 		},
 		{
 			"databend",
