@@ -1,10 +1,9 @@
 # About dburl
 
-Package `dburl` provides a standard, URL style mechanism for parsing and
-opening SQL database connection strings for [Go][go-project]. Provides
-standardized way to [parse][goref-parse] and [open][goref-open] URLs for
-popular databases PostgreSQL, MySQL, SQLite3, Oracle Database, Microsoft SQL
-Server, in addition to most other SQL databases with a publicly available Go
+Package `dburl` [parses][goref-parse] and [opens][goref-open] SQL database
+connection strings for [Go][go-project], in a standard URL style. It handles
+the URL formats of PostgreSQL, MySQL, SQLite3, Oracle Database and Microsoft
+SQL Server. It also handles most other SQL databases that have a public Go
 driver.
 
 [Overview][] | [Quickstart][] | [Examples][] | [Schemes][] | [Installing][] | [Using][] | [About][]
@@ -49,15 +48,15 @@ Where:
 | dbname<sup>\*</sup> | database, instance, or service name/ID to connect to                                 |
 | ?opt1=...           | additional database driver options (see respective SQL driver for available options) |
 
-<i><sup><b>\*</b></sup> for Microsoft SQL Server, `/dbname` can be
+<i><sup><b>\*</b></sup> For Microsoft SQL Server, `/dbname` can be
 `/instance/dbname`, where `/instance` is optional. For Oracle Database,
-`/dbname` is of the form `/service/dbname` where `/service` is the service name
-or SID, and `/dbname` is optional. Please see below for examples.</i>
+`/dbname` takes the form `/service/dbname`. Here `/service` is the service
+name or SID, and `/dbname` is optional. See the examples below.</i>
 
 ## Quickstart
 
-Database connection URLs in the above format can be parsed with the
-[`dburl.Parse` func][goref-parse] as such:
+The [`dburl.Parse` func][goref-parse] parses a database connection URL in the
+format above:
 
 ```go
 import (
@@ -68,9 +67,8 @@ u, err := dburl.Parse("postgresql://user:pass@localhost/mydatabase/?sslmode=disa
 if err != nil { /* ... */ }
 ```
 
-Additionally, a simple helper, [`dburl.Open`][goref-open], is provided that
-will parse, open, and return a [standard `sql.DB` database][goref-sql-db]
-connection:
+[`dburl.Open`][goref-open] parses the URL and returns an open
+[standard `sql.DB` database][goref-sql-db] connection:
 
 ```go
 import (
@@ -83,8 +81,8 @@ if err != nil { /* ... */ }
 
 ## Example URLs
 
-The following are example database connection URLs that can be handled by
-[`dburl.Parse`][goref-parse] and [`dburl.Open`][goref-open]:
+[`dburl.Parse`][goref-parse] and [`dburl.Open`][goref-open] handle database
+connection URLs such as these:
 
 ```text
 postgres://user:pass@localhost/dbname
@@ -103,8 +101,8 @@ odbc+postgres://user:pass@localhost:port/dbname?option1=
 
 ## Database Schemes, Aliases, and Drivers
 
-The following table lists the supported `dburl` protocol schemes (ie, driver),
-additional aliases, and the related Go driver:
+The table lists every supported `dburl` protocol scheme, which is also the
+driver name, with its aliases and its Go driver:
 
 <!-- DRIVER DETAILS START -->
 
@@ -115,6 +113,7 @@ additional aliases, and the related Go driver:
 | Microsoft SQL Server | `sqlserver`     | `ms`, `mssql`, `azuresql`                       | [github.com/microsoft/go-mssqldb][d-sqlserver]                              |
 | Oracle Database      | `oracle`        | `or`, `ora`, `oci`, `oci8`, `odpi`, `odpi-c`    | [github.com/sijms/go-ora/v3][d-oracle]                                      |
 | SQLite3              | `sqlite3`       | `sq`, `sqlite`, `file`                          | [github.com/mattn/go-sqlite3][d-sqlite3] <sup>[†][f-cgo]</sup>              |
+| DuckDB               | `duckdb`        | `dk`, `ddb`, `duck`, `file`                     | [github.com/duckdb/duckdb-go/v2][d-duckdb] <sup>[†][f-cgo]</sup>            |
 | ClickHouse           | `clickhouse`    | `ch`                                            | [github.com/ClickHouse/clickhouse-go/v2][d-clickhouse]                      |
 | CSVQ                 | `csvq`          | `cs`, `csv`, `tsv`, `json`                      | [github.com/mithrandie/csvq-driver][d-csvq]                                 |
 |                      |                 |                                                 |                                                                             |
@@ -133,7 +132,6 @@ additional aliases, and the related Go driver:
 | Cznic QL             | `ql`            | `cznic`, `cznicql`                              | [modernc.org/ql][d-ql]                                                      |
 | Databend             | `databend`      | `dd`, `bend`                                    | [github.com/datafuselabs/databend-go][d-databend]                           |
 | Databricks           | `databricks`    | `br`, `brick`, `bricks`, `databrick`            | [github.com/databricks/databricks-sql-go][d-databricks]                     |
-| DuckDB               | `duckdb`        | `dk`, `ddb`, `duck`, `file`                     | [github.com/duckdb/duckdb-go/v2][d-duckdb] <sup>[†][f-cgo]</sup>            |
 | DynamoDb             | `dynamodb`      | `dy`, `dyn`, `dynamo`, `dynamodb`               | [github.com/btnguyen2k/godynamo][d-dynamodb]                                |
 | Exasol               | `exasol`        | `ex`, `exa`                                     | [github.com/exasol/exasol-driver-go][d-exasol]                              |
 | Firebird             | `firebird`      | `fb`, `firebirdsql`                             | [github.com/nakagami/firebirdsql][d-firebird]                               |
@@ -146,7 +144,6 @@ additional aliases, and the related Go driver:
 | Netezza              | `netezza`       | `nz`, `nzgo`                                    | [github.com/IBM/nzgo/v12][d-netezza]                                        |
 | PostgreSQL PGX       | `pgx`           | `px`                                            | [github.com/jackc/pgx/v5/stdlib][d-pgx]                                     |
 | Presto               | `presto`        | `pr`, `prs`, `prestos`, `prestodb`, `prestodbs` | [github.com/prestodb/presto-go-client/v2][d-presto]                         |
-| RamSQL               | `ramsql`        | `rm`, `ram`                                     | [github.com/proullon/ramsql/driver][d-ramsql]                               |
 | SAP ASE              | `sapase`        | `ax`, `ase`, `tds`                              | [github.com/thda/tds][d-sapase]                                             |
 | SAP HANA             | `saphana`       | `sa`, `sap`, `hana`, `hdb`                      | [github.com/SAP/go-hdb/driver][d-saphana]                                   |
 | Snowflake            | `snowflake`     | `sf`                                            | [github.com/snowflakedb/gosnowflake/v2][d-snowflake]                        |
@@ -201,7 +198,6 @@ additional aliases, and the related Go driver:
 [d-postgres]: https://github.com/lib/pq
 [d-presto]: https://github.com/prestodb/presto-go-client
 [d-ql]: https://gitlab.com/cznic/ql
-[d-ramsql]: https://github.com/proullon/ramsql
 [d-sapase]: https://github.com/thda/tds
 [d-saphana]: https://github.com/SAP/go-hdb
 [d-snowflake]: https://github.com/snowflakedb/gosnowflake
@@ -225,12 +221,13 @@ additional aliases, and the related Go driver:
   </i>
 </p>
 
-Any protocol scheme `alias://` can be used in place of `protocol://`, and will
-work identically with [`dburl.Parse`][goref-parse] and [`dburl.Open`][goref-open].
+You can write any alias as `alias://` in place of `protocol://`.
+[`dburl.Parse`][goref-parse] and [`dburl.Open`][goref-open] treat the two the
+same.
 
 ## Installing
 
-Install in the usual Go fashion:
+Install `dburl` with `go get`:
 
 ```sh
 $ go get github.com/xo/dburl@latest
@@ -238,9 +235,9 @@ $ go get github.com/xo/dburl@latest
 
 ## Using
 
-`dburl` does not import any of Go's SQL drivers, as it only provides a way to
-[parse][goref-parse] and [open][goref-open] database URL stylized connection
-strings. As such, it is necessary to explicitly `import` the relevant SQL driver:
+`dburl` does not import any Go SQL driver. It only [parses][goref-parse] and
+[opens][goref-open] database connection URLs, so you must `import` the SQL
+driver yourself:
 
 ```go
 import (
@@ -249,22 +246,21 @@ import (
 )
 ```
 
-See the [database schemes table][Schemes] above for a list of the
-expected Go driver `import`'s.
+See the [database schemes table][Schemes] above for the Go driver that each
+scheme expects.
 
-Additional examples and API details can be found in [the `dburl` package
-documentation][goref-dburl].
+[The `dburl` package documentation][goref-dburl] has more examples and the API
+details.
 
 ### URL Parsing Rules
 
-[`dburl.Parse`][goref-parse] and [`dburl.Open`][goref-open] rely primarily on
-Go's standard [`net/url.URL`][goref-net-url] type, and as such, parsing or
-opening database connection URLs with `dburl` are subject to the same rules,
-conventions, and semantics as [Go's `net/url.Parse` func][goref-net-url-parse].
+[`dburl.Parse`][goref-parse] and [`dburl.Open`][goref-open] build on Go's
+standard [`net/url.URL`][goref-net-url] type. The same rules and conventions
+apply as for [Go's `net/url.Parse` func][goref-net-url-parse].
 
 ## Example
 
-A [full example](_example/example.go) for reference:
+A [full example](_example/example.go):
 
 ```go
 // _example/example.go
@@ -293,20 +289,19 @@ func main() {
 
 ## Scheme Resolution
 
-By default on non-Windows systems, `dburl` will resolve paths on disk, and URLs
-with `file:` schemes to an appropriate database driver:
+On systems other than Windows, `dburl` resolves a path on disk, or a URL with
+a `file:` scheme, to a database driver:
 
-1. Directories will resolve as `postgres:` URLs
-2. Unix sockets will resolve as `mysql:` URLs
-3. Regular files will have their headers checked to determine if they are
-   either `sqlite3:` or `duckdb:` files
-4. Non-existent files will test their file extension against well-known
-   `sqlite3:` and `duckdb:` file extensions and open with the appropriate
-   scheme
+1. A directory resolves as a `postgres:` URL.
+2. A Unix socket resolves as a `mysql:` URL.
+3. For a file that exists, `dburl` reads the file header and resolves it as a
+   `sqlite3:` or a `duckdb:` URL.
+4. For a file that does not exist, `dburl` matches the file extension against
+   the known `sqlite3:` and `duckdb:` extensions.
 
-If this behavior is undesired, it can be disabled by providing different
-implementations for [`dburl.Stat`][goref-variables] and [`dburl.OpenFile`][goref-variables],
-or alternately by setting [`dburl.ResolveSchemeType`][goref-variables] to false:
+To turn this off, set [`dburl.ResolveSchemeType`][goref-variables] to false.
+You can also supply your own [`dburl.Stat`][goref-variables] and
+[`dburl.OpenFile`][goref-variables] funcs instead:
 
 ```go
 import "github.com/xo/dburl"
@@ -318,7 +313,7 @@ func init() {
 
 ## About
 
-`dburl` was built primarily to support these projects:
+`dburl` exists to support these projects:
 
 - [usql][usql] - a universal command-line interface for SQL databases
 - [xo][xo] - a command-line tool to generate code for SQL databases

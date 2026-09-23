@@ -27,7 +27,7 @@ type Entry struct {
 
 // NewEntry creates a new passfile entry.
 func NewEntry(v []string) Entry {
-	// make sure there's always at least 6 elements
+	// make sure there are always at least 6 elements
 	v = append(v, "", "", "", "", "", "")
 	return Entry{
 		Protocol: v[0],

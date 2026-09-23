@@ -1,8 +1,9 @@
-// Package dburl provides a standard, [net/url.URL] style mechanism for parsing
-// and opening SQL database connection strings for Go. Provides standardized
-// way to parse and open [URL]'s for popular databases PostgreSQL, MySQL, SQLite3,
-// Oracle Database, Microsoft SQL Server, in addition to most other SQL
-// databases with a publicly available Go driver.
+// Package dburl parses and opens SQL database connection strings for Go, in
+// the style of [net/url.URL].
+//
+// It handles the URL formats of PostgreSQL, MySQL, SQLite3, Oracle Database
+// and Microsoft SQL Server. It also handles most other SQL databases that
+// have a public Go driver.
 //
 // See the [package documentation README section] for more details.
 //
@@ -23,7 +24,7 @@ import (
 
 // ResolveSchemeType is a configuration setting to open paths on disk using
 // [SchemeType], [Stat], and [OpenFile]. Set this to false in an `init()` func
-// in order to disable this behavior.
+// to disable this behavior.
 var ResolveSchemeType = true
 
 // Open takes a URL string, also known as a DSN, in the form of
@@ -64,8 +65,8 @@ type URL struct {
 	// Transport is the specified transport protocol (ie, "tcp", "udp",
 	// "unix", ...), if provided.
 	Transport string
-	// Driver is the non-aliased SQL driver name that should be used in a call
-	// to [sql.Open].
+	// Driver is the non-aliased SQL driver name to use in a call to
+	// [sql.Open].
 	Driver string
 	// GoDriver is the Go SQL driver name to use when opening a connection to
 	// the database. Used by Microsoft SQL Server's azuresql:// URLs, as the
@@ -337,7 +338,7 @@ func SchemeType(name string) (string, error) {
 		}
 		return "", ErrUnknownFileHeader
 	}
-	// doesn't exist, match file extension
+	// does not exist, match file extension
 	ext := filepath.Ext(name)
 	for _, typ := range fileTypes {
 		if typ.ext.MatchString(ext) {

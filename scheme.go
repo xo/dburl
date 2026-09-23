@@ -23,9 +23,8 @@ const (
 // Scheme wraps information used for registering a database URL scheme for use
 // with [Parse]/[Open].
 type Scheme struct {
-	// Driver is the name of the SQL driver that is set as the Scheme in
-	// Parse'd URLs and is the driver name expected by the standard sql.Open
-	// calls.
+	// Driver is the name of the SQL driver. [Parse] sets it as the Scheme on
+	// the returned URL, and the standard sql.Open calls expect it.
 	//
 	// Note: a 2 letter alias will always be registered for the Driver as the
 	// first 2 characters of the Driver, unless one of the Aliases includes an
@@ -34,7 +33,7 @@ type Scheme struct {
 	// Generator is the func responsible for generating a DSN based on parsed
 	// URL information.
 	//
-	// Note: this func should not modify the passed URL.
+	// Note: this func must not modify the passed URL.
 	Generator func(*URL) (string, string, error)
 	// Transport are allowed protocol transport types for the scheme.
 	Transport Transport
