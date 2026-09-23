@@ -3,15 +3,16 @@ linters:
   default: all
   disable:
     - cyclop
-    - depguard
     - err113
     - errcheck
     - exhaustruct
+    - exhaustruct_v5
     - funlen
     - gochecknoglobals
     - gochecknoinits
     - gocognit
     - goconst
+    - gomodguard
     - lll
     - maintidx
     - mnd
@@ -26,12 +27,19 @@ linters:
     - varnamelen
     - wrapcheck
     - wsl
+    - wsl_v5
   settings:
+    depguard:
+      rules:
+        main:
+          list-mode: strict
+          allow:
+            - $gostd
+            - github.com/xo/dburl
     gosec:
       excludes:
         - G101
         - G304
-        - G390
     gocritic:
       disabled-checks:
         - exitAfterDefer
