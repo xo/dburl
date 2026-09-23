@@ -190,12 +190,6 @@ func BaseSchemes() []Scheme {
 			"",
 		},
 		{
-			"dm",
-			GenDameng, 0, false,
-			[]string{"dm8", "dameng"},
-			"",
-		},
-		{
 			"databend",
 			GenDatabend, 0, false,
 			[]string{"dd", "bend"},
