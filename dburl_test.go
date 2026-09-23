@@ -68,6 +68,8 @@ func TestBadParse(t *testing.T) {
 		{`dm://SYSDBA:pwd@localhost/APPDB?sslFilesPath=%2Fcerts%26backup`, ErrInvalidQuery},
 		{`dm+unix://SYSDBA:pwd@localhost/APPDB`, ErrInvalidTransportProtocol},
 		{`unknown_file.ext3`, ErrInvalidDatabaseScheme},
+		{`file:fake.unknown`, ErrUnknownFileHeader},
+		{`file:unknown_file.ext3`, ErrUnknownFileExtension},
 	}
 	for i, test := range tests {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
@@ -84,6 +86,31 @@ func testBadParse(t *testing.T, s string, exp error) {
 		t.Errorf("%q expected error nil error, got: %v", s, err)
 	case !errors.Is(err, exp):
 		t.Errorf("%q expected error %v, got: %v", s, exp, err)
+	}
+}
+
+func TestIsDuckdbHeader(t *testing.T) {
+	tests := []struct {
+		name string
+		buf  string
+		exp  bool
+	}{
+		{"real", "\x06\xd7\x6f\x27\xc2\xda\xb3\xb9DUCK\x40\x00\x00\x00", true},
+		{"multibyte checksum", "\xc2\xda\xc2\xda\xc2\xda\xc2\xdaDUCK\x00\x00\x00\x00", true},
+		{"newline checksum", "\x01\x02\x0a\x04\x05\x06\x07\x08DUCK\x00\x00\x00\x00", true},
+		{"ascii checksum", "12345678DUCK87654321", true},
+		{"exactly magic", "12345678DUCK", true},
+		{"short", "12345678DUC", false},
+		{"empty", "", false},
+		{"magic misaligned", "123456789DUCK7654321", false},
+		{"no magic", "1234567887654321....", false},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if v := isDuckdbHeader([]byte(test.buf)); v != test.exp {
+				t.Errorf("expected %t, got: %t", test.exp, v)
+			}
+		})
 	}
 }
 
@@ -1182,20 +1209,24 @@ type stat struct {
 func newStat(name string) (stat, bool) {
 	const (
 		sqlite3Header = "SQLite format 3\000.........."
-		duckdbHeader  = "12345678DUCK87654321.............."
+		// a checksum as duckdb actually writes it: arbitrary bytes, here
+		// including the valid UTF-8 sequence \xc2\xda and a \n, neither of
+		// which a rune based matcher steps over correctly.
+		duckdbHeader = "\x06\xd7\x6f\x0a\xc2\xda\xb3\xb9DUCK\x40\x00\x00\x00......"
 	)
 	files := map[string]string{
 		"fake.sqlite3": sqlite3Header,
 		"fake.sq":      sqlite3Header,
 		"fake.duckdb":  duckdbHeader,
 		"fake.dk":      duckdbHeader,
+		"fake.unknown": "not a database header......................",
 	}
 	switch name {
 	case "/var/run/postgresql":
 		return stat{name, fs.ModeDir, ""}, true
 	case "/var/run/mysqld/mysqld.sock":
 		return stat{name, fs.ModeSocket, ""}, true
-	case "fake.sqlite3", "fake.sq", "fake.duckdb", "fake.dk":
+	case "fake.sqlite3", "fake.sq", "fake.duckdb", "fake.dk", "fake.unknown":
 		return stat{name, 0, files[name]}, true
 	}
 	return stat{}, false

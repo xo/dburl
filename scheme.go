@@ -564,10 +564,18 @@ var sqlite3Header = []byte("SQLite format 3\000")
 
 // isDuckdbHeader returns true when the passed header is a DuckDB header.
 //
+// Compares bytes instead of matching a regexp, as regexps match runes: a
+// checksum byte sequence that is valid UTF-8 consumes more than one byte per
+// `.`, shifting the match off the magic.
+//
 // See: https://duckdb.org/internals/storage
 func isDuckdbHeader(buf []byte) bool {
-	return duckdbRE.Match(buf)
+	return len(buf) >= duckdbOffset+len(duckdbMagic) &&
+		bytes.Equal(buf[duckdbOffset:duckdbOffset+len(duckdbMagic)], duckdbMagic)
 }
 
-// duckdbRE is the duckdb storage header regexp.
-var duckdbRE = regexp.MustCompile(`^.{8}DUCK.{8}`)
+// duckdbMagic is the duckdb storage magic, and duckdbOffset is where it is
+// written, immediately after the 8 byte checksum.
+var duckdbMagic = []byte("DUCK")
+
+const duckdbOffset = 8

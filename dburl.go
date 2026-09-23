@@ -134,9 +134,13 @@ func Parse(urlstr string) (*URL, error) {
 		case s == "":
 			return nil, ErrMissingPath
 		case ResolveSchemeType:
-			if typ, err := SchemeType(s); err == nil {
-				return Parse(typ + "://" + u.buildOpaque())
+			// propagate the resolution error, as it reports why the path was
+			// not recognized (bad header, bad extension, ...)
+			typ, err := SchemeType(s)
+			if err != nil {
+				return nil, err
 			}
+			return Parse(typ + "://" + u.buildOpaque())
 		}
 		return nil, ErrUnknownFileExtension
 	case !scheme.Opaque && u.Opaque != "":
