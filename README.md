@@ -316,7 +316,7 @@ func init() {
 `dburl` exists to support these projects:
 
 - [usql][usql] - a universal command-line interface for SQL databases
-- [xo][xo] - a command-line tool to generate code for SQL databases
+- [dbtpl][dbtpl] - a command-line tool to generate code for SQL databases
 
 [go-project]: https://go.dev/project
 [goref-open]: https://pkg.go.dev/github.com/xo/dburl#Open
@@ -326,4 +326,4 @@ func init() {
 [goref-net-url]: https://pkg.go.dev/net/url#URL
 [goref-net-url-parse]: https://pkg.go.dev/net/url#URL.Parse
 [usql]: https://github.com/xo/usql
-[xo]: https://github.com/xo/xo
+[dbtpl]: https://github.com/xo/dbtpl
