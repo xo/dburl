@@ -13,7 +13,8 @@ never imports a database driver, and it never opens a connection.
 | If you are | Read |
 | --- | --- |
 | adding a database scheme | [docs/SCHEME.md](docs/SCHEME.md), every step in order |
-| changing an existing generator | [docs/SCHEME.md](docs/SCHEME.md) sections 2 and 3 |
+| adding a database held in a file | [docs/SCHEME.md](docs/SCHEME.md), and step 7 in particular |
+| changing an existing generator | [docs/SCHEME.md](docs/SCHEME.md) steps 2 and 3 |
 | asking why something is the way it is | the table at the top of [docs/PLAN.md](docs/PLAN.md) |
 | looking for what the library does | [README.md](README.md) |
 

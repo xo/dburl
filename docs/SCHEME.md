@@ -59,8 +59,8 @@ when the DSN is a URL and needs no default port.
 
 A hand written `GenXxx(u *URL) (string, string, error)` in `dsn.go` covers
 everything else. Use it when the DSN is not a URL, such as the `key=value`
-form that PostgreSQL and ODBC take, or when the generator needs to reject
-something.
+form that PostgreSQL and ODBC take. Use it also when the generator needs to
+reject something.
 
 ## 4. Supply the defaults, then let the URL override them
 
@@ -85,8 +85,8 @@ database behaves. The client that opens the connection owns those, and `usql`
 and `dbtpl` inject their own.
 
 One narrow exception exists. Set an option when it forces the driver or the
-database into a standards compliant mode that a using package needs, such as
-turning on UTF-8 or enabling connection retries. The whole codebase holds two
+database into a standards compliant mode that a using package needs. Turning
+on UTF-8 and enabling connection retries are the kind of thing that qualifies. The whole codebase holds two
 examples, `sslmode=disable` in the CockroachDB template and `ServiceName` in
 the DB2 path of `GenOdbc`. If you are writing a third, say why in
 [PLAN.md](PLAN.md). This is D7.
@@ -123,7 +123,47 @@ Read it from the driver source. Do not guess it from the package name.
 A two letter alias is registered automatically from the first two characters
 of the name, unless one of the aliases is already two characters.
 
-## 7. Reuse a generator only while the drivers agree
+Add an alias only for a name the database is actually known by. An alias is
+cheap to add and expensive to remove. `usql` publishes every alias in its
+README table, so an alias is advertised as supported the moment it exists.
+
+Presto is the warning. It carried five aliases, and two of them were `s`
+suffixed variants meaning TLS. The v2 driver turned out to have no way to
+select TLS from the scheme at all. Removing those two was a breaking change
+to something documented on another project's front page.
+
+Do not add an alias for a spelling you have not seen in use.
+
+## 7. If the database lives in a file, register a file type
+
+A database held in a file needs one more registration, or `usql mydb.duckdb`
+and `file:mydb.duckdb` will not resolve to it. Add a call to
+`RegisterFileType` in the `init` func in `scheme.go`:
+
+```go
+RegisterFileType("duckdb", isDuckdbHeader, `(?i)\.duckdb$`)
+```
+
+The three arguments are the driver name, a func that reads the file header,
+and a regexp matching the file extension.
+
+The two are consulted in different situations, and this is the part that is
+easy to get wrong. When the file exists, `SchemeType` reads the first 64 bytes
+and asks each header func in turn. The extension is never looked at. When the
+file does not exist, no header can be read, so the extension regexp decides.
+A scheme can therefore work on a path that does not exist and fail on the same
+path once the file is created.
+
+Write the header func with `bytes.Equal` or `bytes.HasPrefix` at a fixed
+offset. Never use a regexp, for the reason in D3. Register the scheme itself
+with `Opaque` set to `true`, as step 5 says, because these URLs carry a path
+and no host.
+
+`FileTypes` returns the registered names, and `usql` calls it when generating
+its README to decide which rows carry a `file` alias. So registering a file
+type changes another project's published table. That is D13.
+
+## 8. Reuse a generator only while the drivers agree
 
 The `Gen*` funcs are helpers, and reusing one is normal. `GenOpaque` serves
 every database whose DSN is a path on disk, and `GenMysql` and `GenPostgres`
@@ -138,7 +178,7 @@ stale. The two drivers now want incompatible DSNs, and it was split in
 v0.27.0. The defect was that nobody reread the drivers, not that the func was
 shared. That is D6.
 
-## 8. Add the tests
+## 9. Add the tests
 
 Add cases to the table in `TestParse` in `dburl_test.go`. Cover the default
 host and port, an explicit host and port, a user and password, and every
@@ -150,7 +190,7 @@ matcher gets wrong. A single invalid byte is not enough, because Go decodes it
 as one rune and the bug does not appear. `TestIsDuckdbHeader` covers both.
 That is recorded as D3.
 
-## 9. Regenerate the README
+## 10. Regenerate the README
 
 The driver table in `README.md` between the `DRIVER DETAILS` markers is
 generated. `usql` writes it, from its own driver list and from this registry,
