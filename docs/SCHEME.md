@@ -125,6 +125,18 @@ Add an entry to `BaseSchemes` in `scheme.go`. The fields are positional:
 The `Driver` field must be the exact name the driver passes to `sql.Register`.
 Read it from the driver source. Do not guess it from the package name.
 
+Fill in the metadata as well. `Desc` is the database display name, as it
+appears in the first column of the README table. `GoPackage` is the import
+path of the driver, including the major version, and is not the module path:
+for pgx the module is `github.com/jackc/pgx/v5` and the import path is
+`github.com/jackc/pgx/v5/stdlib`. `DriverURL` is the driver's home page, which
+carries no version. Set `RequiresCGO` when the driver needs cgo. Leave `Home`
+blank unless you have the database provider's page.
+
+A wire compatible scheme sets `Override` and leaves `GoPackage` and
+`DriverURL` blank, because it reaches its driver through the scheme it points
+at. `TestSchemeMetadata` checks all of this. That is D17.
+
 A two letter alias is registered automatically from the first two characters
 of the name, unless one of the aliases is already two characters.
 

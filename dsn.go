@@ -310,16 +310,16 @@ func GenGodror(u *URL) (string, string, error) {
 
 // GenHive generates a hive DSN from the passed URL.
 //
-// Targets [beltran/gohive/v2], whose ParseDSN rejects any string not starting
-// with "hive://" and reads the database name from the path.
+// Targets [beltran/gohive/v2]. Its ParseDSN rejects any string that does not
+// start with "hive://", and reads the database name from the path.
 //
-// The database name is required, and an empty path is an error rather than a
-// default, so an absent one becomes "default".
+// The database name is required. An empty path is an error and not a default,
+// so an absent name becomes "default".
 //
-// The driver also cannot start without auth. Its connect path is a chain over
-// the accepted values and anything else, including the empty string, reaches
-// panic("Unrecognized auth"). An absent or empty auth therefore becomes NONE.
-// Any other value the caller writes is passed through untouched. See D16.
+// The driver also cannot start without auth. Its connect path tests the
+// accepted values in turn, and anything else reaches panic("Unrecognized
+// auth"). The empty string is one of those, so an absent or empty auth
+// becomes NONE. Any other value passes through untouched. See D16.
 //
 // [beltran/gohive/v2]: https://github.com/beltran/gohive
 func GenHive(u *URL) (string, string, error) {

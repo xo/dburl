@@ -35,6 +35,41 @@ func TestNoDependencies(t *testing.T) {
 	}
 }
 
+// TestSchemeMetadata checks that every registered scheme describes itself.
+//
+// The metadata exists so that this registry can generate its own driver table
+// rather than having usql generate it. A scheme missing a field is a row usql
+// cannot render. See D17.
+func TestSchemeMetadata(t *testing.T) {
+	for _, scheme := range BaseSchemes() {
+		// file is a pseudo scheme that resolves paths on disk, and has no
+		// database and no driver behind it
+		if scheme.Driver == "file" {
+			continue
+		}
+		if scheme.Desc == "" {
+			t.Errorf("%s: expected a Desc, got: %q", scheme.Driver, scheme.Desc)
+		}
+		// a wire compatible scheme reaches its driver through Override, so
+		// the driver fields belong to the scheme it points at
+		if scheme.Override != "" {
+			if scheme.GoPackage != "" {
+				t.Errorf("%s: expected no GoPackage, got: %q", scheme.Driver, scheme.GoPackage)
+			}
+			if scheme.DriverURL != "" {
+				t.Errorf("%s: expected no DriverURL, got: %q", scheme.Driver, scheme.DriverURL)
+			}
+			continue
+		}
+		if scheme.GoPackage == "" {
+			t.Errorf("%s: expected a GoPackage, got: %q", scheme.Driver, scheme.GoPackage)
+		}
+		if scheme.DriverURL == "" {
+			t.Errorf("%s: expected a DriverURL, got: %q", scheme.Driver, scheme.DriverURL)
+		}
+	}
+}
+
 // TestEveryDecisionIsIndexed checks that the table at the top of
 // docs/PLAN.md lists every decision written below it, and nothing else.
 //

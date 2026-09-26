@@ -26,6 +26,7 @@ if D11 amends D4, then D4 says so too.
 | [D14](#d14-an-alias-that-cannot-work-is-removed-not-left-failing) | Decided |
 | [D15](#d15-dburl-does-not-validate-driver-option-values) | Decided |
 | [D16](#d16-a-required-option-with-no-valid-empty-value-gets-a-default) | Decided |
+| [D17](#d17-a-scheme-describes-its-own-database-and-driver) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -368,3 +369,82 @@ library does.
 
 The general test, for the next option that looks like this one: ask what the
 driver does with nothing, not only what it does with something wrong.
+
+### D17. A scheme describes its own database and driver. Decided.
+
+`usql` generated the driver table in both projects' READMEs, from metadata it
+parsed out of doc comments in its own driver packages. So this registry, which
+is the authority on what schemes exist, could not describe them, and any other
+consumer had to read `usql`'s source to learn the same facts.
+
+`Scheme` gains five fields: `Desc`, `Home`, `DriverURL`, `GoPackage` and
+`RequiresCGO`.
+
+Three fields were proposed first. Five is the number that actually cuts the
+cycle, and all three reviewers reached it separately. The table has four
+columns. This registry already owned the scheme and alias columns. `GoPackage`
+with `RequiresCGO` gives the driver column, and `Desc` gives the first. With
+three, `usql` would still have had to write this README.
+
+`usql` keeps `Tag`, `Group` and `Build`, which are its build system and mean
+nothing here. It stops parsing `Pkg`, `URL`, `Desc` and `CGO`, and stops
+deriving `Driver`, `Aliases` and `Wire`, which were already available from
+here.
+
+WHAT WAS REJECTED
+
+An `Info` struct held as `*Info`, with nil meaning wire compatible. `usql`
+supplied the counterexample: `file` is a registered scheme with a blank
+`Override` and no driver at all, so nil would have meant wire compatible for
+`cockroachdb`, pseudo scheme for `file`, and not yet filled in for anything
+new. `Override` already states wire compatibility and a reader can test it.
+
+`[]Info` and `GoPackage []string`, for a scheme served by several drivers.
+Both outside models pushed for this. It matches nothing here: `oracle` and
+`godror` are separate schemes, and so are `postgres` and `pgx`, and `sqlite3`
+and `moderncsqlite`. Two drivers for one protocol is already modelled as two
+schemes plus `Override`, and a second mechanism for it would be a spare part.
+
+The fields are flat rather than nested because the registry is now written
+with named fields. `Scheme` has six string fields, and positional literals
+with six same-typed slots make a transposition a silent bug rather than a
+compile error. Converting the 51 entries was the change that made the rest
+safe. The conversion was proved behaviour preserving by dumping every
+scheme's six original fields and a live DSN, before and after, and diffing.
+
+THE TWO FIELDS THAT ARE NOT FREE
+
+`GoPackage` buys a release lockstep. Go encodes the major version in the
+import path, and eleven of `usql`'s forty four carry one, so a driver major
+version bump needs a release here before `usql` can regenerate. The hive swap
+in v0.28.0 is the worked example. It is taken deliberately, because it is the
+field that lets other consumers stop reading `usql`'s source, and because the
+coupling it replaces was worse: `usql` wrote this README through a filesystem
+path that read the working tree rather than a tagged version.
+
+`Home` is the only field that is not a relocation. Neither project records
+that PostgreSQL lives at postgresql.org, so it is about fifty facts somebody
+had to author.
+
+They were filled in by asking gemini and deepseek the same list separately and
+comparing. Thirty nine matched once a trailing slash and a locale segment were
+normalised away. Eight differed and were resolved toward the canonical project
+page rather than a product sub page, and `chai` and `odbc` were taken from the
+one model that answered them. Three are still blank, `adodb`, `oleodbc` and
+`ql`, because neither model was confident and none of the three is a database
+with a home page to point at.
+
+The values were not machine verified. Several of the hosts, including
+`hive.apache.org` and `cassandra.apache.org`, do not answer from the network
+this was written on, and others return 403 to a script while serving a browser,
+so a reachability check here measures local network policy rather than the
+URLs. They are model recall, cross checked between two models, and they want a
+human pass before anyone treats them as authoritative.
+
+`DriverURL` has neither problem. None of the forty four driver URLs carries a
+version, and for every versioned driver the two diverge correctly:
+`github.com/sijms/go-ora` against `github.com/sijms/go-ora/v3`.
+
+`TestSchemeMetadata` enforces it: every scheme except `file` has a `Desc`,
+every scheme with a blank `Override` has a `GoPackage` and a `DriverURL`, and
+every scheme with an `Override` has neither.
