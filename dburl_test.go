@@ -1030,19 +1030,43 @@ func TestParse(t *testing.T) {
 		{
 			`hive://myhost/mydb`,
 			`hive`,
-			`myhost:10000/mydb`,
+			`hive://myhost:10000/mydb`,
 			``,
 		},
 		{
-			`hi://myhost:9999/mydb?auth=PLAIN`,
+			`hive://myhost`,
 			`hive`,
-			`myhost:9999/mydb?auth=PLAIN`,
+			`hive://myhost:10000/default`,
 			``,
 		},
 		{
-			`hive2://user:pass@myhost:9999/mydb?auth=PLAIN`,
+			`hive://`,
 			`hive`,
-			`user:pass@myhost:9999/mydb?auth=PLAIN`,
+			`hive://localhost:10000/default`,
+			``,
+		},
+		{
+			`hi://myhost:9999/mydb?auth=NONE`,
+			`hive`,
+			`hive://myhost:9999/mydb?auth=NONE`,
+			``,
+		},
+		{
+			`hive2://user:pass@myhost:9999/mydb?auth=NONE`,
+			`hive`,
+			`hive://user:pass@myhost:9999/mydb?auth=NONE`,
+			``,
+		},
+		{
+			`hive://myhost/mydb?sslcert=%2Fc.pem&sslkey=%2Fk.pem`,
+			`hive`,
+			`hive://myhost:10000/mydb?sslcert=%2Fc.pem&sslkey=%2Fk.pem`,
+			``,
+		},
+		{
+			`hive://myhost/mydb?transport=http&service=hive2`,
+			`hive`,
+			`hive://myhost:10000/mydb?service=hive2&transport=http`,
 			``,
 		},
 		{

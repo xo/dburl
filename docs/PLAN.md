@@ -24,6 +24,7 @@ if D11 amends D4, then D4 says so too.
 | [D12](#d12-a-scheme-follows-its-driver-out-of-usql) | Decided |
 | [D13](#d13-this-registry-writes-two-published-driver-tables) | Decided |
 | [D14](#d14-an-alias-that-cannot-work-is-removed-not-left-failing) | Decided |
+| [D15](#d15-dburl-does-not-validate-driver-option-values) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -268,3 +269,26 @@ consecutive releases.
 
 The general rule: an alias that cannot work under any input does not belong in
 the registry. Making it fail leaves it advertised.
+
+### D15. dburl does not validate driver option values. Decided.
+
+`beltran/gohive/v2`, which `hive` moved to, does not return an error for an
+option value it does not know. It panics. `hive.go:272` and `hive.go:299` both
+call `panic("Unrecognized auth")`, and `hive.go:307` panics on an unknown
+`transport`.
+
+The accepted values, read from the connect path rather than from the
+documentation: `auth` takes `NONE`, `LDAP`, `CUSTOM`, `KERBEROS`, `NOSASL` or
+`DIGEST-MD5`, and `transport` takes `http` or `binary`. `PLAIN` is not an
+`auth` value, although the driver does use `PLAIN` internally as the SASL
+mechanism for `NONE`, `LDAP` and `CUSTOM`.
+
+`dburl` still does not check them. A panic is worse than an error, and the
+argument for catching it here is real, but the code that caught it would be a
+copy of a list that lives in another module and goes stale the moment that
+module changes. That is D5, and Dameng is what it looks like when it is
+written anyway.
+
+Two things follow instead. The client that injects options owns their values,
+under D7. And no example, test case or document here uses a value that panics,
+because an example is a recommendation. The hive test cases use `auth=NONE`.
