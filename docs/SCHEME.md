@@ -127,10 +127,11 @@ Add an alias only for a name the database is actually known by. An alias is
 cheap to add and expensive to remove. `usql` publishes every alias in its
 README table, so an alias is advertised as supported the moment it exists.
 
-Presto is the warning. It carried five aliases, and two of them were `s`
+Presto is the warning. It carried five aliases, and three of them were `s`
 suffixed variants meaning TLS. The v2 driver turned out to have no way to
-select TLS from the scheme at all. Removing those two was a breaking change
-to something documented on another project's front page.
+select TLS from the scheme at all. Removing them was a breaking change to
+something documented on another project's front page, and it took two
+releases: one to make them fail, and one to take them out. That is D14.
 
 Do not add an alias for a spelling you have not seen in use.
 

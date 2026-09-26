@@ -23,6 +23,7 @@ if D11 amends D4, then D4 says so too.
 | [D11](#d11-netezza-keeps-sharing-genpostgres) | Decided |
 | [D12](#d12-a-scheme-follows-its-driver-out-of-usql) | Decided |
 | [D13](#d13-this-registry-writes-two-published-driver-tables) | Decided |
+| [D14](#d14-an-alias-that-cannot-work-is-removed-not-left-failing) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -235,12 +236,35 @@ runs `go generate`, with nobody editing `usql`. A scheme removed here drops
 out of both tables. Neither is a change you make in the repository where it
 shows up.
 
-Treat an alias as published, because it is. The three Presto aliases that
-v0.27.0 turned into errors, `prs`, `prestos` and `prestodbs`, are listed in
-`usql`'s README table today. No issue or pull request in `usql` references
-any of them, so there is no evidence of use, but they are advertised as
-supported, which is a higher bar than an undocumented alias changing quietly.
-Say so in the release note.
+Treat an alias as published, because it is. Making an alias fail does not
+unpublish it, because the table is built from the registry and a failing
+alias is still registered. That is what D14 had to fix.
 
 The coupling runs one way in code. Nothing in `usql` calls a `Gen*` func. The
 only links are `Parse` and the two generator calls in `gen.go`.
+
+### D14. An alias that cannot work is removed, not left failing. Decided.
+
+v0.27.0 made `prs`, `prestos` and `prestodbs` return an error unless a TLS
+option was present, because the v2 driver selects TLS from `ssl_ca`,
+`ssl_cert`, `ssl_key` and `ssl_skip_verify` and never from the scheme, so a
+trailing `s` had nothing to map onto.
+
+That was half a fix. The aliases stayed in the registry, so `buildAliases`
+kept emitting them and `usql`'s published table still advertised all five.
+Regeneration could not correct it, because nothing in the registry had
+changed. The result was a front page offering three aliases that cannot
+connect.
+
+They are removed. `presto` keeps `pr` and `prestodb`, and TLS is reached by
+setting one of the four options on the plain scheme, which also moves the
+default port to 8443.
+
+Gemini and DeepSeek were both asked and both said keep the aliases and add
+scheme metadata so `usql` could render a footnote. Ken chose removal. The
+reasoning against is worth keeping: removal costs an error message that named
+the exact option to set, and it breaks the same three names in two
+consecutive releases.
+
+The general rule: an alias that cannot work under any input does not belong in
+the registry. Making it fail leaves it advertised.

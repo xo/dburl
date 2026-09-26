@@ -299,7 +299,7 @@ func BaseSchemes() []Scheme {
 		{
 			"presto",
 			GenPresto, 0, false,
-			[]string{"prestodb", "prestos", "prs", "prestodbs"},
+			[]string{"prestodb"},
 			"",
 		},
 		{

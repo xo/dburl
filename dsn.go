@@ -503,9 +503,9 @@ func GenPostgres(u *URL) (string, string, error) {
 // session property. The catalog and the schema cannot go there.
 //
 // The driver selects TLS from the ssl_ca, ssl_cert, ssl_key and
-// ssl_skip_verify options, and not from the scheme. A "s" suffixed alias such
-// as prestos:// cannot request TLS on its own, and is rejected when none of
-// those options is present.
+// ssl_skip_verify options, and not from the scheme, so presto has no "s"
+// suffixed alias. Setting any of those options also moves the default port
+// to 8443.
 //
 // See [GenTrino], which Trino uses instead. The two drivers want different
 // DSNs.
@@ -527,20 +527,13 @@ func GenPresto(u *URL) (string, string, error) {
 	if z.Host == "" {
 		z.Host = "localhost"
 	}
-	// determine TLS the same way the driver does
+	// determine TLS the same way the driver does. presto has no "s" suffixed
+	// alias, because the driver reads TLS from these options and never from
+	// the scheme. See D14.
 	q := z.Query()
 	secure := q.Get("ssl_ca") != "" || q.Get("ssl_cert") != "" || q.Get("ssl_key") != ""
 	if v := q.Get("ssl_skip_verify"); v == "true" || v == "1" {
 		secure = true
-	}
-	// reject a "s" suffixed alias that carries no TLS option, as the scheme
-	// alone cannot reach a TLS listener
-	if strings.HasSuffix(u.OriginalScheme, "s") && !secure {
-		return "", "", fmt.Errorf(
-			"%w: %s cannot select TLS, set ssl_ca, ssl_cert, ssl_key, or ssl_skip_verify",
-			ErrInvalidQuery,
-			u.OriginalScheme,
-		)
 	}
 	// force port
 	if z.Port() == "" {
