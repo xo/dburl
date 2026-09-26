@@ -35,6 +35,36 @@ func TestNoDependencies(t *testing.T) {
 	}
 }
 
+// TestEveryDecisionIsIndexed checks that the table at the top of
+// docs/PLAN.md lists every decision written below it, and nothing else.
+//
+// A decision log rots when an entry is added and the index is not. See D10.
+func TestEveryDecisionIsIndexed(t *testing.T) {
+	buf, err := os.ReadFile("docs/PLAN.md")
+	if err != nil {
+		t.Fatalf("expected no error, got: %v", err)
+	}
+	indexed, written := make(map[string]bool), make(map[string]bool)
+	for _, line := range strings.Split(string(buf), "\n") {
+		switch {
+		case strings.HasPrefix(line, "| [D"):
+			indexed[line[3:strings.Index(line, "]")]] = true
+		case strings.HasPrefix(line, "### D"):
+			written[line[4:strings.Index(line, ".")]] = true
+		}
+	}
+	for d := range written {
+		if !indexed[d] {
+			t.Errorf("D%s is written but not in the index", d)
+		}
+	}
+	for d := range indexed {
+		if !written[d] {
+			t.Errorf("D%s is in the index but not written", d)
+		}
+	}
+}
+
 func TestBadParse(t *testing.T) {
 	tests := []struct {
 		s   string
