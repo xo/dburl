@@ -62,6 +62,18 @@ type Scheme struct {
 	//
 	// Used for "wire compatible" driver schemes.
 	Override string
+	// Dialect is the Driver of the scheme that is canonical for the database
+	// product, which is this scheme's own Driver when it is the canonical
+	// one.
+	//
+	// A product reached by more than one Go driver has a scheme per driver,
+	// because each Driver is a name a caller passes to sql.Open. They share a
+	// Dialect: pgx and postgres are both PostgreSQL, as moderncsqlite and
+	// sqlite3 are both SQLite3.
+	//
+	// A wire compatible scheme takes the Dialect of the product it speaks to,
+	// which is the same as its Override.
+	Dialect string
 	// Desc is the database display name, as "Apache Hive".
 	Desc string
 	// Home is the home page of the database provider. It can be blank.
@@ -107,6 +119,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/go-sql-driver/mysql",
 			DriverURL:  "https://github.com/go-sql-driver/mysql",
 			Deployment: DeploymentServer,
+			Dialect:    "mysql",
 		},
 		{
 			Driver:     "oracle",
@@ -117,6 +130,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/sijms/go-ora/v3",
 			DriverURL:  "https://github.com/sijms/go-ora",
 			Deployment: DeploymentServer,
+			Dialect:    "oracle",
 		},
 		{
 			Driver:     "postgres",
@@ -128,6 +142,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/lib/pq",
 			DriverURL:  "https://github.com/lib/pq",
 			Deployment: DeploymentServer,
+			Dialect:    "postgres",
 		},
 		{
 			Driver:      "sqlite3",
@@ -140,6 +155,7 @@ func BaseSchemes() []Scheme {
 			DriverURL:   "https://github.com/mattn/go-sqlite3",
 			RequiresCGO: true,
 			Deployment:  DeploymentEmbedded,
+			Dialect:     "sqlite3",
 		},
 		{
 			Driver:     "sqlserver",
@@ -150,6 +166,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/microsoft/go-mssqldb",
 			DriverURL:  "https://github.com/microsoft/go-mssqldb",
 			Deployment: DeploymentServer,
+			Dialect:    "sqlserver",
 		},
 		// wire compatibles
 		{
@@ -160,6 +177,7 @@ func BaseSchemes() []Scheme {
 			Desc:       "CockroachDB",
 			Home:       "https://www.cockroachlabs.com",
 			Deployment: DeploymentServer | DeploymentHosted,
+			Dialect:    "postgres",
 		},
 		{
 			Driver:     "memsql",
@@ -168,6 +186,7 @@ func BaseSchemes() []Scheme {
 			Desc:       "SingleStore MemSQL",
 			Home:       "https://www.singlestore.com",
 			Deployment: DeploymentServer,
+			Dialect:    "mysql",
 		},
 		{
 			Driver:     "redshift",
@@ -177,6 +196,7 @@ func BaseSchemes() []Scheme {
 			Desc:       "Amazon Redshift",
 			Home:       "https://aws.amazon.com/redshift",
 			Deployment: DeploymentHosted,
+			Dialect:    "postgres",
 		},
 		{
 			Driver:     "tidb",
@@ -185,6 +205,7 @@ func BaseSchemes() []Scheme {
 			Desc:       "TiDB",
 			Home:       "https://www.pingcap.com/tidb",
 			Deployment: DeploymentServer,
+			Dialect:    "mysql",
 		},
 		{
 			Driver:     "vitess",
@@ -194,6 +215,7 @@ func BaseSchemes() []Scheme {
 			Desc:       "Vitess Database",
 			Home:       "https://vitess.io",
 			Deployment: DeploymentServer,
+			Dialect:    "mysql",
 		},
 		// alternate implementations
 		{
@@ -206,6 +228,7 @@ func BaseSchemes() []Scheme {
 			DriverURL:   "https://github.com/godror/godror",
 			RequiresCGO: true,
 			Deployment:  DeploymentServer,
+			Dialect:     "oracle",
 		},
 		{
 			Driver:     "moderncsqlite",
@@ -217,6 +240,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "modernc.org/sqlite",
 			DriverURL:  "https://gitlab.com/cznic/sqlite",
 			Deployment: DeploymentEmbedded,
+			Dialect:    "sqlite3",
 		},
 		{
 			Driver:     "mymysql",
@@ -228,6 +252,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/ziutek/mymysql/godrv",
 			DriverURL:  "https://github.com/ziutek/mymysql",
 			Deployment: DeploymentServer,
+			Dialect:    "mysql",
 		},
 		{
 			Driver:     "pgx",
@@ -239,6 +264,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/jackc/pgx/v5/stdlib",
 			DriverURL:  "https://github.com/jackc/pgx",
 			Deployment: DeploymentServer,
+			Dialect:    "postgres",
 		},
 		// other databases
 		{
@@ -249,6 +275,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/mattn/go-adodb",
 			DriverURL:  "https://github.com/mattn/go-adodb",
 			Deployment: DeploymentServer,
+			Dialect:    "adodb",
 		},
 		{
 			Driver:     "awsathena",
@@ -259,6 +286,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/uber/athenadriver/go",
 			DriverURL:  "https://github.com/uber/athenadriver",
 			Deployment: DeploymentHosted,
+			Dialect:    "awsathena",
 		},
 		{
 			Driver:     "avatica",
@@ -269,6 +297,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/apache/calcite-avatica-go/v5",
 			DriverURL:  "https://github.com/apache/calcite-avatica-go",
 			Deployment: DeploymentServer,
+			Dialect:    "avatica",
 		},
 		{
 			Driver:     "bigquery",
@@ -279,6 +308,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "gorm.io/driver/bigquery/driver",
 			DriverURL:  "https://github.com/go-gorm/bigquery",
 			Deployment: DeploymentHosted,
+			Dialect:    "bigquery",
 		},
 		{
 			Driver:     "clickhouse",
@@ -290,6 +320,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/ClickHouse/clickhouse-go/v2",
 			DriverURL:  "https://github.com/ClickHouse/clickhouse-go",
 			Deployment: DeploymentServer,
+			Dialect:    "clickhouse",
 		},
 		{
 			Driver:     "cosmos",
@@ -300,6 +331,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/btnguyen2k/gocosmos",
 			DriverURL:  "https://github.com/btnguyen2k/gocosmos",
 			Deployment: DeploymentHosted,
+			Dialect:    "cosmos",
 		},
 		{
 			Driver:     "cql",
@@ -310,6 +342,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/MichaelS11/go-cql-driver",
 			DriverURL:  "https://github.com/MichaelS11/go-cql-driver",
 			Deployment: DeploymentServer,
+			Dialect:    "cql",
 		},
 		{
 			Driver:     "csvq",
@@ -321,6 +354,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/mithrandie/csvq-driver",
 			DriverURL:  "https://github.com/mithrandie/csvq-driver",
 			Deployment: DeploymentEmbedded,
+			Dialect:    "csvq",
 		},
 		{
 			Driver:     "databend",
@@ -331,6 +365,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/datafuselabs/databend-go",
 			DriverURL:  "https://github.com/datafuselabs/databend-go",
 			Deployment: DeploymentServer,
+			Dialect:    "databend",
 		},
 		{
 			Driver:     "databricks",
@@ -341,6 +376,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/databricks/databricks-sql-go",
 			DriverURL:  "https://github.com/databricks/databricks-sql-go",
 			Deployment: DeploymentHosted,
+			Dialect:    "databricks",
 		},
 		{
 			Driver:      "duckdb",
@@ -353,6 +389,7 @@ func BaseSchemes() []Scheme {
 			DriverURL:   "https://github.com/duckdb/duckdb-go",
 			RequiresCGO: true,
 			Deployment:  DeploymentEmbedded,
+			Dialect:     "duckdb",
 		},
 		{
 			Driver:     "godynamo",
@@ -363,6 +400,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/btnguyen2k/godynamo",
 			DriverURL:  "https://github.com/btnguyen2k/godynamo",
 			Deployment: DeploymentHosted,
+			Dialect:    "godynamo",
 		},
 		{
 			Driver:     "exasol",
@@ -373,6 +411,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/exasol/exasol-driver-go",
 			DriverURL:  "https://github.com/exasol/exasol-driver-go",
 			Deployment: DeploymentServer,
+			Dialect:    "exasol",
 		},
 		{
 			Driver:     "firebirdsql",
@@ -383,6 +422,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/nakagami/firebirdsql",
 			DriverURL:  "https://github.com/nakagami/firebirdsql",
 			Deployment: DeploymentServer,
+			Dialect:    "firebirdsql",
 		},
 		{
 			Driver:     "flightsql",
@@ -393,6 +433,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/apache/arrow/go/v17/arrow/flight/flightsql/driver",
 			DriverURL:  "https://github.com/apache/arrow/tree/main/go/arrow/flight/flightsql/driver",
 			Deployment: DeploymentServer,
+			Dialect:    "flightsql",
 		},
 		{
 			Driver:     "chai",
@@ -404,6 +445,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/chaisql/chai",
 			DriverURL:  "https://github.com/chaisql/chai",
 			Deployment: DeploymentEmbedded,
+			Dialect:    "chai",
 		},
 		{
 			Driver:     "h2",
@@ -413,6 +455,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/jmrobles/h2go",
 			DriverURL:  "https://github.com/jmrobles/h2go",
 			Deployment: DeploymentServer,
+			Dialect:    "h2",
 		},
 		{
 			Driver:     "hdb",
@@ -423,6 +466,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/SAP/go-hdb/driver",
 			DriverURL:  "https://github.com/SAP/go-hdb",
 			Deployment: DeploymentServer,
+			Dialect:    "hdb",
 		},
 		{
 			Driver:     "hive",
@@ -433,6 +477,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/beltran/gohive/v2",
 			DriverURL:  "https://github.com/beltran/gohive",
 			Deployment: DeploymentServer,
+			Dialect:    "hive",
 		},
 		{
 			Driver:     "ignite",
@@ -443,6 +488,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/amsokol/ignite-go-client/sql",
 			DriverURL:  "https://github.com/amsokol/ignite-go-client",
 			Deployment: DeploymentServer,
+			Dialect:    "ignite",
 		},
 		{
 			Driver:     "impala",
@@ -452,6 +498,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/sclgo/impala-go",
 			DriverURL:  "https://github.com/sclgo/impala-go",
 			Deployment: DeploymentServer,
+			Dialect:    "impala",
 		},
 		{
 			Driver:     "maxcompute",
@@ -462,6 +509,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "sqlflow.org/gomaxcompute",
 			DriverURL:  "https://github.com/sql-machine-learning/gomaxcompute",
 			Deployment: DeploymentHosted,
+			Dialect:    "maxcompute",
 		},
 		{
 			Driver:     "n1ql",
@@ -472,6 +520,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/couchbase/go_n1ql",
 			DriverURL:  "https://github.com/couchbase/go_n1ql",
 			Deployment: DeploymentServer,
+			Dialect:    "n1ql",
 		},
 		{
 			Driver:     "nzgo",
@@ -483,6 +532,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/IBM/nzgo/v12",
 			DriverURL:  "https://github.com/IBM/nzgo",
 			Deployment: DeploymentServer,
+			Dialect:    "nzgo",
 		},
 		{
 			Driver:      "odbc",
@@ -494,6 +544,7 @@ func BaseSchemes() []Scheme {
 			DriverURL:   "https://github.com/alexbrainman/odbc",
 			RequiresCGO: true,
 			Deployment:  DeploymentServer,
+			Dialect:     "odbc",
 		},
 		{
 			Driver:     "oleodbc",
@@ -503,6 +554,7 @@ func BaseSchemes() []Scheme {
 			Override:   "adodb",
 			Desc:       "OLE ODBC",
 			Deployment: DeploymentServer,
+			Dialect:    "adodb",
 		},
 		{
 			Driver:     "ots",
@@ -514,6 +566,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/aliyun/aliyun-tablestore-go-sql-driver",
 			DriverURL:  "https://github.com/aliyun/aliyun-tablestore-go-sql-driver",
 			Deployment: DeploymentHosted,
+			Dialect:    "ots",
 		},
 		{
 			Driver:     "presto",
@@ -524,6 +577,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/prestodb/presto-go-client/v2",
 			DriverURL:  "https://github.com/prestodb/presto-go-client",
 			Deployment: DeploymentServer,
+			Dialect:    "presto",
 		},
 		{
 			Driver:     "ql",
@@ -534,6 +588,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "modernc.org/ql",
 			DriverURL:  "https://gitlab.com/cznic/ql",
 			Deployment: DeploymentEmbedded,
+			Dialect:    "ql",
 		},
 		{
 			Driver:     "snowflake",
@@ -544,6 +599,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/snowflakedb/gosnowflake/v2",
 			DriverURL:  "https://github.com/snowflakedb/gosnowflake",
 			Deployment: DeploymentHosted,
+			Dialect:    "snowflake",
 		},
 		{
 			Driver:     "spanner",
@@ -554,6 +610,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/googleapis/go-sql-spanner",
 			DriverURL:  "https://github.com/googleapis/go-sql-spanner",
 			Deployment: DeploymentHosted,
+			Dialect:    "spanner",
 		},
 		{
 			Driver:     "tds",
@@ -564,6 +621,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/thda/tds",
 			DriverURL:  "https://github.com/thda/tds",
 			Deployment: DeploymentServer,
+			Dialect:    "tds",
 		},
 		{
 			Driver:     "trino",
@@ -574,6 +632,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/trinodb/trino-go-client/trino",
 			DriverURL:  "https://github.com/trinodb/trino-go-client",
 			Deployment: DeploymentServer,
+			Dialect:    "trino",
 		},
 		{
 			Driver:     "vertica",
@@ -583,6 +642,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/vertica/vertica-sql-go",
 			DriverURL:  "https://github.com/vertica/vertica-sql-go",
 			Deployment: DeploymentServer,
+			Dialect:    "vertica",
 		},
 		{
 			Driver:     "voltdb",
@@ -593,6 +653,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/VoltDB/voltdb-client-go/voltdbclient",
 			DriverURL:  "https://github.com/VoltDB/voltdb-client-go",
 			Deployment: DeploymentServer,
+			Dialect:    "voltdb",
 		},
 		{
 			Driver:     "ydb",
@@ -603,6 +664,7 @@ func BaseSchemes() []Scheme {
 			GoPackage:  "github.com/ydb-platform/ydb-go-sdk/v3",
 			DriverURL:  "https://github.com/ydb-platform/ydb-go-sdk",
 			Deployment: DeploymentServer,
+			Dialect:    "ydb",
 		},
 	}
 }

@@ -41,7 +41,12 @@ func TestNoDependencies(t *testing.T) {
 // rather than having usql generate it. A scheme missing a field is a row usql
 // cannot render. See D17.
 func TestSchemeMetadata(t *testing.T) {
-	for _, scheme := range BaseSchemes() {
+	schemes := BaseSchemes()
+	dialects := make(map[string]string, len(schemes))
+	for _, scheme := range schemes {
+		dialects[scheme.Driver] = scheme.Dialect
+	}
+	for _, scheme := range schemes {
 		// file is a pseudo scheme that resolves paths on disk, and has no
 		// database and no driver behind it
 		if scheme.Driver == "file" {
@@ -52,6 +57,20 @@ func TestSchemeMetadata(t *testing.T) {
 		}
 		if scheme.Deployment == 0 {
 			t.Errorf("%s: expected a Deployment, got: %d", scheme.Driver, scheme.Deployment)
+		}
+		if scheme.Dialect == "" {
+			t.Errorf("%s: expected a Dialect, got: %q", scheme.Driver, scheme.Dialect)
+		}
+		// a Dialect names a registered scheme, and that scheme is canonical
+		// for its product, so it names itself
+		if _, ok := dialects[scheme.Dialect]; !ok {
+			t.Errorf("%s: Dialect %q is not a registered scheme", scheme.Driver, scheme.Dialect)
+		} else if d := dialects[scheme.Dialect]; d != scheme.Dialect {
+			t.Errorf("%s: Dialect %q itself has Dialect %q", scheme.Driver, scheme.Dialect, d)
+		}
+		// a wire compatible scheme speaks the dialect it overrides
+		if scheme.Override != "" && scheme.Dialect != scheme.Override {
+			t.Errorf("%s: expected Dialect %q, got: %q", scheme.Driver, scheme.Override, scheme.Dialect)
 		}
 		// a wire compatible scheme reaches its driver through Override, so
 		// the driver fields belong to the scheme it points at

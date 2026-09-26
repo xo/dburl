@@ -137,6 +137,13 @@ A wire compatible scheme sets `Override` and leaves `GoPackage` and
 `DriverURL` blank, because it reaches its driver through the scheme it points
 at. `TestSchemeMetadata` checks all of this. That is D17.
 
+Set `Deployment` to how the database is deployed, which is D18. Set `Dialect`
+to the `Driver` of the scheme that is canonical for the product, which is the
+scheme's own `Driver` unless you are adding a second Go driver for a product
+that already has one. `pgx` and `postgres` are both PostgreSQL and share a
+`Dialect`. A wire compatible scheme takes the `Dialect` of what it speaks,
+which is the same as its `Override`. That is D19.
+
 A two letter alias is registered automatically from the first two characters
 of the name, unless one of the aliases is already two characters.
 

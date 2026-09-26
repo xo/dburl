@@ -28,6 +28,7 @@ if D11 amends D4, then D4 says so too.
 | [D16](#d16-a-required-option-with-no-valid-empty-value-gets-a-default) | Decided |
 | [D17](#d17-a-scheme-describes-its-own-database-and-driver) | Decided |
 | [D18](#d18-a-scheme-records-how-the-database-is-deployed) | Decided |
+| [D19](#d19-a-scheme-names-the-dialect-of-its-product) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -504,3 +505,59 @@ version scoped while a scheme row has no version, and it is accepted on the
 same terms: low rate of change, and the field earns its place otherwise.
 
 `TestSchemeMetadata` requires a non-zero `Deployment` on every scheme.
+
+### D19. A scheme names the dialect of its product. Decided.
+
+`Scheme` gains `Dialect`, the `Driver` of the scheme that is canonical for
+the database product. A canonical scheme names itself.
+
+A product reached by more than one Go driver has a scheme per driver, because
+each `Driver` is a name a caller passes to `sql.Open` and neither should
+override the other. Four pairs exist: `pgx` with `postgres`, `moderncsqlite`
+with `sqlite3`, `godror` with `oracle`, and `mymysql` with `mysql`. A consumer
+that maps `URL.Driver` to a product finds nothing for the first of each pair,
+because `pgx`, `moderncsqlite`, `godror` and `mymysql` are driver names and
+not product names.
+
+This is not the wire compatible relation, which `Override` already carries.
+`cockroachdb` and `redshift` are different products that speak PostgreSQL, and
+`Override` makes `URL.Driver` say so. `pgx` and `postgres` are the same
+product reached two ways. A wire compatible scheme takes the `Dialect` of what
+it speaks, so its `Dialect` and its `Override` agree.
+
+WHY IT IS NOT DERIVED
+
+`Desc` almost carries it and cannot be keyed on. Matching by prefix finds
+`pgx` from "PostgreSQL PGX" and `mymysql` from "MySQL MyMySQL", and misses
+`moderncsqlite` and `godror`, whose descriptions are "ModernC SQLite3" and
+"GO DRiver for ORacle" and contain neither product name.
+
+`Home` does group all four pairs correctly today, which is how the fourth pair
+was found. It is not a sound key: it is blank on three schemes, it is model
+recall rather than measured, and two unrelated products can share a vendor
+page.
+
+EVERY SCHEME CARRIES ONE
+
+A blank `Dialect` meaning "this scheme is its own dialect" would overload
+absence with a meaning, which is what D17 rejected when it killed `*Info` with
+nil meaning wire compatible. So a canonical scheme names itself, a consumer
+reads the field without a conditional, and a test can require it.
+
+`file` is the exception and has none, as it has no `Desc` either. It resolves
+a path on disk and has no product behind it.
+
+`TestSchemeMetadata` requires a non-empty `Dialect`, that it names a
+registered scheme, that the named scheme is canonical, and that a wire
+compatible scheme agrees with its `Override`.
+
+WHO ASKED
+
+dbmeta, which cannot import `dburl` and will not read the field at runtime.
+Its hard rule 1 forbids the dependency and its D19 removed it after it had
+been decided once. It reads this registry at authoring time instead, which its
+D80 records. The runtime readers are `usql` and `dbtpl`.
+
+`mymysql` is the pair dbmeta did not name, because it has no model that passes
+on that driver. That is a fact about dbmeta's coverage and not about the
+product, so the pair is recorded here regardless.
