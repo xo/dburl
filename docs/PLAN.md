@@ -215,18 +215,25 @@ and it was written to be read by coding agents.
 ### D13. This registry writes two published driver tables. Decided.
 
 `usql` generates the driver table in its own README and the one in this
-README from a single builder, and that builder reads this registry.
-`gen.go` calls `writeReadme` twice, once for `usql` and once for here behind
-`-dburl-gen`, and `buildAliases` calls `dburl.SchemeDriverAndAliases` for the
-alias column and `dburl.FileTypes` to decide which rows carry a `file` alias.
+README from a single builder. `gen.go` calls `writeReadme` twice, once for
+`usql` and once for here behind `-dburl-gen`.
 
-So a scheme name or an alias changed here rewrites `usql`'s front page the
-next time anyone runs `go generate`, with nobody editing `usql`.
+One of the four columns reads this registry. `buildAliases` calls
+`dburl.SchemeDriverAndAliases` for the alias column, and `dburl.FileTypes` to
+decide which rows carry a `file` alias. The other three are `usql`'s own data:
+the description and the driver package come from the driver's doc comment, and
+the `Scheme / Tag` column is `v.Tag`, which is the name of the directory the
+driver lives in.
 
-Two consequences follow, and both cut the wrong way if they are a surprise.
-A scheme removed here drops out of `usql`'s table even when `usql` still has
-the driver. An alias changed here is a documentation change in a repository
-you are not working in.
+That last point explains a row that looks wrong and is not. DynamoDB shows
+`godynamo` in this registry and `dynamodb` in the table, because the column is
+`usql`'s build tag rather than the registered scheme. The tag is also a `dburl`
+alias, so both work.
+
+So an alias changed here rewrites `usql`'s front page the next time anyone
+runs `go generate`, with nobody editing `usql`. A scheme removed here drops
+out of both tables. Neither is a change you make in the repository where it
+shows up.
 
 Treat an alias as published, because it is. The three Presto aliases that
 v0.27.0 turned into errors, `prs`, `prestos` and `prestodbs`, are listed in
