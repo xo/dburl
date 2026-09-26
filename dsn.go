@@ -495,18 +495,28 @@ func GenPostgres(u *URL) (string, string, error) {
 }
 
 // GenPresto generates a presto DSN from the passed URL.
+//
+// Targets [prestodb/presto-go-client/v2], which accepts only the presto and
+// trino schemes, and which reads the catalog and schema from the path. The
+// driver sends any query option it does not recognize to the server as a
+// session property, so the catalog and schema cannot be passed that way.
+//
+// The driver selects TLS from the ssl_ca, ssl_cert, ssl_key and
+// ssl_skip_verify options, and not from the scheme. A "s" suffixed alias such
+// as prestos:// cannot request TLS on its own, and is rejected when none of
+// those options is present.
+//
+// See [GenTrino], which Trino uses instead. The two drivers want different
+// DSNs.
+//
+// [prestodb/presto-go-client/v2]: https://github.com/prestodb/presto-go-client
 func GenPresto(u *URL) (string, string, error) {
 	z := &url.URL{
-		Scheme:   "http",
-		Opaque:   u.Opaque,
+		Scheme:   "presto",
 		User:     u.User,
 		Host:     u.Host,
 		RawQuery: u.RawQuery,
 		Fragment: u.Fragment,
-	}
-	// change to https
-	if strings.HasSuffix(u.OriginalScheme, "s") {
-		z.Scheme = "https"
 	}
 	// force user
 	if z.User == nil {
@@ -516,28 +526,39 @@ func GenPresto(u *URL) (string, string, error) {
 	if z.Host == "" {
 		z.Host = "localhost"
 	}
+	// determine TLS the same way the driver does
+	q := z.Query()
+	secure := q.Get("ssl_ca") != "" || q.Get("ssl_cert") != "" || q.Get("ssl_key") != ""
+	if v := q.Get("ssl_skip_verify"); v == "true" || v == "1" {
+		secure = true
+	}
+	// reject a "s" suffixed alias that carries no TLS option, as the scheme
+	// alone cannot reach a TLS listener
+	if strings.HasSuffix(u.OriginalScheme, "s") && !secure {
+		return "", "", fmt.Errorf(
+			"%w: %s cannot select TLS, set ssl_ca, ssl_cert, ssl_key, or ssl_skip_verify",
+			ErrInvalidQuery,
+			u.OriginalScheme,
+		)
+	}
 	// force port
 	if z.Port() == "" {
-		switch z.Scheme {
-		case "http":
-			z.Host += ":8080"
-		case "https":
+		switch {
+		case secure:
 			z.Host += ":8443"
+		default:
+			z.Host += ":8080"
 		}
 	}
-	// add parameters
-	q := z.Query()
-	dbname, schema := strings.TrimPrefix(u.Path, "/"), ""
-	if dbname == "" {
-		dbname = "default"
-	} else if i := strings.Index(dbname, "/"); i != -1 {
-		schema, dbname = dbname[i+1:], dbname[:i]
+	// catalog and schema are path components, split as the driver splits them
+	catalog, schema, _ := strings.Cut(strings.TrimPrefix(u.Path, "/"), "/")
+	if catalog == "" {
+		catalog = "default"
 	}
-	q.Set("catalog", dbname)
+	z.Path = "/" + catalog
 	if schema != "" {
-		q.Set("schema", schema)
+		z.Path += "/" + schema
 	}
-	z.RawQuery = q.Encode()
 	return z.String(), "", nil
 }
 
@@ -625,6 +646,61 @@ func GenTableStore(u *URL) (string, string, error) {
 		RawQuery: u.RawQuery,
 		Fragment: u.Fragment,
 	}
+	return z.String(), "", nil
+}
+
+// GenTrino generates a trino DSN from the passed URL.
+//
+// Targets [trinodb/trino-go-client], which takes an http or https URL and
+// reads the catalog and schema from the query.
+//
+// See [GenPresto]. Trino and Presto share a wire protocol, but their drivers
+// disagree about the scheme and about where the catalog and schema belong.
+//
+// [trinodb/trino-go-client]: https://github.com/trinodb/trino-go-client
+func GenTrino(u *URL) (string, string, error) {
+	z := &url.URL{
+		Scheme:   "http",
+		Opaque:   u.Opaque,
+		User:     u.User,
+		Host:     u.Host,
+		RawQuery: u.RawQuery,
+		Fragment: u.Fragment,
+	}
+	// change to https
+	if strings.HasSuffix(u.OriginalScheme, "s") {
+		z.Scheme = "https"
+	}
+	// force user
+	if z.User == nil {
+		z.User = url.User("user")
+	}
+	// force host
+	if z.Host == "" {
+		z.Host = "localhost"
+	}
+	// force port
+	if z.Port() == "" {
+		switch z.Scheme {
+		case "http":
+			z.Host += ":8080"
+		case "https":
+			z.Host += ":8443"
+		}
+	}
+	// add parameters
+	q := z.Query()
+	dbname, schema := strings.TrimPrefix(u.Path, "/"), ""
+	if dbname == "" {
+		dbname = "default"
+	} else if i := strings.Index(dbname, "/"); i != -1 {
+		schema, dbname = dbname[i+1:], dbname[:i]
+	}
+	q.Set("catalog", dbname)
+	if schema != "" {
+		q.Set("schema", schema)
+	}
+	z.RawQuery = q.Encode()
 	return z.String(), "", nil
 }
 

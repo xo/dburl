@@ -334,7 +334,7 @@ func BaseSchemes() []Scheme {
 		},
 		{
 			"trino",
-			GenPresto, 0, false,
+			GenTrino, 0, false,
 			[]string{"trino", "trinos", "trs"},
 			"",
 		},

@@ -225,6 +225,20 @@ You can write any alias as `alias://` in place of `protocol://`.
 [`dburl.Parse`][goref-parse] and [`dburl.Open`][goref-open] treat the two the
 same.
 
+### Presto and Trino
+
+Presto and Trino share a wire protocol, but their drivers want different
+connection strings. The Presto driver takes a `presto://` URL and reads the
+catalog and the schema from the path. The Trino driver takes an `http://` or
+`https://` URL and reads them from the query. `dburl` writes the correct form
+for each.
+
+The Presto driver selects TLS from the `ssl_ca`, `ssl_cert`, `ssl_key` and
+`ssl_skip_verify` options, and not from the scheme. The `prestos://`,
+`prestodbs://` and `prs://` aliases cannot request TLS on their own, so
+`dburl` rejects them when none of those options is present. Trino is not
+affected, and `trinos://` still selects HTTPS.
+
 ## Installing
 
 Install `dburl` with `go get`:
