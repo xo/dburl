@@ -50,6 +50,9 @@ func TestSchemeMetadata(t *testing.T) {
 		if scheme.Desc == "" {
 			t.Errorf("%s: expected a Desc, got: %q", scheme.Driver, scheme.Desc)
 		}
+		if scheme.Deployment == 0 {
+			t.Errorf("%s: expected a Deployment, got: %d", scheme.Driver, scheme.Deployment)
+		}
 		// a wire compatible scheme reaches its driver through Override, so
 		// the driver fields belong to the scheme it points at
 		if scheme.Override != "" {

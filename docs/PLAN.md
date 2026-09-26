@@ -27,6 +27,7 @@ if D11 amends D4, then D4 says so too.
 | [D15](#d15-dburl-does-not-validate-driver-option-values) | Decided |
 | [D16](#d16-a-required-option-with-no-valid-empty-value-gets-a-default) | Decided |
 | [D17](#d17-a-scheme-describes-its-own-database-and-driver) | Decided |
+| [D18](#d18-a-scheme-records-how-the-database-is-deployed) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -448,3 +449,58 @@ version, and for every versioned driver the two diverge correctly:
 `TestSchemeMetadata` enforces it: every scheme except `file` has a `Desc`,
 every scheme with a blank `Override` has a `GoPackage` and a `DriverURL`, and
 every scheme with an `Override` has neither.
+
+### D18. A scheme records how the database is deployed. Decided.
+
+`Scheme` gains `Deployment`, a bitmask of `DeploymentEmbedded`,
+`DeploymentServer` and `DeploymentHosted`. A database can hold more than one:
+CockroachDB is a server anyone can run and also a service, so it is
+`DeploymentServer|DeploymentHosted`.
+
+It exists for one thing. `gen.go` marks a row with a footnote when a database
+has no server to start, so a reader scanning fifty rows can see that
+`bigquery`, `athena`, `redshift`, `snowflake` and `spanner` are not things
+they can run. The marker is only added when `DeploymentHosted` is set and
+`DeploymentServer` is not, because a database that can be run locally has
+something to start even when a hosted product also exists.
+
+THE TEST THAT DECIDED THE SCOPE
+
+dbmeta proposed it and it is the reason this field is narrow: a field earns its
+place if it would still be true if every container registry vanished.
+
+BigQuery has no edition anyone can install and Athena is a query layer over
+S3. Those are facts about what the products are, and they will read the same
+in five years. dbmeta's own two blocked databases fail the same test. Vertica
+is unavailable because Rocket Software took it over this year, and Exasol
+fails on overlayfs, which is a gap in tooling. Either would have been wrong a
+week later while looking authoritative.
+
+So emulator availability is out. An emulator is software a vendor ships and
+can stop shipping, which is the Vertica failure mode exactly. `DeploymentServer`
+means an edition exists that anyone can run, not that an image exists today.
+
+WHO ASKED FOR IT, AND WHO CANNOT USE IT
+
+The question started from dbmeta, which runs a container per database. dbmeta
+cannot import `dburl` and never will, by its own hard rule, so it will never
+read this field and keeps its own `Info.Embedded` instead. That left `usql` as
+the only consumer, and it was asked directly.
+
+`usql` said yes for exactly one footnote, and said the justification was thin
+on its own. What changed the arithmetic was that D17's five fields were
+landing anyway, so its generator is already reading a metadata block and a
+sixth field costs nothing incremental. This repository generates its own table
+from the same registry, so there are two readers rather than one.
+
+Gemini argued against the field outright: deployment describes a vendor's
+commercial arrangement rather than the database. That is true of the
+mechanism, and the bitmask is the answer to it rather than a reason to drop
+the field, because CockroachDB being both is accurate rather than a fudge.
+
+The known weakness is a product moving to hosted only, which does happen and
+would go stale silently. It is the same weakness as `RequiresCGO`, which is
+version scoped while a scheme row has no version, and it is accepted on the
+same terms: low rate of change, and the field earns its place otherwise.
+
+`TestSchemeMetadata` requires a non-zero `Deployment` on every scheme.
