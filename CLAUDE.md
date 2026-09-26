@@ -40,7 +40,8 @@ yourself and do not write it as though it were settled.
 7. Supply a default host and a default port. Do not supply options that change
    how the driver or the database behaves. The calling client owns those. The
    only two in the codebase are `sslmode=disable` for CockroachDB and
-   `ServiceName` for DB2 over ODBC.
+   `ServiceName` for DB2 over ODBC. An option the driver cannot start without
+   is a separate case, covered by D16. `auth=NONE` for hive is the only one.
 8. Add a scheme only when the matching driver is in `usql`, or is expected
    there soon. Remove a scheme when `usql` removes its driver. A driver that
    `usql` only demoted to the `bad` build tag is still in `usql`, so its

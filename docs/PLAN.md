@@ -16,7 +16,7 @@ if D11 amends D4, then D4 says so too.
 | [D4](#d4-a-generator-is-written-against-the-driver-version-pinned-in-usql) | Decided |
 | [D5](#d5-dburl-does-not-compensate-for-a-broken-driver-parser) | Decided |
 | [D6](#d6-each-database-gets-its-own-generator) | Decided |
-| [D7](#d7-defaults-cover-the-host-and-the-port-and-not-driver-options) | Decided |
+| [D7](#d7-defaults-cover-the-host-and-the-port-and-not-driver-options) | Amended by D16 |
 | [D8](#d8-a-scheme-is-added-only-when-the-driver-is-expected-in-usql) | Decided |
 | [D9](#d9-golangci-lint-runs-in-ci-at-a-pinned-version) | Decided |
 | [D10](#d10-a-rule-that-has-no-test-is-not-a-rule) | Decided |
@@ -25,6 +25,7 @@ if D11 amends D4, then D4 says so too.
 | [D13](#d13-this-registry-writes-two-published-driver-tables) | Decided |
 | [D14](#d14-an-alias-that-cannot-work-is-removed-not-left-failing) | Decided |
 | [D15](#d15-dburl-does-not-validate-driver-option-values) | Decided |
+| [D16](#d16-a-required-option-with-no-valid-empty-value-gets-a-default) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -105,7 +106,7 @@ Presto. It was split in v0.27.0.
 Sharing was not the defect. Nobody rereading the drivers was. Split a
 generator when the drivers behind it stop agreeing, and not before.
 
-### D7. Defaults cover the host and the port, and not driver options. Decided.
+### D7. Defaults cover the host and the port, and not driver options. Amended by D16.
 
 A `dburl` URL supplies the settings that identify the server, and the passed
 URL overrides each one it names. That is the whole point of the translation.
@@ -118,6 +119,9 @@ The exception is an option that forces a standards compliant mode a using
 package needs, such as UTF-8 or connection retries. Two exist:
 `sslmode=disable` in the CockroachDB template, and `ServiceName` in the DB2
 path of `GenOdbc`.
+
+D16 adds a second exception, for an option the driver requires and has no
+valid empty value for. `auth=NONE` on `hive` is the only one.
 
 ### D8. A scheme is added only when the driver is expected in usql. Decided.
 
@@ -283,12 +287,84 @@ documentation: `auth` takes `NONE`, `LDAP`, `CUSTOM`, `KERBEROS`, `NOSASL` or
 `auth` value, although the driver does use `PLAIN` internally as the SASL
 mechanism for `NONE`, `LDAP` and `CUSTOM`.
 
-`dburl` still does not check them. A panic is worse than an error, and the
-argument for catching it here is real, but the code that caught it would be a
-copy of a list that lives in another module and goes stale the moment that
-module changes. That is D5, and Dameng is what it looks like when it is
-written anyway.
+`dburl` still does not check a value the caller supplies. A panic is worse
+than an error, and the argument for catching it here is real, but the code
+that caught it would be a copy of a list that lives in another module and goes
+stale the moment that module changes. That is D5, and Dameng is what it looks
+like when it is written anyway.
+
+Supplying a default for a missing option is a different thing from checking a
+value that is present, and D16 covers it.
 
 Two things follow instead. The client that injects options owns their values,
 under D7. And no example, test case or document here uses a value that panics,
 because an example is a recommendation. The hive test cases use `auth=NONE`.
+
+### D16. A required option with no valid empty value gets a default. Amends D7.
+
+D7 says defaults cover the host and the port and not driver options. That is
+still the rule. This adds one case it did not cover.
+
+`beltran/gohive/v2` does not treat a missing `auth` as unspecified. The
+connect path is an if/else chain over the accepted values, and an empty string
+reaches `panic("Unrecognized auth")` at `hive.go:297`. So `hive://host/mydb`,
+which is what this library emitted in v0.28.0, takes the caller's process
+down. dbmeta measured it against Apache Hive 4.2.1, and the chain was then
+confirmed in the pinned source.
+
+`GenHive` supplies `auth=NONE` when the caller has not. Any other value is
+passed through untouched.
+
+An empty value counts as not supplied. `?auth=` and a bare `?auth` both parse
+to an empty string, which is the value that panics, so treating them as an
+override would hand the defect straight back. `GenFromURL` cannot express
+that, because it overrides per key regardless of value, which is why `hive`
+has its own generator rather than a template.
+
+The line D7 draws is between an option that tunes a connection and a field the
+driver requires to build one. `auth` is the second. The same driver requires a
+database name and returns `database name is required` for an empty path, and
+this library already answers that with `default`. `GenPresto` does the same
+for an empty catalog. A required field with no valid empty value is structural
+even when it is spelled as a query option.
+
+`NONE` is the safe choice and not merely the common one. `NONE`, `LDAP` and
+`CUSTOM` all build a SASL `PLAIN` transport carrying the username and
+password. Against a server expecting Kerberos, that fails negotiation rather
+than connecting without authentication, so the default cannot downgrade a
+secured server. It is a protocol selection, not a decision to skip auth.
+
+Gemini and DeepSeek split on this. DeepSeek said emit nothing, because `auth`
+names an authentication mode and the panic is the driver's bug to fix. That
+reasoning is sound and is the reason this is an amendment with a stated scope
+rather than a loosening of D7. Ken chose the default.
+
+The scope is narrow. This covers an option the driver cannot start without. It
+does not cover an option that changes behaviour, which stays with the calling
+client.
+
+`transport` is the case that shows where the line falls, because it looks like
+`auth` and does not qualify. It is a mode selector, and an unknown value
+panics it too, at `hive.go:307`. It still gets no default here, because the
+driver has a working one and `auth` does not. That difference is visible in a
+single struct literal in `ParseDSN`:
+
+    parsedDSN := &DSN{
+        Database:      strings.TrimPrefix(u.Path, "/"),
+        TransportMode: "binary", // Default transport mode
+        Service:       "hive",   // Default service
+        ...
+    }
+
+`TransportMode` and `Service` are filled in. `Auth` is not, and is only
+assigned when the query carries a non-empty value, so it reaches the connect
+path as the empty string that panics.
+
+dbmeta measured all four `transport` forms against Apache Hive 4.2.1. Absent
+connects, `binary` connects, `http` fails cleanly with an EOF against a
+binary-mode server rather than panicking, and an unknown value panics. So the
+way to never emit a wrong `transport` is to not emit one, which is what this
+library does.
+
+The general test, for the next option that looks like this one: ask what the
+driver does with nothing, not only what it does with something wrong.

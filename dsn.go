@@ -308,6 +308,50 @@ func GenGodror(u *URL) (string, string, error) {
 	return dsn, "", nil
 }
 
+// GenHive generates a hive DSN from the passed URL.
+//
+// Targets [beltran/gohive/v2], whose ParseDSN rejects any string not starting
+// with "hive://" and reads the database name from the path.
+//
+// The database name is required, and an empty path is an error rather than a
+// default, so an absent one becomes "default".
+//
+// The driver also cannot start without auth. Its connect path is a chain over
+// the accepted values and anything else, including the empty string, reaches
+// panic("Unrecognized auth"). An absent or empty auth therefore becomes NONE.
+// Any other value the caller writes is passed through untouched. See D16.
+//
+// [beltran/gohive/v2]: https://github.com/beltran/gohive
+func GenHive(u *URL) (string, string, error) {
+	z := &url.URL{
+		Scheme:   "hive",
+		User:     u.User,
+		Host:     u.Host,
+		RawQuery: u.RawQuery,
+		Fragment: u.Fragment,
+	}
+	// force host
+	if z.Host == "" {
+		z.Host = "localhost"
+	}
+	// force port
+	if z.Port() == "" {
+		z.Host += ":10000"
+	}
+	// the database name is required
+	dbname := strings.TrimPrefix(u.Path, "/")
+	if dbname == "" {
+		dbname = "default"
+	}
+	z.Path = "/" + dbname
+	// supply auth only when the caller has not, as the driver panics without it
+	if q := z.Query(); q.Get("auth") == "" {
+		q.Set("auth", "NONE")
+		z.RawQuery = q.Encode()
+	}
+	return z.String(), "", nil
+}
+
 // GenIgnite generates an ignite DSN from the passed URL.
 func GenIgnite(u *URL) (string, string, error) {
 	host, port, dbname := "localhost", "10800", strings.TrimPrefix(u.Path, "/")

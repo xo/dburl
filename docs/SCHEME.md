@@ -84,9 +84,14 @@ Defaults stop there. Do not add an option that changes how the driver or the
 database behaves. The client that opens the connection owns those, and `usql`
 and `dbtpl` inject their own.
 
-One narrow exception exists. Set an option when it forces the driver or the
+Two narrow exceptions exist. Set an option when it forces the driver or the
 database into a standards compliant mode that a using package needs. Turning
-on UTF-8 and enabling connection retries are the kind of thing that qualifies. The whole codebase holds two
+on UTF-8 and enabling connection retries are the kind of thing that qualifies.
+
+Set one also when the driver cannot start without it and has no valid empty
+value for it. `hive` carries `auth=NONE` for that reason, because the driver
+panics on a missing `auth`. That is D16, and its scope is narrow: a field the
+driver needs to build a connection, never one that tunes it. The whole codebase holds two
 examples, `sslmode=disable` in the CockroachDB template and `ServiceName` in
 the DB2 path of `GenOdbc`. If you are writing a third, say why in
 [PLAN.md](PLAN.md). This is D7.

@@ -248,7 +248,7 @@ func BaseSchemes() []Scheme {
 		},
 		{
 			"hive",
-			GenFromURL("hive://localhost:10000/default"), 0, false,
+			GenHive, 0, false,
 			[]string{"hive2"},
 			"",
 		},

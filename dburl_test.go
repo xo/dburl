@@ -1030,19 +1030,19 @@ func TestParse(t *testing.T) {
 		{
 			`hive://myhost/mydb`,
 			`hive`,
-			`hive://myhost:10000/mydb`,
+			`hive://myhost:10000/mydb?auth=NONE`,
 			``,
 		},
 		{
 			`hive://myhost`,
 			`hive`,
-			`hive://myhost:10000/default`,
+			`hive://myhost:10000/default?auth=NONE`,
 			``,
 		},
 		{
 			`hive://`,
 			`hive`,
-			`hive://localhost:10000/default`,
+			`hive://localhost:10000/default?auth=NONE`,
 			``,
 		},
 		{
@@ -1060,13 +1060,37 @@ func TestParse(t *testing.T) {
 		{
 			`hive://myhost/mydb?sslcert=%2Fc.pem&sslkey=%2Fk.pem`,
 			`hive`,
-			`hive://myhost:10000/mydb?sslcert=%2Fc.pem&sslkey=%2Fk.pem`,
+			`hive://myhost:10000/mydb?auth=NONE&sslcert=%2Fc.pem&sslkey=%2Fk.pem`,
+			``,
+		},
+		{
+			`hive://myhost/mydb?auth=KERBEROS`,
+			`hive`,
+			`hive://myhost:10000/mydb?auth=KERBEROS`,
+			``,
+		},
+		{
+			`hive://myhost/mydb?auth=NOSASL&transport=binary`,
+			`hive`,
+			`hive://myhost:10000/mydb?auth=NOSASL&transport=binary`,
+			``,
+		},
+		{
+			`hive://myhost/mydb?auth=`,
+			`hive`,
+			`hive://myhost:10000/mydb?auth=NONE`,
+			``,
+		},
+		{
+			`hive://myhost/mydb?auth`,
+			`hive`,
+			`hive://myhost:10000/mydb?auth=NONE`,
 			``,
 		},
 		{
 			`hive://myhost/mydb?transport=http&service=hive2`,
 			`hive`,
-			`hive://myhost:10000/mydb?service=hive2&transport=http`,
+			`hive://myhost:10000/mydb?auth=NONE&service=hive2&transport=http`,
 			``,
 		},
 		{
