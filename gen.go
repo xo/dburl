@@ -179,13 +179,13 @@ func notes(scheme dburl.Scheme) string {
 	if scheme.Override != "" {
 		s += " <sup>[‡][f-wire]</sup>"
 	}
-	if scheme.Deployment&dburl.DeploymentEmbedded != 0 {
+	// both markers tell a reader there is nothing to start, so neither is
+	// added to a database that is also a server anyone can run
+	server := scheme.Deployment&dburl.DeploymentServer != 0
+	if scheme.Deployment&dburl.DeploymentEmbedded != 0 && !server {
 		s += " <sup>[§][f-embedded]</sup>"
 	}
-	// a database that is also a server anyone can run is not marked hosted,
-	// because the marker tells a reader there is nothing to start
-	if scheme.Deployment&dburl.DeploymentHosted != 0 &&
-		scheme.Deployment&dburl.DeploymentServer == 0 {
+	if scheme.Deployment&dburl.DeploymentHosted != 0 && !server {
 		s += " <sup>[¶][f-hosted]</sup>"
 	}
 	return s
