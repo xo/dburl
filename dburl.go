@@ -91,9 +91,9 @@ type URL struct {
 // Handles parsing OriginalScheme, Transport, Driver, Unaliased, and DSN
 // fields.
 //
-// Note: if the URL has a Opaque component (ie, URLs not specified as
-// "scheme://" but "scheme:"), and the database scheme does not support opaque
-// components, Parse will attempt to re-process the URL as "scheme://<opaque>".
+// Note: an opaque URL is written "scheme:" and not "scheme://". When the
+// database scheme does not support an opaque component, Parse rebuilds the
+// URL as "scheme://<opaque>" and parses it again.
 func Parse(urlstr string) (*URL, error) {
 	// parse url
 	v, err := url.Parse(urlstr)
@@ -509,10 +509,11 @@ func resolveType(s string) (string, bool) {
 	return "", false
 }
 
-// resolveSocket tries to resolve a path to a Unix domain socket based on the
-// form "/path/to/socket/dbname" returning either the original path and the
-// empty string, or the components "/path/to/socket" and "dbname", when
-// /path/to/socket/dbname is reported by Stat as a socket.
+// resolveSocket tries to resolve a path of the form "/path/to/socket/dbname"
+// to a Unix domain socket.
+//
+// Returns "/path/to/socket" and "dbname" when Stat reports the path as a
+// socket. Returns the original path and the empty string when it does not.
 func resolveSocket(s string) (string, string) {
 	dir, dbname := s, ""
 	for dir != "" && dir != "/" && dir != "." {

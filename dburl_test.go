@@ -1239,9 +1239,9 @@ type stat struct {
 func newStat(name string) (stat, bool) {
 	const (
 		sqlite3Header = "SQLite format 3\000.........."
-		// a checksum as duckdb actually writes it: arbitrary bytes, here
-		// including the valid UTF-8 sequence \xc2\xda and a \n, neither of
-		// which a rune based matcher steps over correctly.
+		// a checksum as duckdb writes it. It holds the valid UTF-8 sequence
+		// \xc2\xda and a \n. A rune based matcher steps over neither one
+		// correctly.
 		duckdbHeader = "\x06\xd7\x6f\x0a\xc2\xda\xb3\xb9DUCK\x40\x00\x00\x00......"
 	)
 	files := map[string]string{

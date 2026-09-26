@@ -497,9 +497,10 @@ func GenPostgres(u *URL) (string, string, error) {
 // GenPresto generates a presto DSN from the passed URL.
 //
 // Targets [prestodb/presto-go-client/v2], which accepts only the presto and
-// trino schemes, and which reads the catalog and schema from the path. The
-// driver sends any query option it does not recognize to the server as a
-// session property, so the catalog and schema cannot be passed that way.
+// trino schemes, and reads the catalog and the schema from the path.
+//
+// The driver sends any query option it does not recognize to the server as a
+// session property. The catalog and the schema cannot go there.
 //
 // The driver selects TLS from the ssl_ca, ssl_cert, ssl_key and
 // ssl_skip_verify options, and not from the scheme. A "s" suffixed alias such
@@ -774,9 +775,11 @@ func genOptionsOdbc(q url.Values, skipWhenEmpty bool, ignore, ignorePrefixes []s
 	return genOptions(q, "", "=", ";", ",", skipWhenEmpty, ignore, ignorePrefixes)
 }
 
-// genOptions takes URL values and generates options, joining together with
-// joiner, and separated by sep, with any multi URL values joined by valSep,
-// ignoring any values with keys in ignore.
+// genOptions takes URL values and generates options.
+//
+// Each name and value is joined by joiner, and each pair is separated by sep.
+// A value holding more than one entry is joined by valSep. A key listed in
+// ignore is skipped.
 //
 // For example, to build a "ODBC" style connection string, can be used like the
 // following:

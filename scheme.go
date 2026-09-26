@@ -26,9 +26,9 @@ type Scheme struct {
 	// Driver is the name of the SQL driver. [Parse] sets it as the Scheme on
 	// the returned URL, and the standard sql.Open calls expect it.
 	//
-	// Note: a 2 letter alias will always be registered for the Driver as the
-	// first 2 characters of the Driver, unless one of the Aliases includes an
-	// alias that is 2 characters.
+	// Note: a 2 letter alias is registered automatically, taken from the
+	// first 2 characters of the Driver. This does not happen when one of the
+	// Aliases is already 2 characters.
 	Driver string
 	// Generator is the func responsible for generating a DSN based on parsed
 	// URL information.
@@ -551,9 +551,9 @@ var sqlite3Header = []byte("SQLite format 3\000")
 
 // isDuckdbHeader returns true when the passed header is a DuckDB header.
 //
-// Compares bytes instead of matching a regexp, as regexps match runes: a
-// checksum byte sequence that is valid UTF-8 consumes more than one byte per
-// `.`, shifting the match off the magic.
+// Compares bytes instead of matching a regexp, because a regexp matches
+// runes. A checksum holding a valid multi-byte UTF-8 sequence consumes more
+// than one byte per `.`, which shifts the match off the magic.
 //
 // See: https://duckdb.org/internals/storage
 func isDuckdbHeader(buf []byte) bool {

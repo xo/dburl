@@ -179,8 +179,8 @@ func Entries(homeDir, name string) ([]Entry, error) {
 
 // Path returns the expanded path to the password file for name.
 //
-// Uses $HOME/.<name>, overridden by environment variable $ENV{NAME} (for
-// example, ~/.usqlpass and $ENV{USQLPASS}).
+// Uses $HOME/.<name>. The environment variable $ENV{NAME} overrides it. For
+// example, ~/.usqlpass and $ENV{USQLPASS}.
 func Path(homeDir, name string) string {
 	file := "~/." + strings.ToLower(name)
 	if s := os.Getenv(strings.ToUpper(name)); s != "" {
