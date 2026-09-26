@@ -748,7 +748,7 @@ func convertOptions(q url.Values, pairs ...string) url.Values {
 	for k, v := range q {
 		x := make([]string, len(v))
 		for i, z := range v {
-			for j := 0; j < len(pairs); j += 2 {
+			for j := 0; j+1 < len(pairs); j += 2 {
 				if pairs[j] == z {
 					z = pairs[j+1]
 				}

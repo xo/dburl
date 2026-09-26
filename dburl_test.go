@@ -5,9 +5,35 @@ import (
 	"io/fs"
 	"os"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 )
+
+// TestNoDependencies checks that the module requires nothing outside the
+// standard library.
+//
+// golangci-lint enforces the same rule through depguard, and this test
+// repeats it because `go test` is the one command that runs on every change.
+func TestNoDependencies(t *testing.T) {
+	buf, err := os.ReadFile("go.mod")
+	if err != nil {
+		t.Fatalf("expected no error, got: %v", err)
+	}
+	var block bool
+	for i, line := range strings.Split(string(buf), "\n") {
+		s := strings.TrimSpace(line)
+		switch {
+		case s == "", strings.HasPrefix(s, "//"):
+		case block && s == ")":
+			block = false
+		case block, strings.HasPrefix(s, "require "), strings.HasPrefix(s, "replace "):
+			t.Errorf("go.mod:%d: expected no dependency, got: %q", i+1, s)
+		case s == "require (", s == "replace (":
+			block = true
+		}
+	}
+}
 
 func TestBadParse(t *testing.T) {
 	tests := []struct {

@@ -19,6 +19,7 @@ linters:
     - nestif
     - nilnil
     - nlreturn
+    - noinlineerr
     - paralleltest
     - prealloc
     - sqlclosecheck
@@ -43,3 +44,10 @@ linters:
     gocritic:
       disabled-checks:
         - exitAfterDefer
+  exclusions:
+    rules:
+      # the runnable examples show how to call Open, and context plumbing
+      # would only make them longer
+      - path: example_test\.go
+        linters:
+          - noctx

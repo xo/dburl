@@ -60,6 +60,7 @@ func OpenMap(components map[string]any) (*sql.DB, error) {
 type URL struct {
 	// URL is the base [net/url.URL].
 	url.URL
+
 	// OriginalScheme is the original parsed scheme (ie, "sq", "mysql+unix", "sap", etc).
 	OriginalScheme string
 	// Transport is the specified transport protocol (ie, "tcp", "udp",
