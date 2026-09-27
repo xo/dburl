@@ -60,7 +60,9 @@ type Scheme struct {
 	Aliases []string
 	// Override is the Go SQL driver to use instead of Driver.
 	//
-	// Used for "wire compatible" driver schemes.
+	// Used for "wire compatible" driver schemes, and for a scheme whose
+	// driver registered a name another scheme holds: pq returns postgres,
+	// which lib/pq registers, because the postgres scheme returns pgx.
 	Override string
 	// Dialect is the Driver of the scheme that is canonical for the database
 	// product, which is this scheme's own Driver when it is the canonical
@@ -134,13 +136,12 @@ func BaseSchemes() []Scheme {
 		},
 		{
 			Driver:     "postgres",
-			Generator:  GenPostgres,
+			Generator:  GenPgx,
 			Transport:  TransportUnix,
 			Aliases:    []string{"pg", "postgresql", "pgsql"},
+			Override:   "pgx",
 			Desc:       "PostgreSQL",
 			Home:       "https://www.postgresql.org",
-			GoPackage:  "github.com/lib/pq",
-			DriverURL:  "https://github.com/lib/pq",
 			Deployment: DeploymentServer,
 			Dialect:    "postgres",
 		},
@@ -171,9 +172,9 @@ func BaseSchemes() []Scheme {
 		// wire compatibles
 		{
 			Driver:     "cockroachdb",
-			Generator:  GenFromURL("postgres://localhost:26257/?sslmode=disable"),
+			Generator:  GenPgxFromURL("postgres://localhost:26257/?sslmode=disable"),
 			Aliases:    []string{"cr", "cockroach", "crdb", "cdb"},
-			Override:   "postgres",
+			Override:   "pgx",
 			Desc:       "CockroachDB",
 			Home:       "https://www.cockroachlabs.com",
 			Deployment: DeploymentServer | DeploymentHosted,
@@ -190,9 +191,9 @@ func BaseSchemes() []Scheme {
 		},
 		{
 			Driver:     "redshift",
-			Generator:  GenFromURL("postgres://localhost:5439/"),
+			Generator:  GenPgxFromURL("postgres://localhost:5439/"),
 			Aliases:    []string{"rs"},
-			Override:   "postgres",
+			Override:   "pgx",
 			Desc:       "Amazon Redshift",
 			Home:       "https://aws.amazon.com/redshift",
 			Deployment: DeploymentHosted,
@@ -244,13 +245,26 @@ func BaseSchemes() []Scheme {
 		},
 		{
 			Driver:     "pgx",
-			Generator:  GenFromURL("postgres://localhost:5432/"),
+			Generator:  GenPgx,
 			Transport:  TransportUnix,
 			Aliases:    []string{"px"},
 			Desc:       "PostgreSQL PGX",
 			Home:       "https://www.postgresql.org",
 			GoPackage:  "github.com/jackc/pgx/v5/stdlib",
 			DriverURL:  "https://github.com/jackc/pgx",
+			Deployment: DeploymentServer,
+			Dialect:    "postgres",
+		},
+		{
+			Driver:     "pq",
+			Generator:  GenPostgres,
+			Transport:  TransportUnix,
+			Aliases:    []string{"libpq"},
+			Override:   "postgres",
+			Desc:       "PostgreSQL lib/pq",
+			Home:       "https://www.postgresql.org",
+			GoPackage:  "github.com/lib/pq",
+			DriverURL:  "https://github.com/lib/pq",
 			Deployment: DeploymentServer,
 			Dialect:    "postgres",
 		},
@@ -675,6 +689,7 @@ func Register(scheme Scheme) {
 		Transport: scheme.Transport,
 		Opaque:    scheme.Opaque,
 		Override:  scheme.Override,
+		Dialect:   scheme.Dialect,
 	}
 	schemeMap[scheme.Driver] = sz
 	// add aliases
@@ -764,6 +779,34 @@ func Protocols(name string) []string {
 		return append([]string{scheme.Driver}, scheme.Aliases...)
 	}
 	return nil
+}
+
+// DialectProtocols returns every protocol name and alias of the registered
+// schemes that share the Dialect of the named scheme, sorted. A scheme with no
+// Dialect returns its own [Protocols].
+//
+// For postgres it returns the names of postgres, pgx, pq, cockroachdb and
+// redshift, which all speak PostgreSQL.
+func DialectProtocols(name string) []string {
+	scheme, ok := schemeMap[name]
+	switch {
+	case !ok:
+		return nil
+	case scheme.Dialect == "":
+		return Protocols(name)
+	}
+	seen := make(map[*Scheme]bool)
+	var v []string
+	for _, s := range schemeMap {
+		if s.Dialect != scheme.Dialect || seen[s] {
+			continue
+		}
+		seen[s] = true
+		v = append(v, s.Driver)
+		v = append(v, s.Aliases...)
+	}
+	sort.Strings(v)
+	return slices.Compact(v)
 }
 
 // SchemeDriverAndAliases returns the registered driver and aliases for a

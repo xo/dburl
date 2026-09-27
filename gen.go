@@ -95,14 +95,17 @@ func buildTable() string {
 		if scheme.Desc == "" {
 			continue
 		}
-		// a wire compatible scheme documents the driver it reaches
+		// a scheme that borrows its driver through Override documents the
+		// driver it reaches. One with its own GoPackage documents itself.
 		driver := scheme
-		if scheme.Override != "" {
+		if scheme.Override != "" && scheme.GoPackage == "" {
 			if v, ok := byDriver[scheme.Override]; ok {
 				driver = v
 			}
 		}
 		_, aliases := dburl.SchemeDriverAndAliases(scheme.Driver)
+		// the scheme is its own column, so it is not repeated as an alias
+		aliases = slices.DeleteFunc(aliases, func(a string) bool { return a == scheme.Driver })
 		// a database detected by its file header also answers to file:
 		if slices.Contains(dburl.FileTypes(), scheme.Driver) {
 			aliases = append(aliases, "file")
@@ -176,7 +179,7 @@ func notes(scheme dburl.Scheme) string {
 	if scheme.RequiresCGO {
 		s += " <sup>[†][f-cgo]</sup>"
 	}
-	if scheme.Override != "" {
+	if scheme.Override != "" && scheme.GoPackage == "" {
 		s += " <sup>[‡][f-wire]</sup>"
 	}
 	// both markers tell a reader there is nothing to start, so neither is

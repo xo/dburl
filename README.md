@@ -108,7 +108,7 @@ driver name, with its aliases and its Go driver:
 
 | Database             | Scheme / Tag    | Scheme Aliases                                 | Driver Package / Notes                                                                      |
 |----------------------|-----------------|------------------------------------------------|---------------------------------------------------------------------------------------------|
-| PostgreSQL           | `postgres`      | `pg`, `pgsql`, `postgresql`                    | [github.com/lib/pq][d-postgres]                                                             |
+| PostgreSQL           | `postgres`      | `pg`, `pgsql`, `postgresql`                    | [github.com/jackc/pgx/v5/stdlib][d-pgx] <sup>[‡][f-wire]</sup>                              |
 | MySQL                | `mysql`         | `my`, `maria`, `aurora`, `mariadb`, `percona`  | [github.com/go-sql-driver/mysql][d-mysql]                                                   |
 | Microsoft SQL Server | `sqlserver`     | `ms`, `mssql`, `azuresql`                      | [github.com/microsoft/go-mssqldb][d-sqlserver]                                              |
 | Oracle Database      | `oracle`        | `or`, `ora`, `oci`, `oci8`, `odpi`, `odpi-c`   | [github.com/sijms/go-ora/v3][d-oracle]                                                      |
@@ -119,7 +119,7 @@ driver name, with its aliases and its Go driver:
 |                      |                 |                                                |                                                                                             |
 | Alibaba MaxCompute   | `maxcompute`    | `mc`                                           | [github.com/aliyun/aliyun-odps-go-sdk/sqldriver][d-maxcompute] <sup>[¶][f-hosted]</sup>     |
 | Alibaba Tablestore   | `ots`           | `ot`, `tablestore`                             | [github.com/aliyun/aliyun-tablestore-go-sql-driver][d-ots] <sup>[¶][f-hosted]</sup>         |
-| Amazon Redshift      | `redshift`      | `rs`                                           | [github.com/lib/pq][d-postgres] <sup>[‡][f-wire]</sup> <sup>[¶][f-hosted]</sup>             |
+| Amazon Redshift      | `redshift`      | `rs`                                           | [github.com/jackc/pgx/v5/stdlib][d-pgx] <sup>[‡][f-wire]</sup> <sup>[¶][f-hosted]</sup>     |
 | Apache Avatica       | `avatica`       | `av`, `phoenix`                                | [github.com/apache/calcite-avatica-go/v5][d-avatica]                                        |
 | Apache H2            | `h2`            |                                                | [github.com/jmrobles/h2go][d-h2]                                                            |
 | Apache Hive          | `hive`          | `hi`, `hive2`                                  | [github.com/beltran/gohive/v2][d-hive]                                                      |
@@ -128,7 +128,7 @@ driver name, with its aliases and its Go driver:
 | Azure CosmosDB       | `cosmos`        | `cm`, `gocosmos`                               | [github.com/btnguyen2k/gocosmos][d-cosmos] <sup>[¶][f-hosted]</sup>                         |
 | Cassandra            | `cql`           | `ca`, `scy`, `scylla`, `datastax`, `cassandra` | [github.com/MichaelS11/go-cql-driver][d-cql]                                                |
 | ChaiSQL              | `chai`          | `ci`, `genji`, `chaisql`                       | [github.com/chaisql/chai][d-chai] <sup>[§][f-embedded]</sup>                                |
-| CockroachDB          | `cockroachdb`   | `cr`, `cdb`, `crdb`, `cockroach`               | [github.com/lib/pq][d-postgres] <sup>[‡][f-wire]</sup>                                      |
+| CockroachDB          | `cockroachdb`   | `cr`, `cdb`, `crdb`, `cockroach`               | [github.com/jackc/pgx/v5/stdlib][d-pgx] <sup>[‡][f-wire]</sup>                              |
 | Couchbase            | `n1ql`          | `n1`, `couchbase`                              | [github.com/couchbase/go_n1ql][d-n1ql]                                                      |
 | Cznic QL             | `ql`            | `cznic`, `cznicql`                             | [modernc.org/ql][d-ql] <sup>[§][f-embedded]</sup>                                           |
 | Databend             | `databend`      | `dd`, `bend`                                   | [github.com/datafuselabs/databend-go][d-databend]                                           |
@@ -143,6 +143,7 @@ driver name, with its aliases and its Go driver:
 | ModernC SQLite3      | `moderncsqlite` | `mq`, `modernsqlite`                           | [modernc.org/sqlite][d-moderncsqlite] <sup>[§][f-embedded]</sup>                            |
 | Netezza              | `nzgo`          | `nz`, `netezza`                                | [github.com/IBM/nzgo/v12][d-nzgo]                                                           |
 | ODBC                 | `odbc`          | `od`                                           | [github.com/alexbrainman/odbc][d-odbc] <sup>[†][f-cgo]</sup>                                |
+| PostgreSQL lib/pq    | `pq`            | `libpq`                                        | [github.com/lib/pq][d-pq]                                                                   |
 | PostgreSQL PGX       | `pgx`           | `px`                                           | [github.com/jackc/pgx/v5/stdlib][d-pgx]                                                     |
 | Presto               | `presto`        | `pr`, `prestodb`                               | [github.com/prestodb/presto-go-client/v2][d-presto]                                         |
 | SAP HANA             | `hdb`           | `sa`, `sap`, `hana`, `saphana`                 | [github.com/SAP/go-hdb/driver][d-hdb]                                                       |
@@ -184,7 +185,7 @@ driver name, with its aliases and its Go driver:
 [d-oracle]: https://github.com/sijms/go-ora
 [d-ots]: https://github.com/aliyun/aliyun-tablestore-go-sql-driver
 [d-pgx]: https://github.com/jackc/pgx
-[d-postgres]: https://github.com/lib/pq
+[d-pq]: https://github.com/lib/pq
 [d-presto]: https://github.com/prestodb/presto-go-client
 [d-ql]: https://gitlab.com/cznic/ql
 [d-snowflake]: https://github.com/snowflakedb/gosnowflake

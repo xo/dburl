@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io/fs"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -43,8 +44,10 @@ func TestNoDependencies(t *testing.T) {
 func TestSchemeMetadata(t *testing.T) {
 	schemes := BaseSchemes()
 	dialects := make(map[string]string, len(schemes))
+	byDriver := make(map[string]Scheme, len(schemes))
 	for _, scheme := range schemes {
 		dialects[scheme.Driver] = scheme.Dialect
+		byDriver[scheme.Driver] = scheme
 	}
 	for _, scheme := range schemes {
 		// file is a pseudo scheme that resolves paths on disk, and has no
@@ -68,20 +71,30 @@ func TestSchemeMetadata(t *testing.T) {
 		} else if d := dialects[scheme.Dialect]; d != scheme.Dialect {
 			t.Errorf("%s: Dialect %q itself has Dialect %q", scheme.Driver, scheme.Dialect, d)
 		}
-		// a wire compatible scheme speaks the dialect it overrides
-		if scheme.Override != "" && scheme.Dialect != scheme.Override {
-			t.Errorf("%s: expected Dialect %q, got: %q", scheme.Driver, scheme.Override, scheme.Dialect)
-		}
-		// a wire compatible scheme reaches its driver through Override, so
-		// the driver fields belong to the scheme it points at
 		if scheme.Override != "" {
-			if scheme.GoPackage != "" {
-				t.Errorf("%s: expected no GoPackage, got: %q", scheme.Driver, scheme.GoPackage)
+			target, ok := byDriver[scheme.Override]
+			if !ok {
+				t.Errorf("%s: Override %q is not a registered scheme", scheme.Driver, scheme.Override)
+				continue
 			}
-			if scheme.DriverURL != "" {
-				t.Errorf("%s: expected no DriverURL, got: %q", scheme.Driver, scheme.DriverURL)
+			// a scheme speaks the dialect of the scheme it overrides
+			if scheme.Dialect != target.Dialect {
+				t.Errorf("%s: expected Dialect %q, got: %q", scheme.Driver, target.Dialect, scheme.Dialect)
 			}
-			continue
+			// when the scheme registered under the Override name opens that
+			// name, the driver fields belong to it. When it overrides the
+			// name itself, as postgres does for pgx, the name belongs to a
+			// driver that no scheme documents, so the overriding scheme
+			// documents it.
+			if target.Override == "" {
+				if scheme.GoPackage != "" {
+					t.Errorf("%s: expected no GoPackage, got: %q", scheme.Driver, scheme.GoPackage)
+				}
+				if scheme.DriverURL != "" {
+					t.Errorf("%s: expected no DriverURL, got: %q", scheme.Driver, scheme.DriverURL)
+				}
+				continue
+			}
 		}
 		if scheme.GoPackage == "" {
 			t.Errorf("%s: expected a GoPackage, got: %q", scheme.Driver, scheme.GoPackage)
@@ -118,6 +131,33 @@ func TestEveryDecisionIsIndexed(t *testing.T) {
 	for d := range indexed {
 		if !written[d] {
 			t.Errorf("D%s is in the index but not written", d)
+		}
+	}
+}
+
+func TestDialectProtocols(t *testing.T) {
+	tests := []struct {
+		name string
+		exp  []string
+	}{
+		{"postgres", []string{"cdb", "cockroach", "cockroachdb", "cr", "crdb", "libpq", "pg", "pgsql", "pgx", "postgres", "postgresql", "pq", "px", "redshift", "rs"}},
+		{"pq", []string{"cdb", "cockroach", "cockroachdb", "cr", "crdb", "libpq", "pg", "pgsql", "pgx", "postgres", "postgresql", "pq", "px", "redshift", "rs"}},
+		{"nzgo", []string{"netezza", "nz", "nzgo"}},
+		{"file", []string{"file", "fi"}},
+		{"unknown", nil},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if v := DialectProtocols(test.name); !slices.Equal(v, test.exp) {
+				t.Errorf("expected %v, got: %v", test.exp, v)
+			}
+		})
+	}
+	// the mysql family is every wire compatible scheme plus mysql itself
+	v := DialectProtocols("tidb")
+	for _, name := range []string{"mysql", "my", "tidb", "vitess", "memsql"} {
+		if !slices.Contains(v, name) {
+			t.Errorf("expected %q in %v", name, v)
 		}
 	}
 }
@@ -246,80 +286,182 @@ func TestParse(t *testing.T) {
 	}{
 		{
 			`pg:`,
-			`postgres`,
-			``,
+			`pgx`,
+			`postgres://`,
 			``,
 		},
 		{
 			`pg://`,
+			`pgx`,
+			`postgres://`,
+			``,
+		},
+		{
+			`pg:user:pass@localhost/booktest`,
+			`pgx`,
+			`postgres://user:pass@localhost/booktest`,
+			``,
+		},
+		{
+			`pg://user:p%20ss@host/db`,
+			`pgx`,
+			`postgres://user:p%20ss@host/db`,
+			``,
+		},
+		{
+			`pg://user:it%27s@host/db`,
+			`pgx`,
+			`postgres://user:it%27s@host/db`,
+			``,
+		},
+		{
+			`pg://user:a%5Cb@host/db`,
+			`pgx`,
+			`postgres://user:a%5Cb@host/db`,
+			``,
+		},
+		{
+			`pg://user:a%C2%A0b@host/db`,
+			`pgx`,
+			`postgres://user:a%C2%A0b@host/db`,
+			``,
+		},
+		{
+			`pg://user:a=b@host/db`,
+			`pgx`,
+			`postgres://user:a%3Db@host/db`,
+			``,
+		},
+		{
+			`pg://host/my%20db?application_name=my%20app`,
+			`pgx`,
+			`postgres://host/my%20db?application_name=my%20app`,
+			``,
+		},
+		{
+			`pq:`,
 			`postgres`,
 			``,
 			``,
 		},
 		{
-			`pg:user:pass@localhost/booktest`,
+			`pq://user:pass@localhost/booktest`,
 			`postgres`,
 			`dbname=booktest host=localhost password=pass user=user`,
 			``,
 		},
 		{
-			`pg:/var/run/postgresql`,
+			`libpq://user:p%20ss@host:5433/db?sslmode=verify-ca`,
 			`postgres`,
-			`host=/var/run/postgresql`,
+			`dbname=db host=host password='p ss' port=5433 sslmode=verify-ca user=user`,
+			``,
+		},
+		{
+			`pgsql://user:pass@localhost/booktest`,
+			`pgx`,
+			`postgres://user:pass@localhost/booktest`,
+			``,
+		},
+		{
+			`postgresql://user:pass@localhost/booktest`,
+			`pgx`,
+			`postgres://user:pass@localhost/booktest`,
+			``,
+		},
+		{
+			`pq://user:it%27s@host/db`,
+			`postgres`,
+			`dbname=db host=host password='it\'s' user=user`,
+			``,
+		},
+		{
+			`pq://user:a%5Cb@host/db`,
+			`postgres`,
+			`dbname=db host=host password='a\\b' user=user`,
+			``,
+		},
+		{
+			`pq://user:a%C2%A0b@host/db`,
+			`postgres`,
+			`dbname=db host=host password='a b' user=user`,
+			``,
+		},
+		{
+			`pq://host/my%20db?application_name=my%20app`,
+			`postgres`,
+			`application_name='my app' dbname='my db' host=host`,
+			``,
+		},
+		{
+			`pq:/var/run/postgresql:6666/mydb`,
+			`postgres`,
+			`dbname=mydb host=/var/run/postgresql port=6666`,
+			``,
+		},
+		{
+			`nz://user:p%20ss@host/db`,
+			`nzgo`,
+			`dbname=db host=host password='p ss' user=user`,
+			``,
+		},
+		{
+			`pg:/var/run/postgresql`,
+			`pgx`,
+			`postgres://?host=%2Fvar%2Frun%2Fpostgresql`,
 			`/var/run/postgresql`,
 		},
 		{
 			`pg:/var/run/postgresql:6666/mydb`,
-			`postgres`,
-			`dbname=mydb host=/var/run/postgresql port=6666`,
+			`pgx`,
+			`postgres:///mydb?host=%2Fvar%2Frun%2Fpostgresql&port=6666`,
 			`/var/run/postgresql`,
 		},
 		{
 			`/var/run/postgresql:6666/mydb`,
-			`postgres`,
-			`dbname=mydb host=/var/run/postgresql port=6666`,
+			`pgx`,
+			`postgres:///mydb?host=%2Fvar%2Frun%2Fpostgresql&port=6666`,
 			`/var/run/postgresql`,
 		},
 		{
 			`pg:/var/run/postgresql/mydb`,
-			`postgres`,
-			`dbname=mydb host=/var/run/postgresql`,
+			`pgx`,
+			`postgres:///mydb?host=%2Fvar%2Frun%2Fpostgresql`,
 			`/var/run/postgresql`,
 		},
 		{
 			`/var/run/postgresql/mydb`,
-			`postgres`,
-			`dbname=mydb host=/var/run/postgresql`,
+			`pgx`,
+			`postgres:///mydb?host=%2Fvar%2Frun%2Fpostgresql`,
 			`/var/run/postgresql`,
 		},
 		{
 			`pg:/var/run/postgresql:7777`,
-			`postgres`,
-			`host=/var/run/postgresql port=7777`,
+			`pgx`,
+			`postgres://?host=%2Fvar%2Frun%2Fpostgresql&port=7777`,
 			`/var/run/postgresql`,
 		},
 		{
 			`pg+unix:/var/run/postgresql:4444/booktest`,
-			`postgres`,
-			`dbname=booktest host=/var/run/postgresql port=4444`,
+			`pgx`,
+			`postgres:///booktest?host=%2Fvar%2Frun%2Fpostgresql&port=4444`,
 			`/var/run/postgresql`,
 		},
 		{
 			`/var/run/postgresql:7777`,
-			`postgres`,
-			`host=/var/run/postgresql port=7777`,
+			`pgx`,
+			`postgres://?host=%2Fvar%2Frun%2Fpostgresql&port=7777`,
 			`/var/run/postgresql`,
 		},
 		{
 			`pg:user:pass@/var/run/postgresql/mydb`,
-			`postgres`,
-			`dbname=mydb host=/var/run/postgresql password=pass user=user`,
+			`pgx`,
+			`postgres://user:pass@/mydb?host=%2Fvar%2Frun%2Fpostgresql`,
 			`/var/run/postgresql`,
 		},
 		{
 			`pg:user:pass@/really/bad/path`,
-			`postgres`,
-			`host=/really/bad/path password=pass user=user`,
+			`pgx`,
+			`postgres://user:pass@?host=%2Freally%2Fbad%2Fpath`,
 			``,
 		},
 		{
@@ -629,8 +771,50 @@ func TestParse(t *testing.T) {
 			``,
 		},
 		{
+			`px://user:pass@host/db?application_name=my%20app`,
+			`pgx`,
+			`postgres://user:pass@host/db?application_name=my%20app`,
+			``,
+		},
+		{
+			`px:/var/run/postgresql:6666/mydb`,
+			`pgx`,
+			`postgres:///mydb?host=%2Fvar%2Frun%2Fpostgresql&port=6666`,
+			``,
+		},
+		{
+			`cr://`,
+			`pgx`,
+			`postgres://localhost:26257?sslmode=disable`,
+			``,
+		},
+		{
+			`cockroachdb://user:pass@host/db`,
+			`pgx`,
+			`postgres://user:pass@host:26257/db?sslmode=disable`,
+			``,
+		},
+		{
+			`cr://user:pass@host:1234/db?sslmode=verify-full&application_name=my%20app`,
+			`pgx`,
+			`postgres://user:pass@host:1234/db?application_name=my%20app&sslmode=verify-full`,
+			``,
+		},
+		{
+			`rs://`,
+			`pgx`,
+			`postgres://localhost:5439`,
+			``,
+		},
+		{
+			`redshift://user:pass@host/db?application_name=my%20app`,
+			`pgx`,
+			`postgres://user:pass@host:5439/db?application_name=my%20app`,
+			``,
+		},
+		{
 			`rs://user:pass@amazon.com/dbname`,
-			`postgres`,
+			`pgx`,
 			`postgres://user:pass@amazon.com:5439/dbname`,
 			``,
 		},
@@ -775,7 +959,7 @@ func TestParse(t *testing.T) {
 		{
 			`pgx://`,
 			`pgx`,
-			`postgres://localhost:5432/`,
+			`postgres://`,
 			``,
 		},
 		{
@@ -996,32 +1180,32 @@ func TestParse(t *testing.T) {
 		},
 		{
 			`file:/var/run/postgresql`,
-			`postgres`,
-			`host=/var/run/postgresql`,
+			`pgx`,
+			`postgres://?host=%2Fvar%2Frun%2Fpostgresql`,
 			`/var/run/postgresql`,
 		},
 		{
 			`file:/var/run/postgresql:6666/mydb`,
-			`postgres`,
-			`dbname=mydb host=/var/run/postgresql port=6666`,
+			`pgx`,
+			`postgres:///mydb?host=%2Fvar%2Frun%2Fpostgresql&port=6666`,
 			`/var/run/postgresql`,
 		},
 		{
 			`file:/var/run/postgresql/mydb`,
-			`postgres`,
-			`dbname=mydb host=/var/run/postgresql`,
+			`pgx`,
+			`postgres:///mydb?host=%2Fvar%2Frun%2Fpostgresql`,
 			`/var/run/postgresql`,
 		},
 		{
 			`file:/var/run/postgresql:7777`,
-			`postgres`,
-			`host=/var/run/postgresql port=7777`,
+			`pgx`,
+			`postgres://?host=%2Fvar%2Frun%2Fpostgresql&port=7777`,
 			`/var/run/postgresql`,
 		},
 		{
 			`file://user:pass@/var/run/postgresql/mydb`,
-			`postgres`,
-			`dbname=mydb host=/var/run/postgresql password=pass user=user`,
+			`pgx`,
+			`postgres://user:pass@/mydb?host=%2Fvar%2Frun%2Fpostgresql`,
 			`/var/run/postgresql`,
 		},
 		{
@@ -1168,7 +1352,7 @@ func testParse(t *testing.T, s, d, exp, path string) {
 	case u.GoDriver == "" && u.Driver != d:
 		t.Errorf("%q expected driver %q, got: %q", s, d, u.Driver)
 	case u.DSN != exp:
-		_, err := os.Stat(path)
+		_, err := Stat(path)
 		if path != "" && err != nil && os.IsNotExist(err) {
 			t.Logf("%q expected dsn %q, got: %q -- ignoring because `%s` does not exist", s, exp, u.DSN, path)
 		} else {

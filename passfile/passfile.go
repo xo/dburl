@@ -156,9 +156,16 @@ func MatchFile(u *dburl.URL, file string, protocols ...string) (*url.Userinfo, e
 // Match returns a Userinfo from a passfile entry matching database URL read
 // from the file in $HOME/.<name> or $ENV{NAME}.
 //
-// Equivalent to MatchFile(u, Path(homeDir, name), dburl.Protocols(u.Driver)...).
+// An entry matches when its protocol names any scheme that shares the dialect
+// of the URL's scheme, or any name of the URL's driver. So a postgres: entry
+// matches postgres://, pq:// and cockroachdb:// URLs.
+//
+// Equivalent to MatchFile(u, Path(homeDir, name), protocols...), where
+// protocols is dburl.DialectProtocols(u.UnaliasedDriver) followed by
+// dburl.Protocols(u.Driver).
 func Match(u *dburl.URL, homeDir, name string) (*url.Userinfo, error) {
-	return MatchFile(u, Path(homeDir, name), dburl.Protocols(u.Driver)...)
+	protocols := append(dburl.DialectProtocols(u.UnaliasedDriver), dburl.Protocols(u.Driver)...)
+	return MatchFile(u, Path(homeDir, name), protocols...)
 }
 
 // MatchProtocols returns a Userinfo from a passfile entry matching database

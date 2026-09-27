@@ -26,11 +26,12 @@ if D11 amends D4, then D4 says so too.
 | [D14](#d14-an-alias-that-cannot-work-is-removed-not-left-failing) | Decided |
 | [D15](#d15-dburl-does-not-validate-driver-option-values) | Decided |
 | [D16](#d16-a-required-option-with-no-valid-empty-value-gets-a-default) | Decided |
-| [D17](#d17-a-scheme-describes-its-own-database-and-driver) | Decided |
+| [D17](#d17-a-scheme-describes-its-own-database-and-driver) | Amended by D22 |
 | [D18](#d18-a-scheme-records-how-the-database-is-deployed) | Decided |
-| [D19](#d19-a-scheme-names-the-dialect-of-its-product) | Decided |
+| [D19](#d19-a-scheme-names-the-dialect-of-its-product) | Amended by D22 |
 | [D20](#d20-the-schemes-of-four-removed-drivers-leave-in-one-release) | Decided |
 | [D21](#d21-the-maxcompute-endpoint-protocol-comes-from-the-transport) | Decided |
+| [D22](#d22-postgres-opens-pgx-and-pq-opens-libpq) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -374,7 +375,10 @@ library does.
 The general test, for the next option that looks like this one: ask what the
 driver does with nothing, not only what it does with something wrong.
 
-### D17. A scheme describes its own database and driver. Decided.
+### D17. A scheme describes its own database and driver. Amended by D22.
+
+D22 changes how `TestSchemeMetadata` treats a scheme whose `Override` names
+a driver that no scheme documents. The rest of this entry stands.
 
 `usql` generated the driver table in both projects' READMEs, from metadata it
 parsed out of doc comments in its own driver packages. So this registry, which
@@ -508,7 +512,10 @@ same terms: low rate of change, and the field earns its place otherwise.
 
 `TestSchemeMetadata` requires a non-zero `Deployment` on every scheme.
 
-### D19. A scheme names the dialect of its product. Decided.
+### D19. A scheme names the dialect of its product. Amended by D22.
+
+D22 changes how `TestSchemeMetadata` treats a scheme whose `Override` names
+a driver that no scheme documents. The rest of this entry stands.
 
 `Scheme` gains `Dialect`, the `Driver` of the scheme that is canonical for
 the database product. A canonical scheme names itself.
@@ -641,3 +648,197 @@ module outside this repository, because D2 forbids the import here. The
 endpoint, the project, the tunnel endpoint and the hints all came out as
 intended. `TestParse` covers the default, both transports and the alias.
 `TestBadParse` covers `+tcp` and `+unix`.
+
+### D22. postgres opens pgx, and pq opens lib/pq. Decided.
+
+Ken decided on 2026-09-27 that `github.com/jackc/pgx/v5/stdlib` is the
+primary PostgreSQL driver, and that `github.com/lib/pq`, which is still
+maintained, stays supported as a second driver. It amends D17 and D19.
+
+THE NAMES
+
+`usql` and every other caller open a connection with
+`sql.Open(u.Driver, u.DSN)`. lib/pq registers itself as `postgres`, always,
+in `init`, at `conn.go:65` in v1.12.3. pgx registers `pgx` and `pgx/v5`, in
+`stdlib/sql.go` in v5.11.0. The two sets do not overlap, so both drivers can
+be linked into one program. What must change is which scheme returns which
+name:
+
+| Scheme | Aliases | `Override` | `u.Driver` | Opens |
+| --- | --- | --- | --- | --- |
+| `postgres` | `pg`, `pgsql`, `postgresql` | `pgx` | `pgx` | pgx |
+| `cockroachdb`, `redshift` | unchanged | `pgx` | `pgx` | pgx |
+| `pgx` | `px` | | `pgx` | pgx |
+| `pq` | `libpq` | `postgres` | `postgres` | lib/pq |
+
+This is what `Override` is for: a scheme registers the name a user types, and
+the driver it returns is a different one. No driver is registered under a
+name it did not choose, so nothing is registered twice. `usql` keeps its
+lib/pq code under `postgres` and its pgx code under `pgx`, which is where
+both already are. A plan to register pgx as `postgres` was dropped, because
+it panics in `database/sql` in any build that also links lib/pq.
+
+`cockroachdb` and `redshift` had `Override: "postgres"`. Left alone, they
+would have moved to lib/pq without anyone choosing it.
+
+Both drivers were linked into one scratch program, outside this repository
+because of D2. Every scheme in the table was opened with `dburl.Open`, and
+each one reached the driver in its last column.
+
+THE AMENDMENTS
+
+The name `postgres` now means two things. As a scheme it means pgx. As a
+driver it means lib/pq. D17 and D19 assumed that the scheme registered under
+an `Override` name is the scheme that opens that name. `pq` breaks that
+assumption, so two rules in `TestSchemeMetadata` change.
+
+D17 said a scheme with an `Override` has no `GoPackage` and no `DriverURL`,
+because they belong to the scheme it points at. That still holds when the
+target opens its own name. When the target overrides its own name, as
+`postgres` does, no scheme documents the driver that registered that name.
+The overriding scheme then documents the driver itself. `pq` carries
+`github.com/lib/pq`.
+
+D19 said a wire compatible scheme's `Dialect` equals its `Override`. It now
+equals the `Dialect` of the scheme it overrides. For every scheme that
+existed before, the two rules give the same answer. For `postgres`, the
+`Override` is `pgx`, and the `Dialect` of `pgx` is `postgres`. So every
+PostgreSQL scheme keeps `Dialect: "postgres"`, and a consumer that matches on
+it sees no change.
+
+`gen.go` follows the same rule. A scheme with its own `GoPackage` documents
+itself, and only a scheme that borrows its driver is marked wire compatible.
+The `postgres` row carries that mark, because it reaches pgx through
+`Override`. `gen.go` also stops repeating a scheme's own name in its alias
+column. Before `pq`, only a two letter scheme with no `Override` could
+repeat itself, and `SchemeDriverAndAliases` already removed that one.
+
+WHO THIS BREAKS
+
+A program that parses `postgres://` and opens `u.Driver` now needs pgx
+linked. Without it, it gets `sql: unknown driver "pgx"`. A program that wants
+lib/pq writes `pq://`. That is a break, and it needs a release note.
+
+PASSWORD FILES
+
+`passfile.Match`, which `usql` uses for `~/.usqlpass`, matched an entry when
+its protocol was a name of `u.Driver`. Once `postgres://` returned `pgx`, a
+`postgres:` or `pg:` entry stopped matching `postgres://` URLs, and matched
+`pq://` URLs instead, because `pq` returns `postgres`. Every existing
+PostgreSQL entry in a `usql` password file would have gone to the wrong
+driver's URLs.
+
+`Match` now accepts any name of any scheme that shares the dialect of the
+scheme the user typed, and still accepts every name of `u.Driver`, as before.
+So a `postgres:` entry matches `postgres://`, `pgx://`, `pq://`,
+`cockroachdb://` and `redshift://` URLs. Every match that worked before still
+works, including for a scheme that a caller registers with no `Dialect`.
+
+Two narrower rules were rejected. Matching only the names of the typed scheme
+restores `postgres://`, but `cockroachdb://` and `redshift://` then lose the
+`postgres:` entries they have always matched, because they returned
+`postgres`. Matching the typed scheme and `u.Driver` together has the same
+loss. The cost of the dialect rule is that it is broader: a `cockroachdb:`
+entry can now supply a password to a `postgres://` URL. The host and the port
+must still match. Ken chose the dialect rule.
+
+`Register` now keeps `Dialect` in the registry, and `DialectProtocols`
+returns the family. `TestDialectProtocols` covers it. `TestMatch` in
+`passfile` covers each scheme above, and six of its cases fail against the
+old rule.
+
+EACH DRIVER GETS ITS OWN FORM
+
+`postgres` now uses `GenPgx`, which emits a URL, as
+`postgres://user:pass@host:5432/db?opt=v`. pgx reads a URL natively.
+`pq` and `nzgo` keep `GenPostgres`, which emits the keyword/value form, as
+`host=h dbname=d user=u`, which is the form lib/pq and nzgo have always
+been given. Ken chose this on 2026-09-27. Each driver is given the form it
+documents first.
+
+`GenPgx` computes the host, the port and the database exactly as
+`GenPostgres` does, including the unix socket directory and its `:port`
+suffix, and records them for `Normalize`. It supplies no default host and no
+default port, as `GenPostgres` did not. A driver given no host reads
+`PGHOST` and then its socket default, and a default here would override the
+environment.
+
+pgx parses a URL with the rules of libpq and not with those of `net/url`.
+Three of them shape `GenPgx`:
+
+- A raw space is rejected, and a `+` is read as itself and not as a space.
+  `url.Values.Encode` writes a space as `+`, so it cannot be used. Every
+  component is escaped with `url.QueryEscape`, and each `+` it writes is
+  replaced with `%20`. A literal `+` is already `%2B` at that point.
+- A unix socket directory cannot be the URL host, so it goes in the `host`
+  query option, and its port in `port`, as
+  `postgres:///db?host=%2Fvar%2Frun%2Fpostgresql&port=6666`.
+- An IPv6 host is written in brackets.
+
+The output was run through `pgconn.ParseConfig` at v5.11.0. A user with a
+space, a password holding `/`, `@`, `:`, a space, a quote, a backslash, `+`
+and `%`, a database name holding `?`, an option value holding a space and a
+`+`, an IPv6 host and `sslmode=verify-ca` all came back exactly.
+
+Options that only lib/pq understood, such as `binary_parameters`, reach the
+server as runtime parameters under pgx, and the server rejects them. Under D5
+this library passes them through. A caller who needs one writes `pq://`.
+
+`GenFromURL` had the same `+` defect for pgx. It builds the query with
+`url.Values.Encode`, and the `pgx`, `cockroachdb` and `redshift` schemes used
+it, so `application_name=my app` reached pgx as `my+app`. That was confirmed
+against pgx. `GenFromURL` is not changed, because it serves other schemes
+whose drivers read a `+` as a space. The three schemes move off it instead.
+
+`pgx` now uses `GenPgx`, the same generator as `postgres`, because the two
+open the same driver. It no longer supplies `localhost:5432`, so `pgx://`
+emits `postgres://`, and the driver reads `PGHOST`. It also gains the unix
+socket handling that `GenFromURL` never had.
+
+`cockroachdb` and `redshift` use `GenPgxFromURL`, which takes its defaults
+from a template URL, as `GenFromURL` does. Their templates are unchanged:
+`localhost:26257` with `sslmode=disable`, and `localhost:5439`. The parsed URL
+overrides each default it carries, so a caller's `sslmode` replaces the
+CockroachDB default. The one visible change beside the escaping is that an
+empty database no longer leaves a trailing `/`. pgx reads both forms the
+same.
+
+Before this change, no test covered `cockroachdb` at all. `TestParse` now
+covers the defaults, an override and an option holding a space for all three
+schemes, and the output was run through `pgconn.ParseConfig`.
+
+THE QUOTING DEFECT
+
+`GenPostgres` wrote every value as it was. In the keyword/value form, a space
+ends a value, and a backslash escapes the next character. So the password
+`p ss` gave `password=p ss`, which lib/pq and pgx both reject with
+`missing "=" after "ss"`. The password `a\b` was worse. It parsed without an
+error as `ab`, and the server refused the login with nothing pointing here.
+
+`quotePostgres` now wraps a value in single quotes when it holds a quote, a
+backslash or a space, and escapes the quotes and backslashes inside it. A
+value that needs none of this is written as before. An empty value stays
+empty, so `genOptions` still skips it.
+
+A space means any Unicode space and not only an ASCII one, because nzgo ends
+an unquoted value at any rune that `unicode.IsSpace` accepts. A no-break space
+would split the value.
+
+D6 applies, because `GenPostgres` serves lib/pq and nzgo. nzgo's `parseOpts`
+was read, and it accepts the same quoting and escaping as lib/pq. The quoted
+output was run through lib/pq v1.12.3 and nzgo v12.0.13 for a space, a quote,
+a backslash, a no-break space and all of them at once, in the user, the
+password, the database name and an option. nzgo read every value back
+exactly, and lib/pq accepted every string.
+
+THE TESTS
+
+`TestParse` covers `GenPgx` for each case above, and `GenPostgres` through
+`pq`, `libpq` and `nzgo`. Every PostgreSQL case that returned `postgres` now
+returns `pgx`, and the `postgres` cases now expect a URL.
+
+`testParse` skipped a unix socket case whose directory did not exist, and it
+checked with `os.Stat` and not the `Stat` that the tests stub. The stubbed
+`/var/run/postgresql` never exists on a real machine, so every socket case was
+skipped, and a wrong DSN passed. It now checks with `Stat`, and no socket case
+is skipped.

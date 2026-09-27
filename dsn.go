@@ -6,6 +6,7 @@ import (
 	"path"
 	"sort"
 	"strings"
+	"unicode"
 )
 
 // OdbcIgnoreQueryPrefixes are the query prefixes to ignore when generating the
@@ -417,7 +418,130 @@ func GenOdbc(u *URL) (string, string, error) {
 	return genOptionsOdbc(q, true, nil, OdbcIgnoreQueryPrefixes), "", nil
 }
 
+// GenPgx generates a pgx DSN from the passed URL.
+//
+// Targets [jackc/pgx/v5/stdlib], which reads a postgres:// URL with the same
+// rules as libpq. Every component is percent-encoded, a space as %20, because
+// the driver rejects a raw space and reads a + as itself. A unix socket
+// directory cannot be a URL host, so it is passed as the host query option.
+//
+// GenPgx supplies no default host and no default port, so the driver reads
+// PGHOST and then its socket default. See [GenPgxFromURL] for one that does.
+//
+// See [GenPostgres], which lib/pq and nzgo use instead.
+//
+// [jackc/pgx/v5/stdlib]: https://github.com/jackc/pgx
+func GenPgx(u *URL) (string, string, error) {
+	return genPgx(u, "", "", nil)
+}
+
+// GenPgxFromURL returns a func that generates a pgx DSN, taking the default
+// host, port and query options from the passed URL. The parsed URL overrides
+// each one it carries, as with [GenFromURL].
+//
+// Use it in place of GenFromURL for a scheme whose driver is pgx, because
+// GenFromURL writes a space in a query option as a +, which pgx reads as
+// itself.
+func GenPgxFromURL(urlstr string) func(*URL) (string, string, error) {
+	z, err := url.Parse(urlstr)
+	if err != nil {
+		panic(err)
+	}
+	return func(u *URL) (string, string, error) {
+		return genPgx(u, z.Hostname(), z.Port(), z.Query())
+	}
+}
+
+// genPgx generates a pgx DSN from the passed URL and defaults. See [GenPgx].
+func genPgx(u *URL, defHost, defPort string, defQuery url.Values) (string, string, error) {
+	host, port, dbname := u.Hostname(), u.Port(), strings.TrimPrefix(u.Path, "/")
+	if host == "." {
+		return "", "", ErrRelativePathNotSupported
+	}
+	// resolve path
+	if u.Transport == "unix" {
+		if host == "" {
+			dbname = "/" + dbname
+		}
+		host, port, dbname = resolveDir(path.Join(host, dbname))
+	} else {
+		if host == "" {
+			host = defHost
+		}
+		if port == "" {
+			port = defPort
+		}
+	}
+	// save host, port, dbname
+	if u.hostPortDB == nil {
+		u.hostPortDB = []string{host, port, dbname}
+	}
+	// the parsed URL overrides each default option it carries
+	q := make(url.Values)
+	for k, v := range defQuery {
+		q[k] = v
+	}
+	for k, v := range u.Query() {
+		q[k] = v
+	}
+	// a socket directory is not a URL host
+	if u.Transport == "unix" {
+		q.Set("host", host)
+		q.Set("port", port)
+		host, port = "", ""
+	}
+	dsn := "postgres://"
+	if u.User != nil {
+		dsn += escapePgx(u.User.Username())
+		if pass, _ := u.User.Password(); pass != "" {
+			dsn += ":" + escapePgx(pass)
+		}
+		dsn += "@"
+	}
+	if strings.Contains(host, ":") {
+		host = "[" + host + "]"
+	}
+	dsn += host
+	if port != "" {
+		dsn += ":" + port
+	}
+	if dbname != "" {
+		dsn += "/" + escapePgx(dbname)
+	}
+	keys := make([]string, 0, len(q))
+	for k, v := range q {
+		if strings.Join(v, ",") != "" {
+			keys = append(keys, k)
+		}
+	}
+	sort.Strings(keys)
+	var b strings.Builder
+	b.WriteString(dsn)
+	for i, k := range keys {
+		sep := "&"
+		if i == 0 {
+			sep = "?"
+		}
+		b.WriteString(sep + escapePgx(k) + "=" + escapePgx(strings.Join(q[k], ",")))
+	}
+	return b.String(), "", nil
+}
+
+// escapePgx percent-encodes a pgx URL component, writing a space as %20.
+func escapePgx(s string) string {
+	return strings.ReplaceAll(url.QueryEscape(s), "+", "%20")
+}
+
 // GenPostgres generates a postgres DSN from the passed URL.
+//
+// Targets [lib/pq] and [IBM/nzgo/v12], which both read the keyword/value
+// form. A value holding a space, a quote or a backslash is quoted, as both
+// parsers require.
+//
+// See [GenPgx], which postgres uses instead.
+//
+// [lib/pq]: https://github.com/lib/pq
+// [IBM/nzgo/v12]: https://github.com/IBM/nzgo
 func GenPostgres(u *URL) (string, string, error) {
 	host, port, dbname := u.Hostname(), u.Port(), strings.TrimPrefix(u.Path, "/")
 	if host == "." {
@@ -444,6 +568,9 @@ func GenPostgres(u *URL) (string, string, error) {
 	// save host, port, dbname
 	if u.hostPortDB == nil {
 		u.hostPortDB = []string{host, port, dbname}
+	}
+	for k, v := range q {
+		q[k] = []string{quotePostgres(strings.Join(v, ","))}
 	}
 	return genOptions(q, "", "=", " ", ",", true, nil, nil), "", nil
 }
@@ -688,6 +815,16 @@ func GenYDB(u *URL) (string, string, error) {
 func GenDuckDB(u *URL) (string, string, error) {
 	// Same as GenOpaque but accepts empty path which refers to in-memory DB
 	return u.Opaque + genQueryOptions(u.Query()), "", nil
+}
+
+// quotePostgres quotes a keyword/value connection string value that holds a
+// space, a quote or a backslash. An empty value is left empty, so that
+// genOptions skips it.
+func quotePostgres(s string) string {
+	if !strings.ContainsAny(s, `'\`) && strings.IndexFunc(s, unicode.IsSpace) == -1 {
+		return s
+	}
+	return "'" + strings.NewReplacer(`\`, `\\`, `'`, `\'`).Replace(s) + "'"
 }
 
 // genQueryOptions generates standard query options.
