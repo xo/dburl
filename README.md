@@ -126,7 +126,7 @@ driver name, with its aliases and its Go driver:
 | Apache Impala        | `impala`        | `im`                                           | [github.com/sclgo/impala-go][d-impala]                                                      |
 | AWS Athena           | `awsathena`     | `s3`, `aws`, `athena`                          | [github.com/uber/athenadriver/go][d-awsathena] <sup>[¶][f-hosted]</sup>                     |
 | Azure CosmosDB       | `cosmos`        | `cm`, `gocosmos`                               | [github.com/btnguyen2k/gocosmos][d-cosmos] <sup>[¶][f-hosted]</sup>                         |
-| Cassandra            | `cql`           | `ca`, `scy`, `scylla`, `datastax`, `cassandra` | [github.com/MichaelS11/go-cql-driver][d-cql]                                                |
+| Cassandra            | `cql`           | `ca`, `scy`, `scylla`, `datastax`, `cassandra` | [github.com/xo/cql][d-cql]                                                                  |
 | ChaiSQL              | `chai`          | `ci`, `genji`, `chaisql`                       | [github.com/chaisql/chai][d-chai] <sup>[§][f-embedded]</sup>                                |
 | CockroachDB          | `cockroachdb`   | `cr`, `cdb`, `crdb`, `cockroach`               | [github.com/jackc/pgx/v5/stdlib][d-pgx] <sup>[‡][f-wire]</sup>                              |
 | Couchbase            | `n1ql`          | `n1`, `couchbase`                              | [github.com/couchbase/go_n1ql][d-n1ql]                                                      |
@@ -162,7 +162,7 @@ driver name, with its aliases and its Go driver:
 [d-chai]: https://github.com/chaisql/chai
 [d-clickhouse]: https://github.com/ClickHouse/clickhouse-go
 [d-cosmos]: https://github.com/btnguyen2k/gocosmos
-[d-cql]: https://github.com/MichaelS11/go-cql-driver
+[d-cql]: https://github.com/xo/cql
 [d-csvq]: https://github.com/mithrandie/csvq-driver
 [d-databend]: https://github.com/datafuselabs/databend-go
 [d-databricks]: https://github.com/databricks/databricks-sql-go

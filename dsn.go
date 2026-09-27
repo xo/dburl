@@ -98,28 +98,35 @@ func GenOpaque(u *URL) (string, string, error) {
 	return u.Opaque + genQueryOptions(u.Query()), "", nil
 }
 
-// GenCassandra generates a cassandra DSN from the passed URL.
+// GenCassandra generates a cql DSN from the passed URL.
+//
+// Targets [xo/cql], which reads a cql:// URL with net/url. The scheme is
+// always cql, whichever alias was parsed, so the driver never repeats the
+// alias list. The user information and the path, which is the keyspace, pass
+// through, and so does the query, as it was written, because the driver takes
+// a host key that can repeat.
+//
+// [xo/cql]: https://github.com/xo/cql
 func GenCassandra(u *URL) (string, string, error) {
-	host, port, dbname := "localhost", "9042", strings.TrimPrefix(u.Path, "/")
+	host, port := "localhost", "9042"
 	if h := u.Hostname(); h != "" {
 		host = h
 	}
 	if p := u.Port(); p != "" {
 		port = p
 	}
-	q := u.Query()
-	// add user/pass
-	if u.User != nil {
-		q.Set("username", u.User.Username())
-		if pass, _ := u.User.Password(); pass != "" {
-			q.Set("password", pass)
-		}
+	if strings.Contains(host, ":") {
+		host = "[" + host + "]"
 	}
-	// add dbname
-	if dbname != "" {
-		q.Set("keyspace", dbname)
+	z := &url.URL{
+		Scheme:   "cql",
+		User:     u.User,
+		Host:     host + ":" + port,
+		Path:     u.Path,
+		RawPath:  u.RawPath,
+		RawQuery: u.RawQuery,
 	}
-	return host + ":" + port + genQueryOptions(q), "", nil
+	return z.String(), "", nil
 }
 
 // GenClickhouse generates a clickhouse DSN from the passed URL.

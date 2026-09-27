@@ -725,37 +725,37 @@ func TestParse(t *testing.T) {
 		{
 			`ca://host`,
 			`cql`,
-			`host:9042`,
+			`cql://host:9042`,
 			``,
 		},
 		{
 			`cassandra://host:9999`,
 			`cql`,
-			`host:9999`,
+			`cql://host:9999`,
 			``,
 		},
 		{
 			`scy://user@host:9999`,
 			`cql`,
-			`host:9999?username=user`,
+			`cql://user@host:9999`,
 			``,
 		},
 		{
 			`scylla://user@host:9999?timeout=1000`,
 			`cql`,
-			`host:9999?timeout=1000&username=user`,
+			`cql://user@host:9999?timeout=1000`,
 			``,
 		},
 		{
 			`datastax://user:pass@localhost:9999/?timeout=1000`,
 			`cql`,
-			`localhost:9999?password=pass&timeout=1000&username=user`,
+			`cql://user:pass@localhost:9999/?timeout=1000`,
 			``,
 		},
 		{
 			`ca://user:pass@localhost:9999/dbname?timeout=1000`,
 			`cql`,
-			`localhost:9999?keyspace=dbname&password=pass&timeout=1000&username=user`,
+			`cql://user:pass@localhost:9999/dbname?timeout=1000`,
 			``,
 		},
 		{
@@ -963,9 +963,21 @@ func TestParse(t *testing.T) {
 			``,
 		},
 		{
+			`cql://user:p%40ss@[::1]:9042/ks?consistency=localQuorum&host=%5B::2%5D:9042&host=h3`,
+			`cql`,
+			`cql://user:p%40ss@[::1]:9042/ks?consistency=localQuorum&host=%5B::2%5D:9042&host=h3`,
+			``,
+		},
+		{
+			`cql://host/ks?timeout=10s`,
+			`cql`,
+			`cql://host:9042/ks?timeout=10s`,
+			``,
+		},
+		{
 			`ca://`,
 			`cql`,
-			`localhost:9042`,
+			`cql://localhost:9042`,
 			``,
 		},
 		{

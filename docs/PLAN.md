@@ -32,6 +32,7 @@ if D11 amends D4, then D4 says so too.
 | [D20](#d20-the-schemes-of-four-removed-drivers-leave-in-one-release) | Decided |
 | [D21](#d21-the-maxcompute-endpoint-protocol-comes-from-the-transport) | Decided |
 | [D22](#d22-postgres-opens-pgx-and-pq-opens-libpq) | Decided |
+| [D23](#d23-cql-opens-xocql-and-gets-a-url) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -842,3 +843,47 @@ checked with `os.Stat` and not the `Stat` that the tests stub. The stubbed
 `/var/run/postgresql` never exists on a real machine, so every socket case was
 skipped, and a wrong DSN passed. It now checks with `Stat`, and no socket case
 is skipped.
+
+### D23. cql opens xo/cql, and gets a URL. Decided.
+
+Ken is rewriting the Cassandra driver as `github.com/xo/cql`, in place of
+`github.com/MichaelS11/go-cql-driver`. The `cql` scheme follows it. It still
+registers as `cql`, so `Driver` does not change, and only `GoPackage` and
+`DriverURL` do. The plan is W14 in that repository, and the DSN is its D24.
+
+The new driver still reads the old DSN, `host:port?keyspace=ks&username=u`.
+It also reads a URL that starts with `cql://` or `cassandra://`, and it
+parses that URL with `net/url`. `GenCassandra` now emits the URL, as
+`cql://user:pass@host:9042/keyspace?opt=v`:
+
+- The scheme is always `cql`, whichever alias was parsed, so the driver
+  never repeats the alias list.
+- The user information and the path pass through. The path is the keyspace.
+- The query passes through as it was written, and it is not rebuilt. The
+  driver takes a `host` key that can repeat, to add more hosts. `GenFromURL`
+  joins a repeated key into one value with spaces, so it is not used.
+- An IPv6 host is written in brackets.
+- The default stays `localhost:9042`, under rule 7. The `cql` session was
+  asked and agreed: the driver falls back to `127.0.0.1` only when a DSN
+  names no host, and gocql's own default port is also 9042.
+
+The driver refuses an unknown key, a key given twice, a keyspace in both the
+path and the query, and credentials in both the user information and the
+query. Under D5 this library passes each of them through and lets the driver
+reject it. The new driver reads `timeout` as a duration, such as `10s`, so an
+old URL that wrote a number of milliseconds now fails in the driver.
+
+RULE 3 WITHOUT A PINNED VERSION
+
+`usql` does not pin `github.com/xo/cql` yet, because it has no tag. Its first
+tag is `v0.1.0`, under its D19. The generator was written against `dsn.go` in
+the working tree of the rewrite, which the `cql` session says is settled and
+which Ken is reviewing. The output was run through that `ParseDSN`: the
+hosts, including an IPv6 host and two more from repeated `host` keys, the
+keyspace, the consistency, the timeouts and a password holding `@` and a
+space all came back exactly.
+
+Ken chose to commit this before the driver is tagged. Until the tag exists,
+`main` names a driver that cannot be installed at a version, so a release of
+this library that carries D23 waits for that tag. When the tag exists, the
+same check is to be run against it before this library is tagged.
