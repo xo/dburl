@@ -75,6 +75,14 @@ type URL struct {
 	GoDriver string
 	// UnaliasedDriver is the unaliased driver name.
 	UnaliasedDriver string
+	// Dialect is the [Scheme.Dialect] of the parsed scheme: the Driver of the
+	// scheme that is canonical for the database product.
+	//
+	// Use it, and not Driver, to learn which product a URL connects to.
+	// Driver names the Go driver, so postgres:// and pgx:// both return pgx
+	// as their Driver, and pq:// returns postgres. All three have the Dialect
+	// postgres.
+	Dialect string
 	// DSN is the built connection "data source name" that can be used in a
 	// call to [sql.Open].
 	DSN string
@@ -170,7 +178,7 @@ func Parse(urlstr string) (*URL, error) {
 		}
 	}
 	// set driver
-	u.Driver, u.UnaliasedDriver = scheme.Driver, scheme.Driver
+	u.Driver, u.UnaliasedDriver, u.Dialect = scheme.Driver, scheme.Driver, scheme.Dialect
 	if scheme.Override != "" {
 		u.Driver = scheme.Override
 	}

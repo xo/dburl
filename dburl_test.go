@@ -135,6 +135,40 @@ func TestEveryDecisionIsIndexed(t *testing.T) {
 	}
 }
 
+func TestParseDialect(t *testing.T) {
+	tests := []struct {
+		s, driver, dialect string
+	}{
+		{`postgres://host/db`, "pgx", "postgres"},
+		{`pgx://host/db`, "pgx", "postgres"},
+		{`pq://host/db`, "postgres", "postgres"},
+		{`cr://host/db`, "pgx", "postgres"},
+		{`rs://host/db`, "pgx", "postgres"},
+		{`tidb://host/db`, "mysql", "mysql"},
+		{`moderncsqlite:file.db`, "moderncsqlite", "sqlite3"},
+		{`godror://user:pass@host/sid`, "godror", "oracle"},
+		{`oracle://user:pass@host/sid`, "oracle", "oracle"},
+		{`nz://host/db`, "nzgo", "nzgo"},
+		// file: resolves to the scheme of the file, and takes its Dialect
+		{`file:fake.sqlite3`, "sqlite3", "sqlite3"},
+		{`file:/var/run/postgresql`, "pgx", "postgres"},
+	}
+	for _, test := range tests {
+		t.Run(test.s, func(t *testing.T) {
+			u, err := Parse(test.s)
+			if err != nil {
+				t.Fatalf("expected no error, got: %v", err)
+			}
+			if u.Driver != test.driver {
+				t.Errorf("expected driver %q, got: %q", test.driver, u.Driver)
+			}
+			if u.Dialect != test.dialect {
+				t.Errorf("expected dialect %q, got: %q", test.dialect, u.Dialect)
+			}
+		})
+	}
+}
+
 func TestDialectProtocols(t *testing.T) {
 	tests := []struct {
 		name string

@@ -33,6 +33,7 @@ if D11 amends D4, then D4 says so too.
 | [D21](#d21-the-maxcompute-endpoint-protocol-comes-from-the-transport) | Decided |
 | [D22](#d22-postgres-opens-pgx-and-pq-opens-libpq) | Decided |
 | [D23](#d23-cql-opens-xocql-and-gets-a-url) | Decided |
+| [D24](#d24-a-parsed-url-carries-its-dialect) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -897,3 +898,32 @@ same check is to be run against it before this library is tagged.
 The check was run again against that tag, fetched from `proxy.golang.org`,
 and every result matched the check against the working tree. The condition
 above is met.
+
+### D24. A parsed URL carries its Dialect. Decided.
+
+Ken decided on 2026-09-27 that `Parse` sets `URL.Dialect` to the `Dialect` of
+the scheme it parsed. It ships in v0.32.0.
+
+D19 put `Dialect` on `Scheme`, and a consumer holding a `*URL` could not reach
+it. dburl exported no lookup by scheme name, so a consumer had to find the
+`Scheme` in `BaseSchemes()` whose `Driver` was `u.UnaliasedDriver`, and that
+missed a scheme registered at run time.
+
+The gap became urgent with D22. dbmeta mapped `URL.Driver` to its own
+dialect, and after D22 `postgres://`, `cockroachdb://` and `redshift://` all
+return `pgx`, and `pq://` returns `postgres`. So `Driver` names the Go driver
+and not the product, and mapping it gives the wrong answer for PostgreSQL.
+`Dialect` is `postgres` for all of them.
+
+dbmeta asked first for a new field that names the product. `Scheme.Dialect`
+already was that field, and dbmeta withdrew the request.
+
+An exported lookup, `SchemeDialect(name)`, was rejected. It is smaller, but
+every caller must pass `UnaliasedDriver`, and passing `Driver` is the obvious
+mistake. A field on the URL has no wrong argument.
+
+A `file:` URL resolves to the scheme of the file and parses again, so it
+takes that scheme's `Dialect`. `Register` keeps `Dialect` in the registry
+since D22, so a scheme registered at run time carries it too.
+`TestParseDialect` covers each PostgreSQL scheme, the MySQL, SQLite and Oracle
+pairs, `nzgo`, and two `file:` URLs.

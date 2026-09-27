@@ -171,7 +171,8 @@ to the `Driver` of the scheme that is canonical for the product, which is the
 scheme's own `Driver` unless you are adding a second Go driver for a product
 that already has one. `pgx` and `postgres` are both PostgreSQL and share a
 `Dialect`. A scheme with an `Override` takes the `Dialect` of the scheme it
-overrides. That is D19, as D22 amends it.
+overrides. That is D19, as D22 amends it. `Parse` copies it to `URL.Dialect`, which is
+how a consumer learns the product a URL connects to. That is D24.
 
 A two letter alias is registered automatically from the first two characters
 of the name, unless one of the aliases is already two characters.
