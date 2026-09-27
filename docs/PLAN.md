@@ -38,6 +38,7 @@ if D11 amends D4, then D4 says so too.
 | [D26](#d26-surrealdb-opens-xodbimpsurrealdb) | Decided |
 | [D27](#d27-dburl-is-set-up-for-coding-agents-as-every-xo-repository-is) | Decided |
 | [D28](#d28-neo4j-opens-xodbimpneo4j) | Decided |
+| [D29](#d29-influxql-is-a-scheme-of-its-own-on-the-influxdb-driver) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -1108,3 +1109,76 @@ intended. A path of two segments and an unknown key failed in the driver.
 No dbimp tag holds the driver yet. A release of this library that carries D28
 waits for one, and the check is to be run again against it, as D23 set for
 cql.
+
+### D29. influxql is a scheme of its own on the influxdb driver. Decided.
+
+Ken decided on 2026-09-28 how dburl holds the design of dbimp D78. dbimp has
+one InfluxDB driver, `github.com/xo/dbimp/influxdb`, which registers
+`influxdb` and speaks two languages: SQL on InfluxDB 3 and later, and
+InfluxQL on InfluxDB 1, 2 and 3. The driver key `sqlmode` selects between
+them, and `sqlmode=disable` gives InfluxQL.
+
+dburl gets two schemes, each with its own generator:
+
+| Scheme | Generator | `URL.Driver` | `URL.GoDriver` | `URL.Dialect` | Sets |
+| --- | --- | --- | --- | --- | --- |
+| `influxdb` | `GenInfluxDB` | `influxdb` | | `influxdb` | nothing |
+| `influxql` | `GenInfluxQL` | `influxql` | `influxdb` | `influxql` | `sqlmode=disable` |
+
+`GenInfluxQL` returns a DSN that starts with `influxdb://`, because the
+driver refuses every scheme but its own name (dbimp D35), and it returns
+`influxdb` as the name of the Go driver. `Open` and `usql` pass `GoDriver`
+to `sql.Open` when it is set, so the one driver serves both schemes. This is
+how `cosmos` returns `gocosmos` and how `azuresql` reaches `sqlserver`.
+
+`influxql` is an ordinary scheme, with no `Override`, and it is canonical for
+its own dialect. So neither D19 nor D22 changes, and `TestSchemeMetadata`
+needs no change. Like any scheme with no `Override`, it carries its own
+`GoPackage` and `DriverURL`, which name the same driver as `influxdb`.
+
+Two designs were rejected. dbimp asked first for `influxql` as an alias of
+`influxdb` that sets `sqlmode=disable`. An alias is only another name for its
+scheme, and a scheme has one `Dialect`, so an alias could not tell a consumer
+such as dbmeta that the URL is InfluxQL. A scheme that reaches the driver
+through `Override` was then proposed, and it needed an amendment to D19 and
+D22. The Go driver name that a generator returns needs none.
+
+THE MODE
+
+`GenInfluxQL` sets `sqlmode=disable`, which is an option of the driver, so it
+is an exception to rule 7. It selects the query language of the connection,
+as `clickhouse+http` selects the protocol, and it does not tune the
+connection. It is the whole meaning of the scheme. A URL that names
+`sqlmode` itself keeps its own value, under D5, and the driver rejects what
+it rejects.
+
+THE DRIVER'S OTHER DEFAULTS
+
+dbimp D78 also asked the generators to fill in `sqlmode=prefer` and
+`version=3` when a URL does not name them. Ken decided against it on
+2026-09-28. `GenInfluxDB` adds neither, and `GenInfluxQL` adds only
+`sqlmode=disable`. Neither generator adds `version`. Both values are the
+defaults of the driver already, and rule 7 says that the client owns the
+options, so a default here would only fix today's driver default in place.
+
+THE PROVISIONAL PARTS
+
+Ken asked for both generators before the driver exists, to see them work,
+and approved them on 2026-09-28. dbimp has no InfluxDB driver and no
+`ParseDSN`, so rule 3 had no evidence, and three parts rest on facts from
+dbimp `docs/INFLUXDB.md` and on Ken's approval:
+
+- The default port follows the `version` key: 8086 for `version=1` and
+  `version=2`, which is the port of InfluxDB 1 and 2, and 8181 otherwise,
+  which is the port of InfluxDB 3.
+- The aliases are `in` and `influx` on `influxdb`, and `iq` on `influxql`.
+  Both schemes start with `in`, so one of them had to list its two letter
+  alias, or the two automatic aliases would collide.
+- The path and the user information pass through. dbimp has not decided
+  whether the URL names the database in the path or in a key. A token goes
+  in the password, which dbimp's facts say the server reads with any user
+  name.
+
+A release of this library that carries D29 waits for a dbimp tag with the
+driver. The output is then run through its `ParseDSN`, and each generator
+changes where the two disagree, before this library is tagged.

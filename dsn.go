@@ -373,6 +373,63 @@ func GenHive(u *URL) (string, string, error) {
 	return z.String(), "", nil
 }
 
+// GenInfluxDB generates an influxdb DSN from the passed URL.
+//
+// Targets the driver in [xo/dbimp/influxdb], which reads an influxdb:// URL
+// and refuses any other scheme. The user information, the path and the query
+// pass through as they were written. It adds no driver option, so the driver
+// reads sqlmode and version with its own defaults. See [GenInfluxQL].
+//
+// The default port follows the version key: 8086 for InfluxDB 1 and 2, and
+// 8181 otherwise, which is the port of InfluxDB 3.
+//
+// [xo/dbimp/influxdb]: https://github.com/xo/dbimp
+func GenInfluxDB(u *URL) (string, string, error) {
+	return genInfluxDB(u, u.RawQuery), "", nil
+}
+
+// GenInfluxQL generates an influxdb DSN for InfluxQL from the passed URL.
+//
+// It writes the DSN as [GenInfluxDB] does, and adds sqlmode=disable when the
+// URL does not name sqlmode, so that the driver speaks InfluxQL. It returns
+// influxdb as the Go driver, because one driver serves both schemes.
+func GenInfluxQL(u *URL) (string, string, error) {
+	q := u.RawQuery
+	if !u.Query().Has("sqlmode") {
+		if q != "" {
+			q += "&"
+		}
+		q += "sqlmode=disable"
+	}
+	return genInfluxDB(u, q), "influxdb", nil
+}
+
+// genInfluxDB writes an influxdb:// DSN from the passed URL and raw query.
+func genInfluxDB(u *URL, rawQuery string) string {
+	host, port := "localhost", "8181"
+	if v := u.Query().Get("version"); v == "1" || v == "2" {
+		port = "8086"
+	}
+	if h := u.Hostname(); h != "" {
+		host = h
+	}
+	if p := u.Port(); p != "" {
+		port = p
+	}
+	if strings.Contains(host, ":") {
+		host = "[" + host + "]"
+	}
+	z := &url.URL{
+		Scheme:   "influxdb",
+		User:     u.User,
+		Host:     host + ":" + port,
+		Path:     u.Path,
+		RawPath:  u.RawPath,
+		RawQuery: rawQuery,
+	}
+	return z.String()
+}
+
 // GenMaxCompute generates a maxcompute DSN from the passed URL.
 //
 // Targets [aliyun/aliyun-odps-go-sdk/sqldriver], which takes an http or https

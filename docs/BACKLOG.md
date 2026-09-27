@@ -32,6 +32,11 @@ Ken decided these names on 2026-09-28, in dbimp D76:
   `databend` and replaces `github.com/datafuselabs/databend-go` here and in
   `usql` (dbimp D24). The two are never linked together.
 
+InfluxDB is two schemes, `influxdb` and `influxql`, with the generators
+`GenInfluxDB` and `GenInfluxQL`, as D29 decides. Both are written, before
+the driver exists. When the dbimp driver has `ParseDSN` at a tag, run both
+through it, fix each place where they disagree, and then tag this library.
+
 When the `databend` scheme moves, `GenDatabend` must write the scheme
 `databend` itself. Today it passes the URL through, so `bend://` reaches the
 driver with the scheme `bend`. `databend-go` v0.9.4 reads only whether the

@@ -149,6 +149,8 @@ func TestParseDialect(t *testing.T) {
 		{`godror://user:pass@host/sid`, "godror", "oracle"},
 		{`oracle://user:pass@host/sid`, "oracle", "oracle"},
 		{`nz://host/db`, "nzgo", "nzgo"},
+		{`influxdb://host/db`, "influxdb", "influxdb"},
+		{`influxql://host/db`, "influxql", "influxql"},
 		// file: resolves to the scheme of the file, and takes its Dialect
 		{`file:fake.sqlite3`, "sqlite3", "sqlite3"},
 		{`file:/var/run/postgresql`, "pgx", "postgres"},
@@ -1120,6 +1122,54 @@ func TestParse(t *testing.T) {
 			`neo4j://[::1]/`,
 			`neo4j`,
 			`neo4j://[::1]:7474/`,
+			``,
+		},
+		{
+			`influxdb://`,
+			`influxdb`,
+			`influxdb://localhost:8181`,
+			``,
+		},
+		{
+			`influx://:apiv3_tok@127.0.0.1/dbmeta`,
+			`influxdb`,
+			`influxdb://:apiv3_tok@127.0.0.1:8181/dbmeta`,
+			``,
+		},
+		{
+			`in://user:tok@host:9999/db?sqlmode=require`,
+			`influxdb`,
+			`influxdb://user:tok@host:9999/db?sqlmode=require`,
+			``,
+		},
+		{
+			`influxdb://host/db?sqlmode=allow&version=2`,
+			`influxdb`,
+			`influxdb://host:8086/db?sqlmode=allow&version=2`,
+			``,
+		},
+		{
+			`influxql://`,
+			`influxdb`,
+			`influxdb://localhost:8181?sqlmode=disable`,
+			``,
+		},
+		{
+			`iq://:tok@host/db?version=1`,
+			`influxdb`,
+			`influxdb://:tok@host:8086/db?version=1&sqlmode=disable`,
+			``,
+		},
+		{
+			`influxql://host/db?sqlmode=allow`,
+			`influxdb`,
+			`influxdb://host:8181/db?sqlmode=allow`,
+			``,
+		},
+		{
+			`influxql://[::1]:8086/db`,
+			`influxdb`,
+			`influxdb://[::1]:8086/db?sqlmode=disable`,
 			``,
 		},
 		{

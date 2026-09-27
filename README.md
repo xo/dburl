@@ -144,6 +144,8 @@ which is the name that `github.com/lib/pq` registers:
 | GO DRiver for ORacle | `godror`        | `gr`                                           | [github.com/godror/godror][d-godror] <sup>[†][f-cgo]</sup>                                  |
 | Google BigQuery      | `bigquery`      | `bq`                                           | [gorm.io/driver/bigquery/driver][d-bigquery] <sup>[¶][f-hosted]</sup>                       |
 | Google Spanner       | `spanner`       | `sp`                                           | [github.com/googleapis/go-sql-spanner][d-spanner] <sup>[¶][f-hosted]</sup>                  |
+| InfluxDB             | `influxdb`      | `in`, `influx`                                 | [github.com/xo/dbimp/influxdb][d-influxdb]                                                  |
+| InfluxDB InfluxQL    | `influxql`      | `iq`                                           | [github.com/xo/dbimp/influxdb][d-influxql]                                                  |
 | ModernC SQLite3      | `moderncsqlite` | `mq`, `modernsqlite`                           | [modernc.org/sqlite][d-moderncsqlite] <sup>[§][f-embedded]</sup>                            |
 | Neo4j                | `neo4j`         | `nj`, `neo`, `n4j`                             | [github.com/xo/dbimp/neo4j][d-neo4j]                                                        |
 | Netezza              | `nzgo`          | `nz`, `netezza`                                | [github.com/IBM/nzgo/v12][d-nzgo]                                                           |
@@ -183,6 +185,8 @@ which is the name that `github.com/lib/pq` registers:
 [d-hdb]: https://github.com/SAP/go-hdb
 [d-hive]: https://github.com/beltran/gohive
 [d-impala]: https://github.com/sclgo/impala-go
+[d-influxdb]: https://github.com/xo/dbimp
+[d-influxql]: https://github.com/xo/dbimp
 [d-maxcompute]: https://github.com/aliyun/aliyun-odps-go-sdk
 [d-moderncsqlite]: https://gitlab.com/cznic/sqlite
 [d-mysql]: https://github.com/go-sql-driver/mysql
