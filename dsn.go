@@ -97,42 +97,6 @@ func GenOpaque(u *URL) (string, string, error) {
 	return u.Opaque + genQueryOptions(u.Query()), "", nil
 }
 
-// GenAdodb generates a adodb DSN from the passed URL.
-func GenAdodb(u *URL) (string, string, error) {
-	// grab data source
-	host, port := u.Hostname(), u.Port()
-	dsname, dbname := strings.TrimPrefix(u.Path, "/"), ""
-	if dsname == "" {
-		dsname = "."
-	}
-	// check if data source is not a path on disk
-	if mode(dsname) == 0 {
-		if i := strings.IndexAny(dsname, `\/`); i != -1 {
-			dbname = dsname[i+1:]
-			dsname = dsname[:i]
-		}
-	}
-	// build q
-	q := u.Query()
-	q.Set("Provider", host)
-	q.Set("Port", port)
-	q.Set("Data Source", dsname)
-	q.Set("Database", dbname)
-	if u.User != nil {
-		q.Set("User ID", u.User.Username())
-		pass, _ := u.User.Password()
-		q.Set("Password", pass)
-	}
-	if u.hostPortDB == nil {
-		n := dsname
-		if dbname != "" {
-			n += "/" + dbname
-		}
-		u.hostPortDB = []string{host, port, n}
-	}
-	return genOptionsOdbc(q, true, nil, OdbcIgnoreQueryPrefixes), "", nil
-}
-
 // GenCassandra generates a cassandra DSN from the passed URL.
 func GenCassandra(u *URL) (string, string, error) {
 	host, port, dbname := "localhost", "9042", strings.TrimPrefix(u.Path, "/")
@@ -352,73 +316,28 @@ func GenHive(u *URL) (string, string, error) {
 	return z.String(), "", nil
 }
 
-// GenIgnite generates an ignite DSN from the passed URL.
-func GenIgnite(u *URL) (string, string, error) {
-	host, port, dbname := "localhost", "10800", strings.TrimPrefix(u.Path, "/")
-	if h := u.Hostname(); h != "" {
-		host = h
+// GenMaxCompute generates a maxcompute DSN from the passed URL.
+//
+// Targets [aliyun/aliyun-odps-go-sdk/sqldriver], which takes an http or https
+// URL as the endpoint and reads the project from the project query option.
+// The endpoint is https unless the scheme carries +http.
+//
+// [aliyun/aliyun-odps-go-sdk/sqldriver]: https://github.com/aliyun/aliyun-odps-go-sdk
+func GenMaxCompute(u *URL) (string, string, error) {
+	switch {
+	case !strings.Contains(u.OriginalScheme, "+"), strings.EqualFold(u.Transport, "https"):
+		return maxcomputeHTTPS(u)
+	case strings.EqualFold(u.Transport, "http"):
+		return maxcomputeHTTP(u)
 	}
-	if p := u.Port(); p != "" {
-		port = p
-	}
-	q := u.Query()
-	// add user/pass
-	if u.User != nil {
-		q.Set("username", u.User.Username())
-		if pass, _ := u.User.Password(); pass != "" {
-			q.Set("password", pass)
-		}
-	}
-	// add dbname
-	if dbname != "" {
-		dbname = "/" + dbname
-	}
-	return "tcp://" + host + ":" + port + dbname + genQueryOptions(q), "", nil
+	return "", "", ErrInvalidTransportProtocol
 }
 
-// GenMymysql generates a mymysql DSN from the passed URL.
-func GenMymysql(u *URL) (string, string, error) {
-	host, port, dbname := u.Hostname(), u.Port(), strings.TrimPrefix(u.Path, "/")
-	// resolve path
-	if u.Transport == "unix" {
-		if host == "" {
-			dbname = "/" + dbname
-		}
-		host, dbname = resolveSocket(path.Join(host, dbname))
-		port = ""
-	}
-	// save host, port, dbname
-	if u.hostPortDB == nil {
-		u.hostPortDB = []string{host, port, dbname}
-	}
-	// if host or proto is not empty
-	if u.Transport != "unix" {
-		if host == "" {
-			host = "localhost"
-		}
-		if port == "" {
-			port = "3306"
-		}
-	}
-	if port != "" {
-		port = ":" + port
-	}
-	// build dsn
-	dsn := u.Transport + ":" + host + port
-	dsn += genOptions(
-		convertOptions(u.Query(), "true", ""),
-		",", "=", ",", " ", false,
-		nil, nil,
-	)
-	dsn += "*" + dbname
-	if u.User != nil {
-		pass, _ := u.User.Password()
-		dsn += "/" + u.User.Username() + "/" + pass
-	} else if strings.HasSuffix(dsn, "*") {
-		dsn += "//"
-	}
-	return dsn, "", nil
-}
+// maxcompute generators.
+var (
+	maxcomputeHTTP  = GenFromURL("http://localhost/")
+	maxcomputeHTTPS = GenFromURL("https://localhost/")
+)
 
 // GenMysql generates a mysql DSN from the passed URL.
 func GenMysql(u *URL) (string, string, error) {
@@ -496,15 +415,6 @@ func GenOdbc(u *URL) (string, string, error) {
 		q.Set("PWD", p)
 	}
 	return genOptionsOdbc(q, true, nil, OdbcIgnoreQueryPrefixes), "", nil
-}
-
-// GenOleodbc generates a oleodbc DSN from the passed URL.
-func GenOleodbc(u *URL) (string, string, error) {
-	props, _, err := GenOdbc(u)
-	if err != nil {
-		return "", "", err
-	}
-	return `Provider=MSDASQL.1;Extended Properties="` + props + `"`, "", nil
 }
 
 // GenPostgres generates a postgres DSN from the passed URL.
@@ -778,24 +688,6 @@ func GenYDB(u *URL) (string, string, error) {
 func GenDuckDB(u *URL) (string, string, error) {
 	// Same as GenOpaque but accepts empty path which refers to in-memory DB
 	return u.Opaque + genQueryOptions(u.Query()), "", nil
-}
-
-// convertOptions converts an option value based on name, value pairs.
-func convertOptions(q url.Values, pairs ...string) url.Values {
-	n := make(url.Values)
-	for k, v := range q {
-		x := make([]string, len(v))
-		for i, z := range v {
-			for j := 0; j+1 < len(pairs); j += 2 {
-				if pairs[j] == z {
-					z = pairs[j+1]
-				}
-			}
-			x[i] = z
-		}
-		n[k] = x
-	}
-	return n
 }
 
 // genQueryOptions generates standard query options.

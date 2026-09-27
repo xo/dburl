@@ -41,7 +41,7 @@ Where:
 | Component           | Description                                                                          |
 | ------------------- | ------------------------------------------------------------------------------------ |
 | protocol            | driver name or alias (see below)                                                     |
-| transport           | "tcp", "udp", "unix" or driver name (odbc/oleodbc)                                   |
+| transport           | "tcp", "udp", "unix" or driver name (odbc)                                           |
 | user                | username                                                                             |
 | pass                | password                                                                             |
 | host                | host                                                                                 |
@@ -117,13 +117,12 @@ driver name, with its aliases and its Go driver:
 | ClickHouse           | `clickhouse`    | `ch`                                           | [github.com/ClickHouse/clickhouse-go/v2][d-clickhouse]                                      |
 | CSVQ                 | `csvq`          | `cs`, `csv`, `tsv`, `json`                     | [github.com/mithrandie/csvq-driver][d-csvq] <sup>[§][f-embedded]</sup>                      |
 |                      |                 |                                                |                                                                                             |
-| Alibaba MaxCompute   | `maxcompute`    | `mc`                                           | [sqlflow.org/gomaxcompute][d-maxcompute] <sup>[¶][f-hosted]</sup>                           |
+| Alibaba MaxCompute   | `maxcompute`    | `mc`                                           | [github.com/aliyun/aliyun-odps-go-sdk/sqldriver][d-maxcompute] <sup>[¶][f-hosted]</sup>     |
 | Alibaba Tablestore   | `ots`           | `ot`, `tablestore`                             | [github.com/aliyun/aliyun-tablestore-go-sql-driver][d-ots] <sup>[¶][f-hosted]</sup>         |
 | Amazon Redshift      | `redshift`      | `rs`                                           | [github.com/lib/pq][d-postgres] <sup>[‡][f-wire]</sup> <sup>[¶][f-hosted]</sup>             |
 | Apache Avatica       | `avatica`       | `av`, `phoenix`                                | [github.com/apache/calcite-avatica-go/v5][d-avatica]                                        |
 | Apache H2            | `h2`            |                                                | [github.com/jmrobles/h2go][d-h2]                                                            |
 | Apache Hive          | `hive`          | `hi`, `hive2`                                  | [github.com/beltran/gohive/v2][d-hive]                                                      |
-| Apache Ignite        | `ignite`        | `ig`, `gridgain`                               | [github.com/amsokol/ignite-go-client/sql][d-ignite]                                         |
 | Apache Impala        | `impala`        | `im`                                           | [github.com/sclgo/impala-go][d-impala]                                                      |
 | AWS Athena           | `awsathena`     | `s3`, `aws`, `athena`                          | [github.com/uber/athenadriver/go][d-awsathena] <sup>[¶][f-hosted]</sup>                     |
 | Azure CosmosDB       | `cosmos`        | `cm`, `gocosmos`                               | [github.com/btnguyen2k/gocosmos][d-cosmos] <sup>[¶][f-hosted]</sup>                         |
@@ -137,19 +136,15 @@ driver name, with its aliases and its Go driver:
 | DynamoDb             | `godynamo`      | `dy`, `dyn`, `dynamo`, `dynamodb`              | [github.com/btnguyen2k/godynamo][d-godynamo] <sup>[¶][f-hosted]</sup>                       |
 | Exasol               | `exasol`        | `ex`, `exa`                                    | [github.com/exasol/exasol-driver-go][d-exasol]                                              |
 | Firebird             | `firebirdsql`   | `fb`, `firebird`                               | [github.com/nakagami/firebirdsql][d-firebirdsql]                                            |
-| FlightSQL            | `flightsql`     | `fl`, `flight`                                 | [github.com/apache/arrow/go/v17/arrow/flight/flightsql/driver][d-flightsql]                 |
+| FlightSQL            | `flightsql`     | `fl`, `flight`                                 | [github.com/apache/arrow-go/v18/arrow/flight/flightsql/driver][d-flightsql]                 |
 | GO DRiver for ORacle | `godror`        | `gr`                                           | [github.com/godror/godror][d-godror] <sup>[†][f-cgo]</sup>                                  |
 | Google BigQuery      | `bigquery`      | `bq`                                           | [gorm.io/driver/bigquery/driver][d-bigquery] <sup>[¶][f-hosted]</sup>                       |
 | Google Spanner       | `spanner`       | `sp`                                           | [github.com/googleapis/go-sql-spanner][d-spanner] <sup>[¶][f-hosted]</sup>                  |
-| Microsoft ADODB      | `adodb`         | `ad`, `ado`                                    | [github.com/mattn/go-adodb][d-adodb]                                                        |
 | ModernC SQLite3      | `moderncsqlite` | `mq`, `modernsqlite`                           | [modernc.org/sqlite][d-moderncsqlite] <sup>[§][f-embedded]</sup>                            |
-| MySQL MyMySQL        | `mymysql`       | `zm`, `mymy`                                   | [github.com/ziutek/mymysql/godrv][d-mymysql]                                                |
 | Netezza              | `nzgo`          | `nz`, `netezza`                                | [github.com/IBM/nzgo/v12][d-nzgo]                                                           |
 | ODBC                 | `odbc`          | `od`                                           | [github.com/alexbrainman/odbc][d-odbc] <sup>[†][f-cgo]</sup>                                |
-| OLE ODBC             | `oleodbc`       | `oo`, `ole`                                    | [github.com/mattn/go-adodb][d-adodb] <sup>[‡][f-wire]</sup>                                 |
 | PostgreSQL PGX       | `pgx`           | `px`                                           | [github.com/jackc/pgx/v5/stdlib][d-pgx]                                                     |
 | Presto               | `presto`        | `pr`, `prestodb`                               | [github.com/prestodb/presto-go-client/v2][d-presto]                                         |
-| SAP ASE              | `tds`           | `ax`, `ase`, `sapase`                          | [github.com/thda/tds][d-tds]                                                                |
 | SAP HANA             | `hdb`           | `sa`, `sap`, `hana`, `saphana`                 | [github.com/SAP/go-hdb/driver][d-hdb]                                                       |
 | SingleStore MemSQL   | `memsql`        | `me`                                           | [github.com/go-sql-driver/mysql][d-mysql] <sup>[‡][f-wire]</sup>                            |
 | Snowflake            | `snowflake`     | `sf`                                           | [github.com/snowflakedb/gosnowflake/v2][d-snowflake] <sup>[¶][f-hosted]</sup>               |
@@ -160,7 +155,6 @@ driver name, with its aliases and its Go driver:
 | VoltDB               | `voltdb`        | `vo`, `vdb`, `volt`                            | [github.com/VoltDB/voltdb-client-go/voltdbclient][d-voltdb]                                 |
 | YDB                  | `ydb`           | `yd`, `yds`, `ydbs`                            | [github.com/ydb-platform/ydb-go-sdk/v3][d-ydb]                                              |
 
-[d-adodb]: https://github.com/mattn/go-adodb
 [d-avatica]: https://github.com/apache/calcite-avatica-go
 [d-awsathena]: https://github.com/uber/athenadriver
 [d-bigquery]: https://github.com/go-gorm/bigquery
@@ -174,17 +168,15 @@ driver name, with its aliases and its Go driver:
 [d-duckdb]: https://github.com/duckdb/duckdb-go
 [d-exasol]: https://github.com/exasol/exasol-driver-go
 [d-firebirdsql]: https://github.com/nakagami/firebirdsql
-[d-flightsql]: https://github.com/apache/arrow/tree/main/go/arrow/flight/flightsql/driver
+[d-flightsql]: https://github.com/apache/arrow-go/tree/main/arrow/flight/flightsql/driver
 [d-godror]: https://github.com/godror/godror
 [d-godynamo]: https://github.com/btnguyen2k/godynamo
 [d-h2]: https://github.com/jmrobles/h2go
 [d-hdb]: https://github.com/SAP/go-hdb
 [d-hive]: https://github.com/beltran/gohive
-[d-ignite]: https://github.com/amsokol/ignite-go-client
 [d-impala]: https://github.com/sclgo/impala-go
-[d-maxcompute]: https://github.com/sql-machine-learning/gomaxcompute
+[d-maxcompute]: https://github.com/aliyun/aliyun-odps-go-sdk
 [d-moderncsqlite]: https://gitlab.com/cznic/sqlite
-[d-mymysql]: https://github.com/ziutek/mymysql
 [d-mysql]: https://github.com/go-sql-driver/mysql
 [d-n1ql]: https://github.com/couchbase/go_n1ql
 [d-nzgo]: https://github.com/IBM/nzgo
@@ -199,7 +191,6 @@ driver name, with its aliases and its Go driver:
 [d-spanner]: https://github.com/googleapis/go-sql-spanner
 [d-sqlite3]: https://github.com/mattn/go-sqlite3
 [d-sqlserver]: https://github.com/microsoft/go-mssqldb
-[d-tds]: https://github.com/thda/tds
 [d-trino]: https://github.com/trinodb/trino-go-client
 [d-vertica]: https://github.com/vertica/vertica-sql-go
 [d-voltdb]: https://github.com/VoltDB/voltdb-client-go

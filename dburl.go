@@ -226,7 +226,7 @@ func (u *URL) Short() string {
 		return ""
 	}
 	s := schemeMap[u.Scheme].Aliases[0]
-	if u.Scheme == "odbc" || u.Scheme == "oleodbc" {
+	if u.Scheme == "odbc" {
 		n := u.Transport
 		if v, ok := schemeMap[n]; ok {
 			n = v.Aliases[0]

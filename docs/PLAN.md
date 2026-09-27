@@ -29,6 +29,8 @@ if D11 amends D4, then D4 says so too.
 | [D17](#d17-a-scheme-describes-its-own-database-and-driver) | Decided |
 | [D18](#d18-a-scheme-records-how-the-database-is-deployed) | Decided |
 | [D19](#d19-a-scheme-names-the-dialect-of-its-product) | Decided |
+| [D20](#d20-the-schemes-of-four-removed-drivers-leave-in-one-release) | Decided |
+| [D21](#d21-the-maxcompute-endpoint-protocol-comes-from-the-transport) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -561,3 +563,81 @@ D80 records. The runtime readers are `usql` and `dbtpl`.
 `mymysql` is the pair dbmeta did not name, because it has no model that passes
 on that driver. That is a fact about dbmeta's coverage and not about the
 product, so the pair is recorded here regardless.
+
+### D20. The schemes of four removed drivers leave in one release. Decided.
+
+`usql` dropped four drivers, and D12 removes their five schemes here. Ken decided
+this on 2026-09-27. The schemes and the aliases that go are:
+
+- `mymysql`, with `zm` and `mymy`. `go-sql-driver/mysql` serves the same
+  databases through `mysql`.
+- `adodb`, with `ad` and `ado`, and `oleodbc`, with `oo` and `ole`. `oleodbc`
+  was an `Override` onto `adodb`, so it could not stay without it. `odbc`
+  serves both.
+- `tds`, with `ax`, `ase` and `sapase`. This was SAP ASE.
+- `ignite`, with `ig` and `gridgain`.
+
+This log does not record why `usql` dropped `tds` and `ignite`. That reason
+is in `usql`.
+
+Every removed name is a published alias, so a URL that worked in v0.30.0
+returns `ErrUnknownDatabaseScheme` in v0.31.0. All five go out together, in
+one release with a note, so that callers take the break once. D14 set the same rule for aliases: a name that cannot work is removed,
+and it is not left failing.
+
+`GenAdodb`, `GenOleodbc`, `GenIgnite` and `GenMymysql` are removed, together
+with `convertOptions`, which only `GenMymysql` called. `URL.Short` compared
+the scheme to `oleodbc`. That branch could no longer run, so it is removed.
+
+`TestBadParse` has one case for each removed name. Each case expects
+`ErrUnknownDatabaseScheme`, so a scheme that comes back must come back on
+purpose. D12 says that a removal can be undone, and the same way applies.
+
+D19 counted four pairs of schemes for one product. With `mymysql` gone there
+are three. D19 is not amended, because its rule does not change.
+
+### D21. The maxcompute endpoint protocol comes from the transport. Decided.
+
+`usql` changed the `maxcompute` driver from `sqlflow.org/gomaxcompute` to
+`github.com/aliyun/aliyun-odps-go-sdk/sqldriver`, at v0.4.26. The DSN changed
+with it.
+
+The old driver took `access_id:access_key@host/api` and had no scheme. That
+is why the generator was `GenFromURL("truncate://localhost/")`, which built a
+URL and then cut the scheme off. `sqldriver.ParseDSN` takes a full URL, and
+the scheme of that URL becomes the scheme of the endpoint. A DSN with no
+scheme gives an endpoint the driver cannot reach.
+
+`GenMaxCompute` follows `ots`, which is the other Alibaba scheme here, and
+`clickhouse`. `mc://` emits `https://`. `mc+https://` and `mc+http://` choose
+the protocol. Any other transport returns `ErrInvalidTransportProtocol`,
+including an explicit `mc+tcp`, which `ots` also rejects.
+
+The default of `https` is not a driver option in the sense of D7. It is a part
+of the address, as the host and the port are, and D7 lets this library supply
+those. The public MaxCompute endpoints are `https`.
+
+`project` gets no default, although the driver requires it. D16 gives a
+default only to a required option that has a safe value. No project name is
+safe, because any default names a project that belongs to someone else, or
+that does not exist. D16 also asks what the driver does with nothing. Here it
+returns `project name is not set`, which is a clean error, and it does not
+panic. So the caller supplies `project`, and a URL without it fails in the
+driver, under D5.
+
+The old options `curr_project` and `scheme` are not translated. `sqldriver`
+sends any query option it does not know to the server as an SQL hint, so these
+two now reach the server. This library does not rewrite options that were
+written for a driver `usql` no longer carries. The release note tells callers
+to change them.
+
+`Driver` stays `maxcompute`, and the alias stays `mc`. The package registers
+itself with `database/sql` as `odps`, so `usql` also registers it as
+`maxcompute`. That was `usql`'s proposal, and it keeps every existing URL
+reaching the same scheme.
+
+The emitted DSNs were run through `sqldriver.ParseDSN` at v0.4.26 in a scratch
+module outside this repository, because D2 forbids the import here. The
+endpoint, the project, the tunnel endpoint and the hints all came out as
+intended. `TestParse` covers the default, both transports and the alias.
+`TestBadParse` covers `+tcp` and `+unix`.
