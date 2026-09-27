@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"path"
 	"sort"
+	"strconv"
 	"strings"
 	"unicode"
 )
@@ -153,6 +154,49 @@ var (
 	clickhouseHTTP  = GenFromURL("http://localhost/")
 	clickhouseHTTPS = GenFromURL("https://localhost/")
 )
+
+// GenCouchbase generates a couchbase DSN from the passed URL.
+//
+// Targets [xo/dbimp/couchbase], which reads a couchbase:// URL with net/url
+// and refuses any other scheme, so the scheme is always couchbase, whichever
+// alias was parsed. The user information and the query pass through, as they
+// were written, and the driver refuses an unknown or repeated key. The path
+// passes through too, and the driver refuses one other than "/".
+//
+// The default port follows the tls key, as the port of the query service
+// does: 8093, or 18093 when tls reads as true. The key is read with
+// strconv.ParseBool, as the driver reads it, so the two agree on every value.
+//
+// [xo/dbimp/couchbase]: https://github.com/xo/dbimp
+func GenCouchbase(u *URL) (string, string, error) {
+	host, port := "localhost", "8093"
+	if tls, err := strconv.ParseBool(u.Query().Get("tls")); err == nil && tls {
+		port = "18093"
+	}
+	if h := u.Hostname(); h != "" {
+		host = h
+	}
+	if p := u.Port(); p != "" {
+		port = p
+	}
+	if strings.Contains(host, ":") {
+		host = "[" + host + "]"
+	}
+	host += ":" + port
+	pstr := u.Path
+	if pstr == "" {
+		pstr = "/"
+	}
+	z := &url.URL{
+		Scheme:   "couchbase",
+		User:     u.User,
+		Host:     host,
+		Path:     pstr,
+		RawPath:  u.RawPath,
+		RawQuery: u.RawQuery,
+	}
+	return z.String(), "", nil
+}
 
 // GenCosmos generates a cosmos DSN from the passed URL.
 func GenCosmos(u *URL) (string, string, error) {

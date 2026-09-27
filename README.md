@@ -133,7 +133,7 @@ which is the name that `github.com/lib/pq` registers:
 | Cassandra            | `cql`           | `ca`, `scy`, `scylla`, `datastax`, `cassandra` | [github.com/xo/cql][d-cql]                                                                  |
 | ChaiSQL              | `chai`          | `ci`, `genji`, `chaisql`                       | [github.com/chaisql/chai][d-chai] <sup>[§][f-embedded]</sup>                                |
 | CockroachDB          | `cockroachdb`   | `cr`, `cdb`, `crdb`, `cockroach`               | [github.com/jackc/pgx/v5/stdlib][d-pgx] <sup>[‡][f-wire]</sup>                              |
-| Couchbase            | `n1ql`          | `n1`, `couchbase`                              | [github.com/couchbase/go_n1ql][d-n1ql]                                                      |
+| Couchbase            | `couchbase`     | `n1`, `n1ql`                                   | [github.com/xo/dbimp/couchbase][d-couchbase]                                                |
 | Cznic QL             | `ql`            | `cznic`, `cznicql`                             | [modernc.org/ql][d-ql] <sup>[§][f-embedded]</sup>                                           |
 | Databend             | `databend`      | `dd`, `bend`                                   | [github.com/datafuselabs/databend-go][d-databend]                                           |
 | Databricks           | `databricks`    | `br`, `brick`, `bricks`, `databrick`           | [github.com/databricks/databricks-sql-go][d-databricks] <sup>[¶][f-hosted]</sup>            |
@@ -166,6 +166,7 @@ which is the name that `github.com/lib/pq` registers:
 [d-chai]: https://github.com/chaisql/chai
 [d-clickhouse]: https://github.com/ClickHouse/clickhouse-go
 [d-cosmos]: https://github.com/btnguyen2k/gocosmos
+[d-couchbase]: https://github.com/xo/dbimp
 [d-cql]: https://github.com/xo/cql
 [d-csvq]: https://github.com/mithrandie/csvq-driver
 [d-databend]: https://github.com/datafuselabs/databend-go
@@ -183,7 +184,6 @@ which is the name that `github.com/lib/pq` registers:
 [d-maxcompute]: https://github.com/aliyun/aliyun-odps-go-sdk
 [d-moderncsqlite]: https://gitlab.com/cznic/sqlite
 [d-mysql]: https://github.com/go-sql-driver/mysql
-[d-n1ql]: https://github.com/couchbase/go_n1ql
 [d-nzgo]: https://github.com/IBM/nzgo
 [d-odbc]: https://github.com/alexbrainman/odbc
 [d-oracle]: https://github.com/sijms/go-ora

@@ -34,6 +34,7 @@ if D11 amends D4, then D4 says so too.
 | [D22](#d22-postgres-opens-pgx-and-pq-opens-libpq) | Decided |
 | [D23](#d23-cql-opens-xocql-and-gets-a-url) | Decided |
 | [D24](#d24-a-parsed-url-carries-its-dialect) | Decided |
+| [D25](#d25-couchbase-opens-xodbimpcouchbase) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -927,3 +928,51 @@ takes that scheme's `Dialect`. `Register` keeps `Dialect` in the registry
 since D22, so a scheme registered at run time carries it too.
 `TestParseDialect` covers each PostgreSQL scheme, the MySQL, SQLite and Oracle
 pairs, `nzgo`, and two `file:` URLs.
+
+### D25. couchbase opens xo/dbimp/couchbase. Decided.
+
+The Couchbase scheme moves from `github.com/couchbase/go_n1ql` to
+`github.com/xo/dbimp/couchbase`, at `github.com/xo/dbimp` `v0.1.0`. The dbimp
+session asked for it, under dbimp D30 and D35, and Ken approved it on
+2026-09-27.
+
+The new driver registers only the name `couchbase`, so `Driver` becomes
+`couchbase`. `n1ql` stays as an alias, and so does `n1`. `n1` was the two
+letter alias taken from `n1ql`, and the rename would have replaced it with
+`co`. `n1` is published, so it is listed by name, under D14. A listed two
+letter alias turns off the automatic one, so there is no `co`.
+
+`Dialect` becomes `couchbase`, and Ken confirmed it. D19 requires a
+`Dialect` to name the `Driver` of a registered scheme, and after the rename
+no scheme has the `Driver` `n1ql`. `usql`, dbtpl and dbmeta change any match
+on `n1ql` in the same release. `passfile` entries written as `n1ql:` keep
+matching, because `n1ql` is still a name in the dialect family.
+
+`GenCouchbase` emits `couchbase://user:pass@host:port/?key=value`. The driver
+refuses every other scheme, so the scheme is always `couchbase`, whichever
+alias was parsed. The user information and the query pass through as they
+were written, and the driver refuses an unknown or a repeated key. An empty
+path becomes `/`, and any other path passes through for the driver to refuse.
+
+THE DEFAULT PORT FOLLOWS TLS
+
+Rule 7 supplies a default port, and Ken confirmed that it applies here. The
+driver serves the query service on 8093, or on 18093 when `tls` is true. So
+the default is 8093, or 18093 when `tls` reads as true. The first draft left
+the port out for the driver to choose, and Ken rejected it: a database DSN
+carries its default port.
+
+The exception in D22 stays, and Ken confirmed it. `GenPostgres` and `GenPgx`
+supply no default host and no default port, so that lib/pq, pgx and nzgo read
+`PGHOST` and `PGPORT`. No such variable applies to Couchbase.
+
+`tls` is read with `strconv.ParseBool`, as the driver reads it, so the two
+agree on `1`, `t` and `TRUE` as well as `true`. A value that `ParseBool`
+rejects gives 8093, and the driver then rejects the value itself, under D5.
+An explicit port always wins.
+
+The output was run through `couchbase.ParseDSN` at `v0.1.0`, fetched from
+`proxy.golang.org`. The default ports, both TLS spellings, an explicit port,
+a password holding `@` and a space, every key the driver takes and an IPv6
+host all came back as intended. A path and an unknown key failed in the
+driver. `TestParse` covers each case.
