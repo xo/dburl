@@ -36,6 +36,7 @@ if D11 amends D4, then D4 says so too.
 | [D24](#d24-a-parsed-url-carries-its-dialect) | Decided |
 | [D25](#d25-couchbase-opens-xodbimpcouchbase) | Decided |
 | [D26](#d26-surrealdb-opens-xodbimpsurrealdb) | Decided |
+| [D27](#d27-dburl-is-set-up-for-coding-agents-as-every-xo-repository-is) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -1010,3 +1011,59 @@ only dbimp's documentation after `bd0f165`. The check was run again against
 The default port, both TLS spellings of the port, a namespace holding `%2F`, a
 password holding `@` and a space, and every key came back as intended. An
 empty path, a path of one segment and an unknown key failed in the driver.
+
+### D27. dburl is set up for coding agents as every xo repository is. Decided.
+
+Ken decided on 2026-09-27 that every repository in the `xo` namespace is set
+up for coding agents the same way. The standard is D110 in dbmeta, and dbmeta
+sent it to this session. This entry records what dburl adopted.
+
+THE FILES
+
+- `AGENTS.md` holds the rules, because Codex and the other agents read that
+  file. It holds what `CLAUDE.md` held. Git records it as a new file, because
+  `CLAUDE.md` still exists, so read the history of the rules before this
+  entry in `git log -- CLAUDE.md`.
+- `CLAUDE.md` holds one line, `@AGENTS.md`, which Claude Code reads as an
+  import. It is an ordinary file and not a symbolic link.
+- `CONTRIBUTING.md` is new. It has an Agent skills section with the command
+  that installs each skill.
+- `.gitignore` ignores `.claude/settings.local.json`, the Claude Code
+  permissions of one person.
+- `.gitattributes` holds `* text=auto eol=lf`.
+- `docs/BACKLOG.md` is new, for work that is known and not done.
+
+dburl is a small library, so it keeps its decisions in `docs/PLAN.md`, with
+the index at the top, and does not split them into one file each. dbmeta D111
+draws that line.
+
+THE STANDING RULES
+
+`AGENTS.md` now opens with three rules that are the same in every `xo`
+repository:
+
+1. Stage changes for review. Commit and push only when Ken says so.
+2. Load `simple-english` before writing any text that a person reads.
+3. Load `go-pedantry` before writing or reviewing Go code. A rule of the
+   project wins where the two conflict.
+
+`CLAUDE.md` named neither skill before. The first rule is how Ken already
+worked in this session, and an agent new to the repository did not know it.
+
+THE SKILLS
+
+`.claude/skills/go-pedantry` and `.claude/skills/simple-english` were
+symbolic links to `.agents/skills`. A Windows checkout writes a link as a
+small text file, so Claude Code loaded no skill there and reported nothing.
+They are now ordinary folders, identical to the ones in `.agents/skills`.
+
+The copies were already in the working tree before this session made any of
+the other changes, and they matched `.agents/skills` byte for byte. So the
+`npx skills@1.7.0 add ... --copy` command was not run. `skills-lock.json` did
+not change.
+
+`TestSkillsAreCopies` fails on a link, on a missing copy, on a skill that
+`skills-lock.json` does not name, and on two copies that differ.
+`TestClaudeImportsAgents` fails unless `CLAUDE.md` is an ordinary file that
+holds exactly `@AGENTS.md`. Both tests use only the standard library, as D1
+requires.
