@@ -587,6 +587,17 @@ func BaseSchemes() []Scheme {
 			Dialect:    "spanner",
 		},
 		{
+			Driver:     "surrealdb",
+			Generator:  GenSurrealDB,
+			Aliases:    []string{"sr", "sur", "surreal"},
+			Desc:       "SurrealDB",
+			Home:       "https://surrealdb.com",
+			GoPackage:  "github.com/xo/dbimp/surrealdb",
+			DriverURL:  "https://github.com/xo/dbimp",
+			Deployment: DeploymentServer,
+			Dialect:    "surrealdb",
+		},
+		{
 			Driver:     "trino",
 			Generator:  GenTrino,
 			Aliases:    []string{"trino", "trinos", "trs"},

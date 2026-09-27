@@ -35,6 +35,7 @@ if D11 amends D4, then D4 says so too.
 | [D23](#d23-cql-opens-xocql-and-gets-a-url) | Decided |
 | [D24](#d24-a-parsed-url-carries-its-dialect) | Decided |
 | [D25](#d25-couchbase-opens-xodbimpcouchbase) | Decided |
+| [D26](#d26-surrealdb-opens-xodbimpsurrealdb) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -976,3 +977,36 @@ The output was run through `couchbase.ParseDSN` at `v0.1.0`, fetched from
 a password holding `@` and a space, every key the driver takes and an IPv6
 host all came back as intended. A path and an unknown key failed in the
 driver. `TestParse` covers each case.
+
+### D26. surrealdb opens xo/dbimp/surrealdb. Decided.
+
+Ken decided on 2026-09-27 to add a scheme for SurrealDB, for the driver
+`github.com/xo/dbimp/surrealdb`. The driver registers only `surrealdb`, under
+dbimp D26 and D30, so `Driver` and `Dialect` are both `surrealdb`. Ken chose
+the aliases `sr`, `sur` and `surreal`. `sr` is a listed two letter alias, so
+the automatic `su` is not registered.
+
+The URL form is dbimp D48: `surrealdb://user:pass@host:port/namespace/database`.
+The driver refuses every other scheme, and a path that is not exactly two
+segments. It reads the escaped path, so a name that holds a slash is written
+`%2F`. The query takes `tls`, `auth` and `encoding`, under dbimp D48, D49 and
+D51, and the driver refuses any other key and a repeated one.
+
+`GenSurrealDB` writes the scheme `surrealdb` whichever alias was parsed, and
+passes the user information, the path with its escaping and the query through
+as they were written. The default host is `localhost`, and the default port is
+8000 under rule 7. TLS does not change the port, because the driver speaks
+HTTPS on the same one.
+
+THE VERSION
+
+`usql` has no SurrealDB driver yet. The generator was written against
+`ParseDSN` in dbimp commit `bd0f165`, before the driver was tagged, and the
+output was run through it from a scratch module outside this repository. The
+driver was then tagged in dbimp `v0.2.0`, at commit `82c1902`, which changes
+only dbimp's documentation after `bd0f165`. The check was run again against
+`v0.2.0` from `proxy.golang.org`, and every result matched.
+
+The default port, both TLS spellings of the port, a namespace holding `%2F`, a
+password holding `@` and a space, and every key came back as intended. An
+empty path, a path of one segment and an unknown key failed in the driver.

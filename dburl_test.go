@@ -1063,6 +1063,36 @@ func TestParse(t *testing.T) {
 			``,
 		},
 		{
+			`surrealdb://`,
+			`surrealdb`,
+			`surrealdb://localhost:8000`,
+			``,
+		},
+		{
+			`surrealdb://root:pw@127.0.0.1/dbmeta/dbmeta`,
+			`surrealdb`,
+			`surrealdb://root:pw@127.0.0.1:8000/dbmeta/dbmeta`,
+			``,
+		},
+		{
+			`sr://user:pass@host:9000/ns/db?tls=true`,
+			`surrealdb`,
+			`surrealdb://user:pass@host:9000/ns/db?tls=true`,
+			``,
+		},
+		{
+			`sur://user:p%40ss@host/my%2Fns/db?auth=database&encoding=json`,
+			`surrealdb`,
+			`surrealdb://user:p%40ss@host:8000/my%2Fns/db?auth=database&encoding=json`,
+			``,
+		},
+		{
+			`surreal://[::1]/ns/db`,
+			`surrealdb`,
+			`surrealdb://[::1]:8000/ns/db`,
+			``,
+		},
+		{
 			`ca://`,
 			`cql`,
 			`cql://localhost:9042`,

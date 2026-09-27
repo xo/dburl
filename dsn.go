@@ -753,6 +753,41 @@ func GenSqlserver(u *URL) (string, string, error) {
 	return z.String(), driver, nil
 }
 
+// GenSurrealDB generates a surrealdb DSN from the passed URL.
+//
+// Targets [xo/dbimp/surrealdb], which reads a surrealdb:// URL with net/url
+// and refuses any other scheme, so the scheme is always surrealdb, whichever
+// alias was parsed. The path names the namespace and the database, as
+// /namespace/database, and passes through with its escaping, so a name that
+// holds a slash stays %2F. The user information and the query pass through
+// as they were written, and the driver refuses an unknown or repeated key.
+//
+// The default port is 8000, with TLS or without, as the driver serves both on
+// the same port.
+//
+// [xo/dbimp/surrealdb]: https://github.com/xo/dbimp
+func GenSurrealDB(u *URL) (string, string, error) {
+	host, port := "localhost", "8000"
+	if h := u.Hostname(); h != "" {
+		host = h
+	}
+	if p := u.Port(); p != "" {
+		port = p
+	}
+	if strings.Contains(host, ":") {
+		host = "[" + host + "]"
+	}
+	z := &url.URL{
+		Scheme:   "surrealdb",
+		User:     u.User,
+		Host:     host + ":" + port,
+		Path:     u.Path,
+		RawPath:  u.RawPath,
+		RawQuery: u.RawQuery,
+	}
+	return z.String(), "", nil
+}
+
 // GenTableStore generates a tablestore DSN from the passed URL.
 func GenTableStore(u *URL) (string, string, error) {
 	var transport string
