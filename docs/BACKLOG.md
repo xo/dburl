@@ -23,12 +23,20 @@ dbimp settles the name and the URL form of each one in its step 9, and the
 name is the database as one lower case word (dbimp D26, D28 and D30). Add
 each scheme when its driver has `ParseDSN` at a tag, under rule 3.
 
-Two questions are with Ken:
+Ken decided these names on 2026-09-28, in dbimp D76:
 
-- `databend` is already a scheme here, for `github.com/datafuselabs/databend-go`,
-  which registers `databend`. A dbimp driver that registers the same name
-  cannot be linked beside it.
-- libSQL and Turso can be one driver with one name, or two.
+- CrateDB is `cratedb`, in the package `github.com/xo/dbimp/cratedb`.
+- libSQL and Turso are one product with one driver, `libsql`, in the package
+  `github.com/xo/dbimp/libsql`. `turso` is an alias here.
+- Databend moves to `github.com/xo/dbimp/databend`, which registers
+  `databend` and replaces `github.com/datafuselabs/databend-go` here and in
+  `usql` (dbimp D24). The two are never linked together.
+
+When the `databend` scheme moves, `GenDatabend` must write the scheme
+`databend` itself. Today it passes the URL through, so `bend://` reaches the
+driver with the scheme `bend`. `databend-go` v0.9.4 reads only whether the
+scheme ends in `http`, so that works today. The dbimp driver refuses every
+scheme but its own name (dbimp D35).
 
 ## Tooling
 
