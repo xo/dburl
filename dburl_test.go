@@ -1093,6 +1093,36 @@ func TestParse(t *testing.T) {
 			``,
 		},
 		{
+			`neo4j://`,
+			`neo4j`,
+			`neo4j://localhost:7474`,
+			``,
+		},
+		{
+			`nj://neo4j:pw@127.0.0.1/dbmeta`,
+			`neo4j`,
+			`neo4j://neo4j:pw@127.0.0.1:7474/dbmeta`,
+			``,
+		},
+		{
+			`neo://user:pass@host/db?tls=true&cancel=metadata`,
+			`neo4j`,
+			`neo4j://user:pass@host:7473/db?tls=true&cancel=metadata`,
+			``,
+		},
+		{
+			`n4j://user:p%40ss@host:9000/my%2Fdb?tls=1`,
+			`neo4j`,
+			`neo4j://user:p%40ss@host:9000/my%2Fdb?tls=1`,
+			``,
+		},
+		{
+			`neo4j://[::1]/`,
+			`neo4j`,
+			`neo4j://[::1]:7474/`,
+			``,
+		},
+		{
 			`ca://`,
 			`cql`,
 			`cql://localhost:9042`,

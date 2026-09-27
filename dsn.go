@@ -438,6 +438,45 @@ func GenMysql(u *URL) (string, string, error) {
 	return dsn + genQueryOptions(u.Query()), "", nil
 }
 
+// GenNeo4j generates a neo4j DSN from the passed URL.
+//
+// Targets [xo/dbimp/neo4j], which reads a neo4j:// URL with net/url and
+// refuses any other scheme, so the scheme is always neo4j, whichever alias
+// was parsed. The path names the database, and passes through with its
+// escaping. The driver reads an empty path as the database neo4j. The user
+// information and the query pass through as they were written, and the
+// driver refuses an unknown or repeated key.
+//
+// The default port follows the tls key, as the port of the HTTP interface
+// does: 7474, or 7473 when tls reads as true. The key is read with
+// strconv.ParseBool, as the driver reads it.
+//
+// [xo/dbimp/neo4j]: https://github.com/xo/dbimp
+func GenNeo4j(u *URL) (string, string, error) {
+	host, port := "localhost", "7474"
+	if tls, err := strconv.ParseBool(u.Query().Get("tls")); err == nil && tls {
+		port = "7473"
+	}
+	if h := u.Hostname(); h != "" {
+		host = h
+	}
+	if p := u.Port(); p != "" {
+		port = p
+	}
+	if strings.Contains(host, ":") {
+		host = "[" + host + "]"
+	}
+	z := &url.URL{
+		Scheme:   "neo4j",
+		User:     u.User,
+		Host:     host + ":" + port,
+		Path:     u.Path,
+		RawPath:  u.RawPath,
+		RawQuery: u.RawQuery,
+	}
+	return z.String(), "", nil
+}
+
 // GenOdbc generates a odbc DSN from the passed URL.
 func GenOdbc(u *URL) (string, string, error) {
 	// save host, port, dbname

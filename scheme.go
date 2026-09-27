@@ -507,6 +507,17 @@ func BaseSchemes() []Scheme {
 			Dialect:    "maxcompute",
 		},
 		{
+			Driver:     "neo4j",
+			Generator:  GenNeo4j,
+			Aliases:    []string{"nj", "neo", "n4j"},
+			Desc:       "Neo4j",
+			Home:       "https://neo4j.com",
+			GoPackage:  "github.com/xo/dbimp/neo4j",
+			DriverURL:  "https://github.com/xo/dbimp",
+			Deployment: DeploymentServer,
+			Dialect:    "neo4j",
+		},
+		{
 			Driver:     "nzgo",
 			Generator:  GenPostgres,
 			Transport:  TransportUnix,

@@ -9,23 +9,26 @@ decided on the way (D27).
 
 ## Schemes
 
-### Add a neo4j scheme when dbimp tags its driver
+### Release neo4j when dbimp tags its driver
 
-Ken decided on 2026-09-27 to add a scheme for Neo4j, with the aliases `nj`,
-`neo` and `n4j`. `nj` is a listed two letter alias, so the automatic `ne` is
-not registered. He first chose `4j`, which cannot work: a URL scheme must
-start with a letter, so `net/url` refuses `4j://`, and D14 forbids an alias
-that cannot work.
+D28 added the `neo4j` scheme against dbimp commit `b475894`, which no tag
+holds. When dbimp tags a release that holds the driver, run the check of D28
+again against the tag, then tag this library.
 
-The driver is to be `github.com/xo/dbimp/neo4j`, and dbimp confirmed that it
-registers exactly `neo4j`, so `Driver` and `Dialect` are both `neo4j`. The
-driver does not exist yet. The URL form, the default port and the query keys
-are decided in dbimp step 9. The HTTP API of Neo4j answers on port 7474, but
-dbimp did not decide the default port yet.
+### Add the schemes for the next dbimp drivers
 
-When dbimp tags the driver, follow [SCHEME.md](SCHEME.md). Read `ParseDSN` at
-the tag under rule 3, and inject the default port under rule 7, as D26 did
-for surrealdb.
+dbimp D73 sets the order of the drivers after Neo4j: InfluxDB, CrateDB,
+ArangoDB, Databend, TDengine, Apache Pinot, rqlite, then libSQL and Turso.
+dbimp settles the name and the URL form of each one in its step 9, and the
+name is the database as one lower case word (dbimp D26, D28 and D30). Add
+each scheme when its driver has `ParseDSN` at a tag, under rule 3.
+
+Two questions are with Ken:
+
+- `databend` is already a scheme here, for `github.com/datafuselabs/databend-go`,
+  which registers `databend`. A dbimp driver that registers the same name
+  cannot be linked beside it.
+- libSQL and Turso can be one driver with one name, or two.
 
 ## Tooling
 

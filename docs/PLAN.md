@@ -37,6 +37,7 @@ if D11 amends D4, then D4 says so too.
 | [D25](#d25-couchbase-opens-xodbimpcouchbase) | Decided |
 | [D26](#d26-surrealdb-opens-xodbimpsurrealdb) | Decided |
 | [D27](#d27-dburl-is-set-up-for-coding-agents-as-every-xo-repository-is) | Decided |
+| [D28](#d28-neo4j-opens-xodbimpneo4j) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -1067,3 +1068,43 @@ not change.
 `TestClaudeImportsAgents` fails unless `CLAUDE.md` is an ordinary file that
 holds exactly `@AGENTS.md`. Both tests use only the standard library, as D1
 requires.
+
+### D28. neo4j opens xo/dbimp/neo4j. Decided.
+
+Ken decided on 2026-09-27 to add a scheme for Neo4j, for the driver
+`github.com/xo/dbimp/neo4j`. The driver registers only `neo4j`, under dbimp
+D26 and D30, so `Driver` and `Dialect` are both `neo4j`, which matches
+dbmeta D109.
+
+Ken chose the aliases `nj`, `neo` and `n4j`. He first chose `4j` for the two
+letter alias, and it was dropped. A URL scheme must start with a letter, so
+`net/url` refuses `4j://` before dburl sees it, and D14 forbids an alias that
+cannot work under any input. `nj` is a listed two letter alias, so the
+automatic `ne` is not registered.
+
+The URL form is dbimp D60, D61 and D67:
+`neo4j://user:pass@host:port/database`. The path names one database, and an
+empty path means the database `neo4j`. The query takes `tls` and `cancel`,
+and the driver refuses any other key and a repeated one.
+
+`GenNeo4j` writes the scheme `neo4j` whichever alias was parsed, and passes
+the user information, the path with its escaping and the query through as
+they were written. The default port follows `tls`, as for couchbase in D25:
+7474, or 7473 when `tls` reads as true with `strconv.ParseBool`.
+
+The driver speaks the HTTP interface of Neo4j and not Bolt. The tools of
+Neo4j write `neo4j://host:7687` for Bolt, and a URL copied from them reaches
+this driver on the Bolt port and fails. dburl does not rewrite that port,
+under D5.
+
+THE VERSION
+
+The generator was written against `ParseDSN` in dbimp commit `b475894`, and
+the output was run through it from a scratch module outside this repository.
+The default ports, both TLS spellings, an explicit port, a database name
+holding `%2F`, a password holding `@` and a space, and both keys came back as
+intended. A path of two segments and an unknown key failed in the driver.
+
+No dbimp tag holds the driver yet. A release of this library that carries D28
+waits for one, and the check is to be run again against it, as D23 set for
+cql.

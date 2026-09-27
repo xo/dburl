@@ -145,6 +145,7 @@ which is the name that `github.com/lib/pq` registers:
 | Google BigQuery      | `bigquery`      | `bq`                                           | [gorm.io/driver/bigquery/driver][d-bigquery] <sup>[¶][f-hosted]</sup>                       |
 | Google Spanner       | `spanner`       | `sp`                                           | [github.com/googleapis/go-sql-spanner][d-spanner] <sup>[¶][f-hosted]</sup>                  |
 | ModernC SQLite3      | `moderncsqlite` | `mq`, `modernsqlite`                           | [modernc.org/sqlite][d-moderncsqlite] <sup>[§][f-embedded]</sup>                            |
+| Neo4j                | `neo4j`         | `nj`, `neo`, `n4j`                             | [github.com/xo/dbimp/neo4j][d-neo4j]                                                        |
 | Netezza              | `nzgo`          | `nz`, `netezza`                                | [github.com/IBM/nzgo/v12][d-nzgo]                                                           |
 | ODBC                 | `odbc`          | `od`                                           | [github.com/alexbrainman/odbc][d-odbc] <sup>[†][f-cgo]</sup>                                |
 | PostgreSQL lib/pq    | `pq`            | `libpq`                                        | [github.com/lib/pq][d-pq]                                                                   |
@@ -185,6 +186,7 @@ which is the name that `github.com/lib/pq` registers:
 [d-maxcompute]: https://github.com/aliyun/aliyun-odps-go-sdk
 [d-moderncsqlite]: https://gitlab.com/cznic/sqlite
 [d-mysql]: https://github.com/go-sql-driver/mysql
+[d-neo4j]: https://github.com/xo/dbimp
 [d-nzgo]: https://github.com/IBM/nzgo
 [d-odbc]: https://github.com/alexbrainman/odbc
 [d-oracle]: https://github.com/sijms/go-ora
