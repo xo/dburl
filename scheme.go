@@ -73,8 +73,8 @@ type Scheme struct {
 	// Dialect: pgx and postgres are both PostgreSQL, as moderncsqlite and
 	// sqlite3 are both SQLite3.
 	//
-	// A wire compatible scheme takes the Dialect of the product it speaks to,
-	// which is the same as its Override.
+	// A scheme with an Override takes the Dialect of the scheme it overrides.
+	// For a wire compatible scheme, that is the product it speaks to.
 	Dialect string
 	// Desc is the database display name, as "Apache Hive".
 	Desc string
@@ -83,7 +83,8 @@ type Scheme struct {
 	// DriverURL is the home page of the Go database driver.
 	//
 	// Blank for a wire compatible scheme, which reaches its driver through
-	// Override.
+	// Override. A scheme whose Override names a driver that no scheme opens
+	// sets it, as pq does for lib/pq.
 	DriverURL string
 	// GoPackage is the import path of the Go database driver, including the
 	// major version when the module carries one.
@@ -92,7 +93,8 @@ type Scheme struct {
 	// pgx the module is github.com/jackc/pgx/v5 and the import path that
 	// registers the driver is github.com/jackc/pgx/v5/stdlib.
 	//
-	// Blank for a wire compatible scheme.
+	// Blank for a wire compatible scheme, and set by a scheme whose Override
+	// names a driver that no scheme opens, as for DriverURL.
 	GoPackage string
 	// RequiresCGO reports whether the Go database driver needs cgo.
 	RequiresCGO bool

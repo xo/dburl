@@ -22,7 +22,7 @@ if D11 amends D4, then D4 says so too.
 | [D10](#d10-a-rule-that-has-no-test-is-not-a-rule) | Decided |
 | [D11](#d11-netezza-keeps-sharing-genpostgres) | Decided |
 | [D12](#d12-a-scheme-follows-its-driver-out-of-usql) | Decided |
-| [D13](#d13-this-registry-writes-two-published-driver-tables) | Decided |
+| [D13](#d13-this-registry-writes-two-published-driver-tables) | Amended by D17 |
 | [D14](#d14-an-alias-that-cannot-work-is-removed-not-left-failing) | Decided |
 | [D15](#d15-dburl-does-not-validate-driver-option-values) | Decided |
 | [D16](#d16-a-required-option-with-no-valid-empty-value-gets-a-default) | Decided |
@@ -225,7 +225,12 @@ same reason. `dameng` went the same month, under D5.
 Read `CONTRIBUTING.md` in `usql` before deciding this one. It holds the rules,
 and it was written to be read by coding agents.
 
-### D13. This registry writes two published driver tables. Decided.
+### D13. This registry writes two published driver tables. Amended by D17.
+
+Amended by D17: this repository now writes its own table with `go run gen.go`,
+from this registry. `usql` writes only its own table, and reads this registry
+at the version it pins. The rest of this entry describes `usql`'s builder and
+still holds for `usql`'s table.
 
 `usql` generates the driver table in its own README and the one in this
 README from a single builder. `gen.go` calls `writeReadme` twice, once for
@@ -376,7 +381,7 @@ library does.
 The general test, for the next option that looks like this one: ask what the
 driver does with nothing, not only what it does with something wrong.
 
-### D17. A scheme describes its own database and driver. Amended by D22.
+### D17. A scheme describes its own database and driver. Amends D13. Amended by D22.
 
 D22 changes how `TestSchemeMetadata` treats a scheme whose `Override` names
 a driver that no scheme documents. The rest of this entry stands.
@@ -887,3 +892,8 @@ Ken chose to commit this before the driver is tagged. Until the tag exists,
 `main` names a driver that cannot be installed at a version, so a release of
 this library that carries D23 waits for that tag. When the tag exists, the
 same check is to be run against it before this library is tagged.
+
+`github.com/xo/cql` `v0.1.0` was tagged on 2026-09-27, at commit `3416515`.
+The check was run again against that tag, fetched from `proxy.golang.org`,
+and every result matched the check against the working tree. The condition
+above is met.

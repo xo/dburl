@@ -54,12 +54,19 @@ Three mechanisms exist. Prefer the first one that fits.
 template are the defaults, and anything in the passed URL overrides them. Use
 it when the DSN is itself a URL and needs a default port.
 
+`GenFromURL` rebuilds the query with `url.Values`. It writes a space as `+`,
+and it joins a key that appears twice into one value. Read how the driver
+decodes its query before you use it. pgx reads `+` as itself, so a scheme
+whose driver is pgx uses `GenPgxFromURL`, which takes the same template.
+`xo/cql` takes a `host` key that can repeat, so `GenCassandra` passes the
+query through as it was written. D22 and D23 record both.
+
 `GenScheme("name")` rewrites only the scheme and forces `localhost`. Use it
 when the DSN is a URL and needs no default port.
 
 A hand written `GenXxx(u *URL) (string, string, error)` in `dsn.go` covers
 everything else. Use it when the DSN is not a URL, such as the `key=value`
-form that PostgreSQL and ODBC take. Use it also when the generator needs to
+form that lib/pq, nzgo and ODBC take. Use it also when the generator needs to
 reject something.
 
 ## 4. Supply the defaults, then let the URL override them
@@ -79,6 +86,10 @@ if p := u.Port(); p != "" {
 ```
 
 `GenFromURL` does the same thing, written as a template instead of as code.
+
+The PostgreSQL generators are the exception. `GenPostgres` and `GenPgx`
+supply no default host and no default port, because the driver then reads
+`PGHOST` and `PGPORT`, and a default here would override them. That is D22.
 
 Defaults stop there. Do not add an option that changes how the driver or the
 database behaves. The client that opens the connection owns those, and `usql`
@@ -111,16 +122,27 @@ as `scheme://<opaque>` and parses it again.
 
 ## 6. Register the scheme
 
-Add an entry to `BaseSchemes` in `scheme.go`. The fields are positional:
+Add an entry to `BaseSchemes` in `scheme.go`. The fields are named, because
+six of them are strings and a positional entry turns a transposition into a
+silent bug. That is D17.
 
 ```go
 {
-    "name",             // Driver: the sql.Register name the driver uses
-    GenName, 0, false,  // Generator, Transport, Opaque
-    []string{"alias"},  // Aliases
-    "",                 // Override: a different Go driver name, or empty
+    Driver:     "name",              // the sql.Register name the driver uses
+    Generator:  GenName,
+    Aliases:    []string{"alias"},
+    Desc:       "Database Name",
+    Home:       "https://example.com",
+    GoPackage:  "github.com/owner/driver",
+    DriverURL:  "https://github.com/owner/driver",
+    Deployment: DeploymentServer,
+    Dialect:    "name",
 },
 ```
+
+Set `Transport` when the scheme takes `+unix` or another transport, and set
+`Opaque` for a database held in a file. Set `Override` when the scheme must
+return a different driver name from its own, as the paragraphs below explain.
 
 The `Driver` field must be the exact name the driver passes to `sql.Register`.
 Read it from the driver source. Do not guess it from the package name.
@@ -135,14 +157,21 @@ blank unless you have the database provider's page.
 
 A wire compatible scheme sets `Override` and leaves `GoPackage` and
 `DriverURL` blank, because it reaches its driver through the scheme it points
-at. `TestSchemeMetadata` checks all of this. That is D17.
+at. That is D17.
+
+`Override` also serves a scheme whose driver registered a name that another
+scheme holds. lib/pq registers `postgres`, but the `postgres` scheme returns
+`pgx`, so the `pq` scheme sets `Override: "postgres"`. No scheme documents
+lib/pq, so `pq` sets its own `GoPackage` and `DriverURL`. The rule is: when
+the scheme named by `Override` itself has an `Override`, the scheme documents
+its own driver. `TestSchemeMetadata` checks all of this. That is D22.
 
 Set `Deployment` to how the database is deployed, which is D18. Set `Dialect`
 to the `Driver` of the scheme that is canonical for the product, which is the
 scheme's own `Driver` unless you are adding a second Go driver for a product
 that already has one. `pgx` and `postgres` are both PostgreSQL and share a
-`Dialect`. A wire compatible scheme takes the `Dialect` of what it speaks,
-which is the same as its `Override`. That is D19.
+`Dialect`. A scheme with an `Override` takes the `Dialect` of the scheme it
+overrides. That is D19, as D22 amends it.
 
 A two letter alias is registered automatically from the first two characters
 of the name, unless one of the aliases is already two characters.
@@ -218,15 +247,21 @@ That is recorded as D3.
 ## 10. Regenerate the README
 
 The driver table in `README.md` between the `DRIVER DETAILS` markers is
-generated. `usql` writes it, from its own driver list and from this registry,
-with `go run gen.go -dburl-gen`. Do not edit between those markers by hand,
-because the next run overwrites the change. Edit the prose outside the markers
-freely.
+generated from this registry. Run this in the repository root:
 
-The same run writes the driver table in `usql`'s own README, from the same
-builder, which reads this registry. A scheme or an alias you change here
-changes `usql`'s published documentation the next time anyone regenerates.
-That is D13. A scheme with no `usql` driver gets no row in either table.
+```sh
+go run gen.go
+```
+
+Do not edit between those markers by hand, because the next run overwrites
+the change. Edit the prose outside the markers freely. Every scheme with a
+`Desc` gets a row.
+
+`usql` writes the driver table in its own README from its own builder, which
+reads this registry at the version `usql` pins. A scheme or an alias you
+change here changes `usql`'s published documentation the next time `usql`
+takes a new release and regenerates. `usql`'s table has a row only for a
+scheme that `usql` has a driver for. That is D13, as D17 amends it.
 
 ## Before you commit
 

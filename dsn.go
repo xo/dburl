@@ -36,6 +36,11 @@ func GenScheme(scheme string) func(*URL) (string, string, error) {
 
 // GenFromURL returns a func that generates a DSN based on parameters of the
 // passed URL.
+//
+// The query is rebuilt with [net/url.Values.Encode], which writes a space as
+// a +, and a key that appears more than once is joined into one value with
+// spaces. Do not use it for a driver that reads a + as itself, such as pgx,
+// which has [GenPgxFromURL], or for a driver that takes a repeated key.
 func GenFromURL(urlstr string) func(*URL) (string, string, error) {
 	z, err := url.Parse(urlstr)
 	if err != nil {

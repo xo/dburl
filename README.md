@@ -87,6 +87,7 @@ connection URLs such as these:
 ```text
 postgres://user:pass@localhost/dbname
 pg://user:pass@localhost/dbname?sslmode=disable
+pq://user:pass@localhost/dbname
 mysql://user:pass@localhost/dbname
 mysql:/var/run/mysqld/mysqld.sock
 sqlserver://user:pass@remote-host.com/dbname
@@ -94,6 +95,7 @@ mssql://user:pass@remote-host.com/instance/dbname
 ms://user:pass@remote-host.com:port/instance/dbname?keepAlive=10
 oracle://user:pass@somehost.com/sid
 sap://user:pass@localhost/dbname
+cassandra://user:pass@localhost/keyspace?consistency=localQuorum
 sqlite:/path/to/file.db
 file:myfile.sqlite3?loc=auto
 odbc+postgres://user:pass@localhost:port/dbname?option1=
@@ -101,8 +103,10 @@ odbc+postgres://user:pass@localhost:port/dbname?option1=
 
 ## Database Schemes, Aliases, and Drivers
 
-The table lists every supported `dburl` protocol scheme, which is also the
-driver name, with its aliases and its Go driver:
+The table lists every supported `dburl` protocol scheme, with its aliases and
+its Go driver. The scheme is usually also the driver name that `dburl` returns.
+A row marked ‡ uses the driver of another row, and `pq` returns `postgres`,
+which is the name that `github.com/lib/pq` registers:
 
 <!-- DRIVER DETAILS START -->
 
@@ -200,14 +204,14 @@ driver name, with its aliases and its Go driver:
 <!-- DRIVER DETAILS END -->
 
 [f-cgo]: #f-cgo "Requires CGO"
-[f-wire]: #f-wire "Wire compatible"
+[f-wire]: #f-wire "Uses another driver"
 [f-embedded]: #f-embedded "Embedded"
 [f-hosted]: #f-hosted "Hosted service"
 
 <p>
   <i>
     <a id="f-cgo"><sup>†</sup> Requires CGO</a><br>
-    <a id="f-wire"><sup>‡</sup> Wire compatible (see respective driver)</a><br>
+    <a id="f-wire"><sup>‡</sup> Uses the driver of another row, as a wire compatible database does</a><br>
     <a id="f-embedded"><sup>§</sup> Embedded, with no server to run</a><br>
     <a id="f-hosted"><sup>¶</sup> Hosted service, with no server you can run</a>
   </i>
