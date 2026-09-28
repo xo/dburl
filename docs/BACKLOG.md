@@ -38,6 +38,20 @@ driver with the scheme `bend`. `databend-go` v0.9.4 reads only whether the
 scheme ends in `http`, so that works today. The dbimp driver refuses every
 scheme but its own name (dbimp D35).
 
+### Find a driver for gizmosql that keeps a session
+
+The `usql` session reported on 2026-09-29 that `gizmosql://` connects to
+GizmoSQL 1.39.0 and that every query then fails with `No session ID in
+request context`. The same error comes through `flightsql://`, so it is in
+the Flight SQL driver, `github.com/apache/arrow-go/v18` v18.8.0, and not in
+the DSN (D36). That driver sends the same `authorization` header with every
+request (`driver/utils.go`), and it opens its client with no middleware
+(`driver/driver.go`), so it never keeps a token or a cookie that the server
+returns. It sends an unknown query key as gRPC metadata, but a session ID
+comes from the server, so no key in the URL can supply it. Under D5 dburl does
+not work around it. The fix is a driver that keeps the session: a change
+upstream in arrow-go, or a dbimp driver. Ken decides which.
+
 ### Revisit presto, trino and clickhouse when dbimp writes their drivers
 
 Ken decided on 2026-09-29 to leave the ports and the TLS handling of these
