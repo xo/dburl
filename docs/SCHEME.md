@@ -72,11 +72,20 @@ reject something.
 ## 4. Supply the defaults, then let the URL override them
 
 A `dburl` URL carries the settings that identify the server, so the caller does
-not have to write them. The generator sets the default host and the default
-port, and the passed URL replaces each one that it names.
+not have to write them. The generator sets the default host, and the passed
+URL replaces it when it names one.
+
+The generator sets a default port only when the driver has no default port
+of its own, or when the driver's default is the wrong port for the product.
+Read the driver's parser to find out, as step 2 says. `go-sql-driver/mysql`
+adds 3306 itself, so `GenMysql` adds no port, but TiDB listens on 4000, so
+`GenTiDB` adds 4000. pgx defaults to 5432, which is right for CrateDB and
+wrong for CockroachDB, so `GenCrateDB` adds no port and `GenCockroachDB` adds
+26257. A driver that fails without a port, such as go-ora, gets a default
+port. That is D34.
 
 ```go
-host, port := "localhost", "5432"
+host, port := "localhost", "4000"
 if h := u.Hostname(); h != "" {
     host = h
 }
@@ -86,10 +95,11 @@ if p := u.Port(); p != "" {
 ```
 
 `GenFromURL` does the same thing, written as a template instead of as code.
+Leave the port out of the template when the driver has its own default.
 
-The PostgreSQL generators are the exception. `GenPostgres` and `GenPgx`
-supply no default host and no default port, because the driver then reads
-`PGHOST` and `PGPORT`, and a default here would override them. That is D22.
+`GenPostgres` and `GenPgx` supply no default host and no default port on
+purpose, because the driver then reads `PGHOST` and `PGPORT`, and a default
+here would override them. That is D22.
 
 Defaults stop there. Do not add an option that changes how the driver or the
 database behaves. The client that opens the connection owns those, and `usql`
@@ -98,14 +108,15 @@ and `dbtpl` inject their own.
 Two narrow exceptions exist. Set an option when it forces the driver or the
 database into a standards compliant mode that a using package needs. Turning
 on UTF-8 and enabling connection retries are the kind of thing that qualifies.
+The codebase holds three: `sslmode=disable` in the CockroachDB template,
+`ServiceName` in the DB2 path of `GenOdbc`, and `sqlmode=disable` in
+`GenInfluxQL`, which selects the query language of the scheme (D29). If you
+are writing a fourth, say why in [PLAN.md](PLAN.md). This is D7.
 
 Set one also when the driver cannot start without it and has no valid empty
 value for it. `hive` carries `auth=NONE` for that reason, because the driver
 panics on a missing `auth`. That is D16, and its scope is narrow: a field the
-driver needs to build a connection, never one that tunes it. The whole codebase holds two
-examples, `sslmode=disable` in the CockroachDB template and `ServiceName` in
-the DB2 path of `GenOdbc`. If you are writing a third, say why in
-[PLAN.md](PLAN.md). This is D7.
+driver needs to build a connection, never one that tunes it.
 
 ## 5. Know which of the two URL forms your scheme takes
 
@@ -123,7 +134,7 @@ as `scheme://<opaque>` and parses it again.
 ## 6. Register the scheme
 
 Add an entry to `BaseSchemes` in `scheme.go`. The fields are named, because
-six of them are strings and a positional entry turns a transposition into a
+seven of them are strings and a positional entry turns a transposition into a
 silent bug. That is D17.
 
 ```go
@@ -144,8 +155,18 @@ Set `Transport` when the scheme takes `+unix` or another transport, and set
 `Opaque` for a database held in a file. Set `Override` when the scheme must
 return a different driver name from its own, as the paragraphs below explain.
 
-The `Driver` field must be the exact name the driver passes to `sql.Register`.
-Read it from the driver source. Do not guess it from the package name.
+The `Driver` field is usually the exact name the driver passes to
+`sql.Register`. Read it from the driver source. Do not guess it from the
+package name.
+
+A scheme that is a product of its own, but opens a driver that another
+scheme or product also uses, keeps its own name as `Driver`. Its generator
+returns the registered name as its second value, which `Parse` stores as
+`URL.GoDriver`, and `Open` and `usql` pass that name to `sql.Open`. So
+`influxql` returns `influxdb`, `cockroachdb` and `cratedb` return `pgx`, and
+`cosmos` returns `gocosmos`. Use `GoDriver` and not `Override` when the
+scheme needs a `Dialect` of its own, because a scheme with an `Override`
+takes the `Dialect` of the scheme it names. That is D29 and D30.
 
 Fill in the metadata as well. `Desc` is the database display name, as it
 appears in the first column of the README table. `GoPackage` is the import
@@ -155,9 +176,12 @@ for pgx the module is `github.com/jackc/pgx/v5` and the import path is
 carries no version. Set `RequiresCGO` when the driver needs cgo. Leave `Home`
 blank unless you have the database provider's page.
 
-A wire compatible scheme sets `Override` and leaves `GoPackage` and
-`DriverURL` blank, because it reaches its driver through the scheme it points
-at. That is D17.
+A wire compatible scheme that shares the `Dialect` of the product it speaks
+to, such as `memsql`, `tidb`, `vitess` or `redshift`, sets `Override` and
+leaves `GoPackage` and `DriverURL` blank, because it reaches its driver
+through the scheme it points at. That is D17. A wire compatible product with
+a `Dialect` of its own, such as `cockroachdb` or `cratedb`, uses `GoDriver`
+as described above, and sets its own `GoPackage` and `DriverURL` (D30).
 
 `Override` also serves a scheme whose driver registered a name that another
 scheme holds. lib/pq registers `postgres`, but the `postgres` scheme returns

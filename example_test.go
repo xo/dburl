@@ -30,7 +30,13 @@ func Example_parse() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	db, err := sql.Open(u.Driver, u.DSN)
+	// GoDriver names the driver to open when it differs from Driver, as
+	// Open does it.
+	driver := u.Driver
+	if u.GoDriver != "" {
+		driver = u.GoDriver
+	}
+	db, err := sql.Open(driver, u.DSN)
 	if err != nil {
 		log.Fatal(err)
 	}

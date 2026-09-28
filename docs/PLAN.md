@@ -15,33 +15,37 @@ if D11 amends D4, then D4 says so too.
 | [D3](#d3-a-file-header-is-matched-by-comparing-bytes-never-by-a-regexp) | Decided |
 | [D4](#d4-a-generator-is-written-against-the-driver-version-pinned-in-usql) | Decided |
 | [D5](#d5-dburl-does-not-compensate-for-a-broken-driver-parser) | Decided |
-| [D6](#d6-each-database-gets-its-own-generator) | Decided |
-| [D7](#d7-defaults-cover-the-host-and-the-port-and-not-driver-options) | Amended by D16 |
+| [D6](#d6-a-generator-is-written-for-a-dsn-format-not-for-a-database) | Decided |
+| [D7](#d7-defaults-cover-the-host-and-the-port-and-not-driver-options) | Amended by D16, D29 and D34 |
 | [D8](#d8-a-scheme-is-added-only-when-the-driver-is-expected-in-usql) | Decided |
 | [D9](#d9-golangci-lint-runs-in-ci-at-a-pinned-version) | Decided |
-| [D10](#d10-a-rule-that-has-no-test-is-not-a-rule) | Decided |
+| [D10](#d10-a-rule-that-has-no-test-is-not-a-rule) | Amended by D17 |
 | [D11](#d11-netezza-keeps-sharing-genpostgres) | Decided |
 | [D12](#d12-a-scheme-follows-its-driver-out-of-usql) | Decided |
 | [D13](#d13-this-registry-writes-two-published-driver-tables) | Amended by D17 |
 | [D14](#d14-an-alias-that-cannot-work-is-removed-not-left-failing) | Decided |
 | [D15](#d15-dburl-does-not-validate-driver-option-values) | Decided |
 | [D16](#d16-a-required-option-with-no-valid-empty-value-gets-a-default) | Decided |
-| [D17](#d17-a-scheme-describes-its-own-database-and-driver) | Amended by D22 |
+| [D17](#d17-a-scheme-describes-its-own-database-and-driver) | Amended by D22 and D30 |
 | [D18](#d18-a-scheme-records-how-the-database-is-deployed) | Decided |
-| [D19](#d19-a-scheme-names-the-dialect-of-its-product) | Amended by D22 |
+| [D19](#d19-a-scheme-names-the-dialect-of-its-product) | Amended by D22 and D30 |
 | [D20](#d20-the-schemes-of-four-removed-drivers-leave-in-one-release) | Decided |
 | [D21](#d21-the-maxcompute-endpoint-protocol-comes-from-the-transport) | Decided |
 | [D22](#d22-postgres-opens-pgx-and-pq-opens-libpq) | Amended by D30 |
 | [D23](#d23-cql-opens-xocql-and-gets-a-url) | Decided |
 | [D24](#d24-a-parsed-url-carries-its-dialect) | Amended by D30 |
-| [D25](#d25-couchbase-opens-xodbimpcouchbase) | Decided |
-| [D26](#d26-surrealdb-opens-xodbimpsurrealdb) | Decided |
+| [D25](#d25-couchbase-opens-xodbimpcouchbase) | Amended by D34 |
+| [D26](#d26-surrealdb-opens-xodbimpsurrealdb) | Amended by D34 |
 | [D27](#d27-dburl-is-set-up-for-coding-agents-as-every-xo-repository-is) | Decided |
-| [D28](#d28-neo4j-opens-xodbimpneo4j) | Decided |
-| [D29](#d29-influxql-is-a-scheme-of-its-own-on-the-influxdb-driver) | Decided |
-| [D30](#d30-cockroachdb-and-cratedb-each-have-a-dialect-of-their-own) | Decided |
+| [D28](#d28-neo4j-opens-xodbimpneo4j) | Amended by D34 |
+| [D29](#d29-influxql-is-a-scheme-of-its-own-on-the-influxdb-driver) | Amended by D34 |
+| [D30](#d30-cockroachdb-and-cratedb-each-have-a-dialect-of-their-own) | Amended by D34 |
 | [D31](#d31-a-password-file-entry-matches-the-database-and-the-user) | Decided |
-| [D32](#d32-arangodb-is-a-provisional-scheme-for-the-dbimp-driver) | Decided |
+| [D32](#d32-arangodb-is-a-provisional-scheme-for-the-dbimp-driver) | Amended by D34 |
+| [D33](#d33-passfile-opens-the-go-driver-that-dburlopen-opens) | Decided |
+| [D34](#d34-a-default-port-is-added-only-where-the-driver-has-none) | Decided |
+| [D35](#d35-a-spanner-url-names-its-host-first) | Decided |
+| [D36](#d36-gizmosql-questdb-and-three-provisional-schemes) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -122,7 +126,13 @@ Presto. It was split in v0.27.0.
 Sharing was not the defect. Nobody rereading the drivers was. Split a
 generator when the drivers behind it stop agreeing, and not before.
 
-### D7. Defaults cover the host and the port, and not driver options. Amended by D16.
+### D7. Defaults cover the host and the port, and not driver options. Amended by D16, D29 and D34.
+
+Amended by D34: a default port is added only when the driver has no
+default port of its own, or the wrong one for the product.
+
+Amended by D29: `sqlmode=disable` in `GenInfluxQL` is a third exception to
+this rule, because it selects the query language of the scheme.
 
 A `dburl` URL supplies the settings that identify the server, and the passed
 URL overrides each one it names. That is the whole point of the translation.
@@ -160,7 +170,11 @@ CI installs an exact version rather than the newest one, so a release upstream
 cannot turn on a linter nobody chose. Upgrading is a deliberate commit that
 carries whatever new findings come with it.
 
-### D10. A rule that has no test is not a rule. Decided.
+### D10. A rule that has no test is not a rule. Amended by D17.
+
+Amended by D17: this repository writes the README driver table itself, with
+`go run gen.go`. Step 10 of SCHEME.md holds that step, and step 9 holds the
+tests.
 
 Prose decays without anyone noticing. Every rule here that can be checked is
 checked:
@@ -390,7 +404,11 @@ library does.
 The general test, for the next option that looks like this one: ask what the
 driver does with nothing, not only what it does with something wrong.
 
-### D17. A scheme describes its own database and driver. Amends D13. Amended by D22.
+### D17. A scheme describes its own database and driver. Amends D10 and D13. Amended by D22 and D30.
+
+Amended by D30: a wire compatible product with a `Dialect` of its own, such
+as `cockroachdb` and `cratedb`, has no `Override`. Its generator returns the
+Go driver name, and it documents its own `GoPackage` and `DriverURL`.
 
 D22 changes how `TestSchemeMetadata` treats a scheme whose `Override` names
 a driver that no scheme documents. The rest of this entry stands.
@@ -527,7 +545,11 @@ same terms: low rate of change, and the field earns its place otherwise.
 
 `TestSchemeMetadata` requires a non-zero `Deployment` on every scheme.
 
-### D19. A scheme names the dialect of its product. Amended by D22.
+### D19. A scheme names the dialect of its product. Amended by D22 and D30.
+
+Amended by D30: a wire compatible scheme takes the `Dialect` of what it
+speaks only when it has an `Override`. `cockroachdb` and `cratedb` speak
+PostgreSQL, and each has a `Dialect` of its own.
 
 D22 changes how `TestSchemeMetadata` treats a scheme whose `Override` names
 a driver that no scheme documents. The rest of this entry stands.
@@ -664,7 +686,7 @@ endpoint, the project, the tunnel endpoint and the hints all came out as
 intended. `TestParse` covers the default, both transports and the alias.
 `TestBadParse` covers `+tcp` and `+unix`.
 
-### D22. postgres opens pgx, and pq opens lib/pq. Amended by D30.
+### D22. postgres opens pgx, and pq opens lib/pq. Amends D17 and D19. Amended by D30.
 
 Amended by D30: `cockroachdb` has no `Override` now. It returns the Driver
 `cockroachdb`, the GoDriver `pgx` and the Dialect `cockroachdb`. `redshift`
@@ -944,7 +966,10 @@ since D22, so a scheme registered at run time carries it too.
 `TestParseDialect` covers each PostgreSQL scheme, the MySQL, SQLite and Oracle
 pairs, `nzgo`, and two `file:` URLs.
 
-### D25. couchbase opens xo/dbimp/couchbase. Decided.
+### D25. couchbase opens xo/dbimp/couchbase. Amended by D34.
+
+Amended by D34: `GenCouchbase` adds no port now, because the driver
+defaults to 8093, or 18093 with `tls`, by the same rule.
 
 The Couchbase scheme moves from `github.com/couchbase/go_n1ql` to
 `github.com/xo/dbimp/couchbase`, at `github.com/xo/dbimp` `v0.1.0`. The dbimp
@@ -992,7 +1017,10 @@ a password holding `@` and a space, every key the driver takes and an IPv6
 host all came back as intended. A path and an unknown key failed in the
 driver. `TestParse` covers each case.
 
-### D26. surrealdb opens xo/dbimp/surrealdb. Decided.
+### D26. surrealdb opens xo/dbimp/surrealdb. Amended by D34.
+
+Amended by D34: `GenSurrealDB` adds no port now, because the driver
+defaults to 8000.
 
 Ken decided on 2026-09-27 to add a scheme for SurrealDB, for the driver
 `github.com/xo/dbimp/surrealdb`. The driver registers only `surrealdb`, under
@@ -1081,7 +1109,10 @@ not change.
 holds exactly `@AGENTS.md`. Both tests use only the standard library, as D1
 requires.
 
-### D28. neo4j opens xo/dbimp/neo4j. Decided.
+### D28. neo4j opens xo/dbimp/neo4j. Amended by D34.
+
+Amended by D34: `GenNeo4j` adds no port now, because the driver defaults
+to 7474, or 7473 with `tls`, by the same rule.
 
 Ken decided on 2026-09-27 to add a scheme for Neo4j, for the driver
 `github.com/xo/dbimp/neo4j`. The driver registers only `neo4j`, under dbimp
@@ -1126,7 +1157,10 @@ commit the generator was written against. The check was run again against
 `v0.3.0` from `proxy.golang.org`, and every result matched. The condition
 above is met.
 
-### D29. influxql is a scheme of its own on the influxdb driver. Decided.
+### D29. influxql is a scheme of its own on the influxdb driver. Amends D7. Amended by D34.
+
+Amended by D34: `GenInfluxDB` and `GenInfluxQL` add no port now, because
+the driver defaults to 8086 for `version` 1 and 2, and 8181 otherwise.
 
 Ken decided on 2026-09-28 how dburl holds the design of dbimp D78. dbimp has
 one InfluxDB driver, `github.com/xo/dbimp/influxdb`, which registers
@@ -1211,7 +1245,10 @@ The generator now reads it with `strconv.Atoi` too. The output of both
 generators was run through `ParseDSN` at `v0.4.0` from `proxy.golang.org`,
 and every result matched. The condition above is met.
 
-### D30. cockroachdb and cratedb each have a dialect of their own. Amends D22 and D24.
+### D30. cockroachdb and cratedb each have a dialect of their own. Amends D17, D19, D22 and D24. Amended by D34.
+
+Amended by D34: `GenCrateDB` adds no port now, because pgx defaults to
+5432, which is the port of CrateDB. `GenCockroachDB` keeps 26257.
 
 Ken decided on 2026-09-29 to add a scheme for CrateDB, and to give CrateDB and
 CockroachDB each a dialect of its own. dbmeta is writing a model for each at
@@ -1300,7 +1337,10 @@ and dbmeta do not call it. `TestNormalize` is new, because nothing tested it.
 with no entry for it, an entry that supplies the user, an entry for one
 database, and an empty password. It failed on the old `Normalize`.
 
-### D32. arangodb is a provisional scheme for the dbimp driver. Decided.
+### D32. arangodb is a provisional scheme for the dbimp driver. Amended by D34.
+
+Amended by D34: `GenArangoDB` adds no port now, because the driver in
+dbimp's working tree defaults to 8529.
 
 Ken asked on 2026-09-29 for an ArangoDB scheme for the dbimp driver, before
 the driver exists, as he did for InfluxDB in D29. ArangoDB is next in the
@@ -1333,3 +1373,168 @@ database as one lower case word, and on Ken's request:
 A release of this library that carries D32 waits for a dbimp tag with the
 driver. The output is then run through its `ParseDSN`, and the generator and
 the aliases change where the two disagree, before this library is tagged.
+
+dbimp decided the URL on 2026-09-29, in dbimp D93, which is staged there, and
+it matches this scheme. The name is `arangodb`. The DSN is
+`arangodb://user:password@host:port/database`, where the path names the
+database, and no path means `_system`. The default port is 8529. The query
+takes `tls`, `cancel`, `batch` and `auth`, and the driver refuses any other
+key, so passing the query through is right. Under dbimp D94, the secret is
+always the password of the URL, and `auth=bearer` sends it as a bearer token.
+The driver still has no `ParseDSN` at a tag, so the condition above still
+holds.
+
+### D33. passfile opens the Go driver that dburl.Open opens. Decided.
+
+A documentation sweep on 2026-09-29 found that `passfile.OpenURL`, and so
+`passfile.Open`, called `sql.Open(u.Driver, u.DSN)` and ignored
+`URL.GoDriver`. `dburl.Open` has used `GoDriver` when it is set since before
+this log began. So `passfile.Open` with a `cockroachdb://`, `cratedb://`,
+`influxql://`, `cosmos://` or `azuresql://` URL asked `database/sql` for a
+driver that nothing registers, and failed with `sql: unknown driver`.
+
+D29 and D30 made the gap wider, because both give a scheme a Go driver whose
+name differs from the scheme. `OpenURL` now opens the URL as `dburl.Open`
+does. `TestOpenURLUsesGoDriver` registers a stub driver named `pgx` and
+opens a `cockroachdb://` URL, and it failed with `unknown driver
+"cockroachdb"` on the old code. `Example_parse`, which calls `sql.Open`
+itself, now shows how to choose between `GoDriver` and `Driver`.
+
+### D34. A default port is added only where the driver has none. Amends D7, D25, D26, D28, D29, D30 and D32.
+
+Ken decided on 2026-09-29 that a generator adds a default port only when the
+driver that reads the DSN has no default port of its own. Whether it has one
+is found by reading the driver's source, under rule 3, and not from its
+documentation. A driver whose default is the wrong port for the product, as
+pgx's 5432 is for CockroachDB, counts as having none. The default host stays
+in every generator that had one, because each dbimp driver refuses an empty
+host.
+
+Two agents read the parser of every driver that the registry names, at the
+version `usql` pins, or at the dbimp tag. Every claim below cites the source,
+and a probe that calls only parse functions confirmed each one it could.
+
+THE PORTS REMOVED
+
+The driver defaults to the same port that dburl added, so dburl adds none:
+
+| Scheme | Port | Where the driver sets it |
+| --- | --- | --- |
+| `mysql`, `memsql`, `vitess` | 3306 | `go-sql-driver/mysql` `ensureHavePort` |
+| `cratedb` | 5432 | pgx `pgconn` |
+| `h2` | 9092 | `h2go` `driver.go` |
+| `hive` | 10000 | `gohive` `dsn.go` |
+| `cql` | 9042 | gocql `NewCluster` |
+| `couchbase` | 8093, 18093 with `tls` | dbimp `couchbase/dsn.go` |
+| `neo4j` | 7474, 7473 with `tls` | dbimp `neo4j/dsn.go` |
+| `surrealdb` | 8000 | dbimp `surrealdb/dsn.go` |
+| `influxdb`, `influxql` | 8086 for `version` 1 and 2, else 8181 | dbimp `influxdb/dsn.go` |
+| `arangodb` | 8529 | dbimp `arangodb/dsn.go`, in the working tree |
+
+Vitess has no single standard port, so it takes the driver's 3306. Without a
+port, pgx reads `PGPORT` for `cratedb`, and a `passfile` entry that names
+port 5432 no longer matches a `cratedb` URL with no port, so the entry needs
+port `*`.
+
+THE PORTS KEPT OR ADDED
+
+The driver has no default, or the wrong one:
+
+- `oracle` 1521, `exasol` 8563 and native `clickhouse` 9000, because the
+  driver fails to parse or to dial without a port.
+- `avatica` 8765 and `trino` 8080, because net/http would use 80 or 443.
+- `vertica` 5433, `ydb` 2136, `databricks` 443 and `voltdb` 21212, because
+  the driver needs a port, or, for voltdb, loses its host without one.
+- `cockroachdb` 26257 and `redshift` 5439, where pgx would use 5432.
+- `tidb` 4000, which is new. `GenTiDB` shares `genMysql` with `GenMysql`.
+- `nzgo` 5480, which is new. nzgo defaults to 5432, and Netezza listens on
+  5480. `GenNzgo` adds it only when the URL names no port and no socket.
+- `hdb` 30015, which is new. go-hdb has no default and fails to dial. HANA's
+  port depends on the instance number, and 30015 is the SQL port of instance
+  00.
+- `clickhouse+http` 8123 and `clickhouse+https` 8443, which are new.
+  clickhouse-go has no default for an HTTP DSN, so net/http used 80 or 443.
+- `gizmosql` 31337 and `questdb` 8812, which are new schemes (D36).
+
+`flightsql` adds no port, because Flight SQL has no standard port. Every
+scheme that added no port before still adds none. For each, the driver has
+a default, or the DSN has no port.
+
+WHAT WAITS
+
+Presto, Trino and ClickHouse will each get a dbimp driver. Ken decided to
+revisit their ports and the `tls` key then. dbimp's drivers read `tls` with
+`strconv.ParseBool`, and none of the three drivers `usql` uses today knows
+that key. Until then, `presto` keeps 8080 and 8443 with a TLS option, and
+`trino` keeps 8080 and 8443, although the Presto driver itself keeps 8080
+over HTTPS.
+
+The dbimp generators now share `genRewrite`, which writes the scheme of the
+driver, the default host and a default port that is empty for all of them.
+`TestParse` holds the new output of every scheme above. A second run of
+`go run gen.go` changed no row that existed before, and the `gen.go` lint
+findings are fixed in the same change.
+
+### D35. A spanner URL names its host first. Decided.
+
+Ken decided on 2026-09-29 that a spanner URL is
+`spanner://host:port/project/instance/database?name=value`. Before, the host
+of the URL was the project, and `GenSpanner` dropped the query, so a URL
+could not name the emulator or pass any driver option. dbmeta reached the
+emulator only through `SPANNER_EMULATOR_HOST`.
+
+`go-sql-spanner` v1.26.0, which `usql` pins, reads an optional `host:port/`
+before `projects/`, and options after `;`. So `GenSpanner` writes
+`host:port/projects/project/instances/instance/databases/database`, and each
+query option as `;name=value`, in order by name. An empty host, as in
+`spanner:///p/i/db`, leaves the endpoint to the driver. `Parse` reads a URL
+with no host and a path as a unix socket, so the scheme accepts that
+transport, and `GenSpanner` refuses an explicit `spanner+unix` or
+`spanner+tcp` URL.
+
+The path must name all three parts, or `GenSpanner` returns
+`ErrMissingPath`. This breaks every `spanner://project/instance/database`
+URL: it now reads the project as the host and finds two parts in the path, so
+it fails. Ken chose the break over reading the path by its length.
+
+The output was run through `ExtractConnectorConfig` at v1.26.0. The host, the
+project, the instance, the database and `usePlainText` came back as intended,
+with a host and without one.
+
+### D36. gizmosql, questdb, and three provisional schemes. Decided.
+
+Ken decided on 2026-09-29 to add these schemes for the containers that
+dbmeta lists as Staged:
+
+| Scheme | Aliases | `URL.Driver` | `URL.GoDriver` | `URL.Dialect` | Default port |
+| --- | --- | --- | --- | --- | --- |
+| `gizmosql` | `gz`, `gizmo` | `gizmosql` | `flightsql` | `gizmosql` | 31337 |
+| `questdb` | `qu` | `questdb` | `pgx` | `questdb` | 8812 |
+| `tdengine` | `td` | `tdengine` | | `tdengine` | 6041 |
+| `pinot` | `pi` | `pinot` | | `pinot` | 8000 |
+| `rqlite` | `rq` | `rqlite` | | `rqlite` | 4001 |
+
+GizmoSQL serves Flight SQL, and runs DuckDB behind it. `GenGizmoSQL` writes a
+`flightsql://` DSN and returns the Flight SQL driver, as D30 does for pgx, and
+the scheme has a `Dialect` of its own. The Flight SQL driver has no default
+port, so the scheme adds 31337, which is GizmoSQL's port. The DSN was run
+through `NewDriverConfigFromDSN` at arrow-go v18.8.0.
+
+QuestDB speaks the wire protocol of PostgreSQL, as CrateDB does, and dbimp
+plans no QuestDB driver. `GenQuestDB` writes the DSN with `GenPgxFromURL` and
+returns pgx. pgx would use 5432, so the scheme adds 8812, which is the
+PostgreSQL port of QuestDB. dbmeta's container publishes only the HTTP port,
+9000, so dbrun does not hand out a URL for this port yet.
+
+`tdengine`, `pinot` and `rqlite` are provisional, as `arangodb` was in D32.
+dbimp orders each of them after ArangoDB (dbimp D73), and has decided neither
+the name, the URL nor the driver of any of them. The names follow dbimp's
+rule, the product as one lower case word. The ports come from dbmeta's
+container files: 6041 is the REST port of TDengine, 8000 is the port of the
+broker in dbmeta's Pinot container, and 4001 is the HTTP port of rqlite. The
+standalone Pinot broker listens on 8099, so the Pinot port is the first thing
+to check. Each generator passes the user information, the path and the query
+through. A release that carries these waits for a dbimp tag with each driver,
+and each is checked against its `ParseDSN` first. Ken has not chosen aliases
+for `questdb`, `tdengine`, `pinot` or `rqlite`, so each has only its
+automatic two letter alias.

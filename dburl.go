@@ -55,8 +55,8 @@ func OpenMap(components map[string]any) (*sql.DB, error) {
 	return Open(urlstr)
 }
 
-// URL wraps the standard [net/url.URL] type, adding OriginalScheme, Transport,
-// Driver, Unaliased, and DSN strings.
+// URL wraps the standard [net/url.URL] type, adding the OriginalScheme,
+// Transport, Driver, GoDriver, UnaliasedDriver, Dialect and DSN strings.
 type URL struct {
 	// URL is the base [net/url.URL].
 	url.URL
@@ -69,9 +69,10 @@ type URL struct {
 	// Driver is the non-aliased SQL driver name to use in a call to
 	// [sql.Open].
 	Driver string
-	// GoDriver is the Go SQL driver name to use when opening a connection to
-	// the database. Used by Microsoft SQL Server's azuresql:// URLs, as the
-	// wire-compatible alias style uses a different syntax style.
+	// GoDriver is the name to pass to [sql.Open] in place of Driver, when the
+	// generator returns one. [Open] uses it when it is set. It is pgx for
+	// cockroachdb and cratedb, influxdb for influxql, gocosmos for cosmos,
+	// and sqlserver or azuresql for sqlserver.
 	GoDriver string
 	// UnaliasedDriver is the unaliased driver name.
 	UnaliasedDriver string
@@ -96,8 +97,8 @@ type URL struct {
 
 // Parse parses a URL string, similar to the standard [net/url.Parse].
 //
-// Handles parsing OriginalScheme, Transport, Driver, Unaliased, and DSN
-// fields.
+// Handles parsing the OriginalScheme, Transport, Driver, GoDriver,
+// UnaliasedDriver, Dialect and DSN fields.
 //
 // Note: an opaque URL is written "scheme:" and not "scheme://". When the
 // database scheme does not support an opaque component, Parse rebuilds the
@@ -262,7 +263,10 @@ func (u *URL) Short() string {
 }
 
 // Normalize returns the driver, host, port, database, and user name of a URL,
-// joined with sep, populating blank fields with empty.
+// joined with sep, populating blank fields with empty. When cut is more than
+// 0, it drops the empty fields at the end, and keeps the last field that is
+// not empty and at least cut fields. It drops a field only when empty is
+// the empty string.
 func (u *URL) Normalize(sep, empty string, cut int) string {
 	s := []string{u.UnaliasedDriver, "", "", "", ""}
 	if u.Transport != "tcp" && u.Transport != "unix" {

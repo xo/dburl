@@ -2,10 +2,10 @@ package dburl
 
 import (
 	"fmt"
+	"net"
 	"net/url"
 	"path"
 	"sort"
-	"strconv"
 	"strings"
 	"unicode"
 )
@@ -33,6 +33,36 @@ func GenScheme(scheme string) func(*URL) (string, string, error) {
 		}
 		return z.String(), "", nil
 	}
+}
+
+// genRewrite writes u with the scheme of the driver, which a driver that
+// refuses any scheme but its own name needs. The user information, the path
+// with its escaping and the passed raw query pass through. The host defaults
+// to localhost, and the port to the passed port, which is empty for a driver
+// that has a default port of its own (D34).
+func genRewrite(u *URL, scheme, port, rawQuery string) string {
+	host := "localhost"
+	if h := u.Hostname(); h != "" {
+		host = h
+	}
+	if p := u.Port(); p != "" {
+		port = p
+	}
+	if strings.Contains(host, ":") {
+		host = "[" + host + "]"
+	}
+	if port != "" {
+		host += ":" + port
+	}
+	z := &url.URL{
+		Scheme:   scheme,
+		User:     u.User,
+		Host:     host,
+		Path:     u.Path,
+		RawPath:  u.RawPath,
+		RawQuery: rawQuery,
+	}
+	return z.String()
 }
 
 // GenFromURL returns a func that generates a DSN based on parameters of the
@@ -107,34 +137,77 @@ func GenOpaque(u *URL) (string, string, error) {
 // GenArangoDB generates an arangodb DSN from the passed URL.
 //
 // Targets the driver planned in [xo/dbimp/arangodb], which is to read an
-// arangodb:// URL and refuse any other scheme, so the scheme is always
-// arangodb, whichever alias was parsed. The user information, the path and
-// the query pass through as they were written. The default port is 8529, the
-// port of the HTTP interface of ArangoDB.
+// arangodb:// URL and refuse any other scheme. The user information, the path
+// and the query pass through as they were written. It adds no port, because
+// the driver defaults to 8529 (D34).
 //
-// The driver does not exist yet, so this generator is provisional (D32).
+// The driver has no tag yet, so this generator is provisional (D32).
 //
 // [xo/dbimp/arangodb]: https://github.com/xo/dbimp
 func GenArangoDB(u *URL) (string, string, error) {
-	host, port := "localhost", "8529"
-	if h := u.Hostname(); h != "" {
-		host = h
+	return genRewrite(u, "arangodb", "", u.RawQuery), "", nil
+}
+
+// GenGizmoSQL generates a flightsql DSN for GizmoSQL from the passed URL.
+//
+// GizmoSQL serves Flight SQL, so the DSN is a flightsql:// URL, with the
+// default port 31337, which is the port of GizmoSQL. The Flight SQL driver has
+// no default port (D34). It returns flightsql as the Go driver.
+func GenGizmoSQL(u *URL) (string, string, error) {
+	return genRewrite(u, "flightsql", "31337", u.RawQuery), "flightsql", nil
+}
+
+// GenPinot generates a pinot DSN from the passed URL.
+//
+// Targets the driver planned in [xo/dbimp], with the default port 8000, which
+// is the port of the broker in the container dbmeta starts. The user
+// information, the path and the query pass through. The driver does not exist
+// yet, so this generator is provisional (D36).
+//
+// [xo/dbimp]: https://github.com/xo/dbimp
+func GenPinot(u *URL) (string, string, error) {
+	return genRewrite(u, "pinot", "8000", u.RawQuery), "", nil
+}
+
+// GenRqlite generates a rqlite DSN from the passed URL.
+//
+// Targets the driver planned in [xo/dbimp], with the default port 4001, which
+// is the port of the HTTP API of rqlite. The user information, the path and
+// the query pass through. The driver does not exist yet, so this generator is
+// provisional (D36).
+//
+// [xo/dbimp]: https://github.com/xo/dbimp
+func GenRqlite(u *URL) (string, string, error) {
+	return genRewrite(u, "rqlite", "4001", u.RawQuery), "", nil
+}
+
+// GenTDengine generates a tdengine DSN from the passed URL.
+//
+// Targets the driver planned in [xo/dbimp], with the default port 6041, which
+// is the port of the REST interface of TDengine. The user information, the
+// path and the query pass through. The driver does not exist yet, so this
+// generator is provisional (D36).
+//
+// [xo/dbimp]: https://github.com/xo/dbimp
+func GenTDengine(u *URL) (string, string, error) {
+	return genRewrite(u, "tdengine", "6041", u.RawQuery), "", nil
+}
+
+// GenNzgo generates a nzgo DSN from the passed URL.
+//
+// It is the DSN of [GenPostgres], with the default port 5480, which is the
+// port of Netezza. nzgo would use 5432 (D34). A unix socket keeps no default.
+func GenNzgo(u *URL) (string, string, error) {
+	if u.Port() != "" || u.Transport == "unix" {
+		return GenPostgres(u)
 	}
-	if p := u.Port(); p != "" {
-		port = p
+	z := *u
+	z.Host = net.JoinHostPort(u.Hostname(), "5480")
+	dsn, goDriver, err := GenPostgres(&z)
+	if u.hostPortDB == nil {
+		u.hostPortDB = z.hostPortDB
 	}
-	if strings.Contains(host, ":") {
-		host = "[" + host + "]"
-	}
-	z := &url.URL{
-		Scheme:   "arangodb",
-		User:     u.User,
-		Host:     host + ":" + port,
-		Path:     u.Path,
-		RawPath:  u.RawPath,
-		RawQuery: u.RawQuery,
-	}
-	return z.String(), "", nil
+	return dsn, goDriver, err
 }
 
 // GenCassandra generates a cql DSN from the passed URL.
@@ -143,29 +216,12 @@ func GenArangoDB(u *URL) (string, string, error) {
 // always cql, whichever alias was parsed, so the driver never repeats the
 // alias list. The user information and the path, which is the keyspace, pass
 // through, and so does the query, as it was written, because the driver takes
-// a host key that can repeat.
+// a host key that can repeat. It adds no port, because gocql defaults to 9042
+// (D34).
 //
 // [xo/cql]: https://github.com/xo/cql
 func GenCassandra(u *URL) (string, string, error) {
-	host, port := "localhost", "9042"
-	if h := u.Hostname(); h != "" {
-		host = h
-	}
-	if p := u.Port(); p != "" {
-		port = p
-	}
-	if strings.Contains(host, ":") {
-		host = "[" + host + "]"
-	}
-	z := &url.URL{
-		Scheme:   "cql",
-		User:     u.User,
-		Host:     host + ":" + port,
-		Path:     u.Path,
-		RawPath:  u.RawPath,
-		RawQuery: u.RawQuery,
-	}
-	return z.String(), "", nil
+	return genRewrite(u, "cql", "", u.RawQuery), "", nil
 }
 
 // GenClickhouse generates a clickhouse DSN from the passed URL.
@@ -184,51 +240,21 @@ func GenClickhouse(u *URL) (string, string, error) {
 // clickhouse generators.
 var (
 	clickhouseTCP   = GenFromURL("clickhouse://localhost:9000/")
-	clickhouseHTTP  = GenFromURL("http://localhost/")
-	clickhouseHTTPS = GenFromURL("https://localhost/")
+	clickhouseHTTP  = GenFromURL("http://localhost:8123/")
+	clickhouseHTTPS = GenFromURL("https://localhost:8443/")
 )
 
 // GenCouchbase generates a couchbase DSN from the passed URL.
 //
 // Targets [xo/dbimp/couchbase], which reads a couchbase:// URL with net/url
-// and refuses any other scheme, so the scheme is always couchbase, whichever
-// alias was parsed. The user information and the query pass through, as they
-// were written, and the driver refuses an unknown or repeated key. The path
-// passes through too, and the driver refuses one other than "/".
-//
-// The default port follows the tls key, as the port of the query service
-// does: 8093, or 18093 when tls reads as true. The key is read with
-// strconv.ParseBool, as the driver reads it, so the two agree on every value.
+// and refuses any other scheme. The user information, the path and the query
+// pass through as they were written, and the driver refuses an unknown or
+// repeated key, and a path other than "/". It adds no port, because the
+// driver defaults to 8093, or 18093 with tls (D34).
 //
 // [xo/dbimp/couchbase]: https://github.com/xo/dbimp
 func GenCouchbase(u *URL) (string, string, error) {
-	host, port := "localhost", "8093"
-	if tls, err := strconv.ParseBool(u.Query().Get("tls")); err == nil && tls {
-		port = "18093"
-	}
-	if h := u.Hostname(); h != "" {
-		host = h
-	}
-	if p := u.Port(); p != "" {
-		port = p
-	}
-	if strings.Contains(host, ":") {
-		host = "[" + host + "]"
-	}
-	host += ":" + port
-	pstr := u.Path
-	if pstr == "" {
-		pstr = "/"
-	}
-	z := &url.URL{
-		Scheme:   "couchbase",
-		User:     u.User,
-		Host:     host,
-		Path:     pstr,
-		RawPath:  u.RawPath,
-		RawQuery: u.RawQuery,
-	}
-	return z.String(), "", nil
+	return genRewrite(u, "couchbase", "", u.RawQuery), "", nil
 }
 
 // GenCockroachDB generates a cockroachdb DSN from the passed URL.
@@ -245,9 +271,9 @@ func GenCockroachDB(u *URL) (string, string, error) {
 // GenCrateDB generates a cratedb DSN from the passed URL.
 //
 // CrateDB speaks the wire protocol of PostgreSQL, so the DSN is the one
-// [GenPgxFromURL] writes, with the default port 5432, which is the port of
-// its PostgreSQL interface. It returns pgx as the Go driver, as
-// [GenCockroachDB] does.
+// [GenPgxFromURL] writes. It adds no port, because pgx defaults to 5432,
+// which is the port of the PostgreSQL interface of CrateDB (D34). It returns
+// pgx as the Go driver, as [GenCockroachDB] does.
 func GenCrateDB(u *URL) (string, string, error) {
 	dsn, _, err := cratedb(u)
 	return dsn, "pgx", err
@@ -256,8 +282,20 @@ func GenCrateDB(u *URL) (string, string, error) {
 // PostgreSQL wire compatible generators.
 var (
 	cockroachdb = GenPgxFromURL("postgres://localhost:26257/?sslmode=disable")
-	cratedb     = GenPgxFromURL("postgres://localhost:5432/")
+	cratedb     = GenPgxFromURL("postgres://localhost/")
+	questdb     = GenPgxFromURL("postgres://localhost:8812/")
 )
+
+// GenQuestDB generates a questdb DSN from the passed URL.
+//
+// QuestDB speaks the wire protocol of PostgreSQL, so the DSN is the one
+// [GenPgxFromURL] writes, with the default port 8812, which is the port of
+// its PostgreSQL interface. pgx would use 5432 (D34). It returns pgx as the
+// Go driver, as [GenCrateDB] does.
+func GenQuestDB(u *URL) (string, string, error) {
+	dsn, _, err := questdb(u)
+	return dsn, "pgx", err
+}
 
 // GenCosmos generates a cosmos DSN from the passed URL.
 func GenCosmos(u *URL) (string, string, error) {
@@ -416,10 +454,6 @@ func GenHive(u *URL) (string, string, error) {
 	if z.Host == "" {
 		z.Host = "localhost"
 	}
-	// force port
-	if z.Port() == "" {
-		z.Host += ":10000"
-	}
 	// the database name is required
 	dbname := strings.TrimPrefix(u.Path, "/")
 	if dbname == "" {
@@ -441,13 +475,12 @@ func GenHive(u *URL) (string, string, error) {
 // pass through as they were written. It adds no driver option, so the driver
 // reads sqlmode and version with its own defaults. See [GenInfluxQL].
 //
-// The default port follows the version key, as the driver's does: 8086 for
-// InfluxDB 1 and 2, and 8181 otherwise, which is the port of InfluxDB 3. The
-// key is read with strconv.Atoi, as the driver reads it.
+// It adds no port, because the driver defaults to 8086 for version 1 and 2,
+// and 8181 otherwise (D34).
 //
 // [xo/dbimp/influxdb]: https://github.com/xo/dbimp
 func GenInfluxDB(u *URL) (string, string, error) {
-	return genInfluxDB(u, u.RawQuery), "", nil
+	return genRewrite(u, "influxdb", "", u.RawQuery), "", nil
 }
 
 // GenInfluxQL generates an influxdb DSN for InfluxQL from the passed URL.
@@ -463,33 +496,7 @@ func GenInfluxQL(u *URL) (string, string, error) {
 		}
 		q += "sqlmode=disable"
 	}
-	return genInfluxDB(u, q), "influxdb", nil
-}
-
-// genInfluxDB writes an influxdb:// DSN from the passed URL and raw query.
-func genInfluxDB(u *URL, rawQuery string) string {
-	host, port := "localhost", "8181"
-	if v, err := strconv.Atoi(u.Query().Get("version")); err == nil && (v == 1 || v == 2) {
-		port = "8086"
-	}
-	if h := u.Hostname(); h != "" {
-		host = h
-	}
-	if p := u.Port(); p != "" {
-		port = p
-	}
-	if strings.Contains(host, ":") {
-		host = "[" + host + "]"
-	}
-	z := &url.URL{
-		Scheme:   "influxdb",
-		User:     u.User,
-		Host:     host + ":" + port,
-		Path:     u.Path,
-		RawPath:  u.RawPath,
-		RawQuery: rawQuery,
-	}
-	return z.String()
+	return genRewrite(u, "influxdb", "", q), "influxdb", nil
 }
 
 // GenMaxCompute generates a maxcompute DSN from the passed URL.
@@ -516,7 +523,23 @@ var (
 )
 
 // GenMysql generates a mysql DSN from the passed URL.
+//
+// It adds no port, because go-sql-driver/mysql defaults to 3306 (D34).
 func GenMysql(u *URL) (string, string, error) {
+	return genMysql(u, "")
+}
+
+// GenTiDB generates a tidb DSN from the passed URL.
+//
+// It is the DSN of [GenMysql], with the default port 4000, which is the port
+// of TiDB. go-sql-driver/mysql would use 3306 (D34).
+func GenTiDB(u *URL) (string, string, error) {
+	return genMysql(u, "4000")
+}
+
+// genMysql generates a mysql DSN from the passed URL, with the passed default
+// port, which is empty when the driver's own default applies.
+func genMysql(u *URL, defaultPort string) (string, string, error) {
 	host, port, dbname := u.Hostname(), u.Port(), strings.TrimPrefix(u.Path, "/")
 	// build dsn
 	var dsn string
@@ -546,7 +569,7 @@ func GenMysql(u *URL) (string, string, error) {
 			host = "localhost"
 		}
 		if port == "" {
-			port = "3306"
+			port = defaultPort
 		}
 	}
 	if port != "" {
@@ -560,40 +583,14 @@ func GenMysql(u *URL) (string, string, error) {
 // GenNeo4j generates a neo4j DSN from the passed URL.
 //
 // Targets [xo/dbimp/neo4j], which reads a neo4j:// URL with net/url and
-// refuses any other scheme, so the scheme is always neo4j, whichever alias
-// was parsed. The path names the database, and passes through with its
-// escaping. The driver reads an empty path as the database neo4j. The user
-// information and the query pass through as they were written, and the
-// driver refuses an unknown or repeated key.
-//
-// The default port follows the tls key, as the port of the HTTP interface
-// does: 7474, or 7473 when tls reads as true. The key is read with
-// strconv.ParseBool, as the driver reads it.
+// refuses any other scheme. The path names the database, and the driver
+// reads an empty path as the database neo4j. The user information, the path
+// and the query pass through as they were written. It adds no port, because
+// the driver defaults to 7474, or 7473 with tls (D34).
 //
 // [xo/dbimp/neo4j]: https://github.com/xo/dbimp
 func GenNeo4j(u *URL) (string, string, error) {
-	host, port := "localhost", "7474"
-	if tls, err := strconv.ParseBool(u.Query().Get("tls")); err == nil && tls {
-		port = "7473"
-	}
-	if h := u.Hostname(); h != "" {
-		host = h
-	}
-	if p := u.Port(); p != "" {
-		port = p
-	}
-	if strings.Contains(host, ":") {
-		host = "[" + host + "]"
-	}
-	z := &url.URL{
-		Scheme:   "neo4j",
-		User:     u.User,
-		Host:     host + ":" + port,
-		Path:     u.Path,
-		RawPath:  u.RawPath,
-		RawQuery: u.RawQuery,
-	}
-	return z.String(), "", nil
+	return genRewrite(u, "neo4j", "", u.RawQuery), "", nil
 }
 
 // GenOdbc generates a odbc DSN from the passed URL.
@@ -872,16 +869,40 @@ func GenSnowflake(u *URL) (string, string, error) {
 }
 
 // GenSpanner generates a spanner DSN from the passed URL.
+//
+// Targets [googleapis/go-sql-spanner]. The URL is
+// spanner://host:port/project/instance/database?name=value, and the DSN is
+// host:port/projects/project/instances/instance/databases/database;name=value.
+// An empty host leaves the endpoint to the driver, as spanner:///p/i/d does.
+// [Parse] reads a URL with no host and a path as a unix socket, so the scheme
+// accepts that transport, and a spanner+unix URL is refused here.
+// The path must name all three, and each query option passes through as a
+// driver option, such as usePlainText=true for the emulator (D35).
+//
+// [googleapis/go-sql-spanner]: https://github.com/googleapis/go-sql-spanner
 func GenSpanner(u *URL) (string, string, error) {
-	project := u.Hostname()
-	if project == "" {
-		return "", "", ErrMissingHost
+	if strings.Contains(u.OriginalScheme, "+") {
+		return "", "", ErrInvalidTransportProtocol
 	}
-	instance, dbname, ok := strings.Cut(strings.TrimPrefix(u.Path, "/"), "/")
-	if !ok || instance == "" || dbname == "" {
+	parts := strings.Split(strings.TrimPrefix(u.Path, "/"), "/")
+	if len(parts) != 3 || parts[0] == "" || parts[1] == "" || parts[2] == "" {
 		return "", "", ErrMissingPath
 	}
-	return fmt.Sprintf(`projects/%s/instances/%s/databases/%s`, project, instance, dbname), "", nil
+	var b strings.Builder
+	if u.Host != "" {
+		b.WriteString(u.Host + "/")
+	}
+	b.WriteString("projects/" + parts[0] + "/instances/" + parts[1] + "/databases/" + parts[2])
+	q := u.Query()
+	keys := make([]string, 0, len(q))
+	for k := range q {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		b.WriteString(";" + k + "=" + strings.Join(q[k], ","))
+	}
+	return b.String(), "", nil
 }
 
 // GenSqlserver generates a sqlserver DSN from the passed URL.
@@ -914,36 +935,14 @@ func GenSqlserver(u *URL) (string, string, error) {
 // GenSurrealDB generates a surrealdb DSN from the passed URL.
 //
 // Targets [xo/dbimp/surrealdb], which reads a surrealdb:// URL with net/url
-// and refuses any other scheme, so the scheme is always surrealdb, whichever
-// alias was parsed. The path names the namespace and the database, as
-// /namespace/database, and passes through with its escaping, so a name that
-// holds a slash stays %2F. The user information and the query pass through
-// as they were written, and the driver refuses an unknown or repeated key.
-//
-// The default port is 8000, with TLS or without, as the driver serves both on
-// the same port.
+// and refuses any other scheme. The path names the namespace and the
+// database, as /namespace/database, and passes through with its escaping. The
+// user information and the query pass through as they were written. It adds
+// no port, because the driver defaults to 8000 (D34).
 //
 // [xo/dbimp/surrealdb]: https://github.com/xo/dbimp
 func GenSurrealDB(u *URL) (string, string, error) {
-	host, port := "localhost", "8000"
-	if h := u.Hostname(); h != "" {
-		host = h
-	}
-	if p := u.Port(); p != "" {
-		port = p
-	}
-	if strings.Contains(host, ":") {
-		host = "[" + host + "]"
-	}
-	z := &url.URL{
-		Scheme:   "surrealdb",
-		User:     u.User,
-		Host:     host + ":" + port,
-		Path:     u.Path,
-		RawPath:  u.RawPath,
-		RawQuery: u.RawQuery,
-	}
-	return z.String(), "", nil
+	return genRewrite(u, "surrealdb", "", u.RawQuery), "", nil
 }
 
 // GenTableStore generates a tablestore DSN from the passed URL.
@@ -1092,14 +1091,15 @@ func genOptionsOdbc(q url.Values, skipWhenEmpty bool, ignore, ignorePrefixes []s
 
 // genOptions takes URL values and generates options.
 //
-// Each name and value is joined by joiner, and each pair is separated by sep.
-// A value holding more than one entry is joined by valSep. A key listed in
-// ignore is skipped.
+// Each name and value is joined by assign, each pair is separated by sep, and
+// joiner comes before the first pair. A value holding more than one entry is
+// joined by valSep. A key listed in ignore, or that starts with a prefix in
+// ignorePrefixes, is skipped. When skipWhenEmpty is true, a key with an empty
+// value is skipped.
 //
-// For example, to build a "ODBC" style connection string, can be used like the
-// following:
+// For example, an ODBC style connection string is built like this:
 //
-//	genOptions(u.Query(), "", "=", ";", ",", false)
+//	genOptions(u.Query(), "", "=", ";", ",", true, nil, nil)
 //
 //nolint:unparam
 func genOptions(q url.Values, joiner, assign, sep, valSep string, skipWhenEmpty bool, ignore, ignorePrefixes []string) string {

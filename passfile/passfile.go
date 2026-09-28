@@ -115,9 +115,9 @@ func (entry Entry) Equals(v Entry, protocols ...string) bool {
 		(entry.Username == "*" || v.Username == "" || entry.Username == v.Username)
 }
 
-// MatchEntries returns a Userinfo when the normalized v is found in entries.
+// MatchEntries returns a Userinfo when the normalized u is found in entries.
 func MatchEntries(u *dburl.URL, entries []Entry, protocols ...string) (*url.Userinfo, error) {
-	// check if v already has password defined ...
+	// check if u already has password defined ...
 	var username string
 	if u.User != nil {
 		username = u.User.Username()
@@ -219,16 +219,26 @@ func Expand(homeDir string, file string) string {
 // passfile in the home directory.
 func OpenURL(u *dburl.URL, homeDir, name string) (*sql.DB, error) {
 	if u.User != nil {
-		return sql.Open(u.Driver, u.DSN)
+		return open(u)
 	}
 	user, err := Match(u, homeDir, name)
 	if err != nil {
-		return sql.Open(u.Driver, u.DSN)
+		return open(u)
 	}
 	u.User = user
 	v, _ := dburl.Parse(u.String())
 	*u = *v
-	return sql.Open(v.Driver, v.DSN)
+	return open(v)
+}
+
+// open opens u as [dburl.Open] does: with GoDriver when it is set, and with
+// Driver otherwise.
+func open(u *dburl.URL) (*sql.DB, error) {
+	driver := u.Driver
+	if u.GoDriver != "" {
+		driver = u.GoDriver
+	}
+	return sql.Open(driver, u.DSN)
 }
 
 // Open opens a database connection for a URL, reading the named passfile in

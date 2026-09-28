@@ -40,8 +40,10 @@ const (
 // Scheme wraps information used for registering a database URL scheme for use
 // with [Parse]/[Open].
 type Scheme struct {
-	// Driver is the name of the SQL driver. [Parse] sets it as the Scheme on
-	// the returned URL, and the standard sql.Open calls expect it.
+	// Driver is the name of the scheme, and usually the name of the SQL
+	// driver. [Parse] sets it as the UnaliasedDriver of the returned URL, and
+	// as its Driver unless Override is set. A generator that returns a Go
+	// driver name opens that driver in its place.
 	//
 	// Note: a 2 letter alias is registered automatically, taken from the
 	// first 2 characters of the Driver. This does not happen when one of the
@@ -60,9 +62,11 @@ type Scheme struct {
 	Aliases []string
 	// Override is the Go SQL driver to use instead of Driver.
 	//
-	// Used for "wire compatible" driver schemes, and for a scheme whose
-	// driver registered a name another scheme holds: pq returns postgres,
-	// which lib/pq registers, because the postgres scheme returns pgx.
+	// Used by a wire compatible scheme that shares the Dialect of the scheme
+	// it names, such as memsql or redshift, by postgres to open pgx, and by a
+	// scheme whose driver registered a name another scheme holds: pq returns
+	// postgres, which lib/pq registers. A scheme that needs a Dialect of its
+	// own returns a Go driver name from its generator instead.
 	Override string
 	// Dialect is the Driver of the scheme that is canonical for the database
 	// product, which is this scheme's own Driver when it is the canonical
@@ -74,7 +78,8 @@ type Scheme struct {
 	// sqlite3 are both SQLite3.
 	//
 	// A scheme with an Override takes the Dialect of the scheme it overrides.
-	// For a wire compatible scheme, that is the product it speaks to.
+	// For memsql, tidb, vitess and redshift, that is the product they speak
+	// to.
 	Dialect string
 	// Desc is the database display name, as "Apache Hive".
 	Desc string
@@ -82,9 +87,10 @@ type Scheme struct {
 	Home string
 	// DriverURL is the home page of the Go database driver.
 	//
-	// Blank for a wire compatible scheme, which reaches its driver through
-	// Override. A scheme whose Override names a driver that no scheme opens
-	// sets it, as pq does for lib/pq.
+	// Blank for a scheme whose Override names a scheme that opens its own
+	// name, such as memsql, redshift or postgres, which reaches its driver
+	// through that scheme. Every other scheme sets it, including pq, whose
+	// Override names a driver that no scheme opens.
 	DriverURL string
 	// GoPackage is the import path of the Go database driver, including the
 	// major version when the module carries one.
@@ -93,8 +99,7 @@ type Scheme struct {
 	// pgx the module is github.com/jackc/pgx/v5 and the import path that
 	// registers the driver is github.com/jackc/pgx/v5/stdlib.
 	//
-	// Blank for a wire compatible scheme, and set by a scheme whose Override
-	// names a driver that no scheme opens, as for DriverURL.
+	// Blank and set exactly as DriverURL is.
 	GoPackage string
 	// RequiresCGO reports whether the Go database driver needs cgo.
 	RequiresCGO bool
@@ -171,7 +176,7 @@ func BaseSchemes() []Scheme {
 			Deployment: DeploymentServer,
 			Dialect:    "sqlserver",
 		},
-		// wire compatibles
+		// schemes that speak the wire protocol of another database
 		{
 			Driver:     "cockroachdb",
 			Generator:  GenCockroachDB,
@@ -215,7 +220,7 @@ func BaseSchemes() []Scheme {
 		},
 		{
 			Driver:     "tidb",
-			Generator:  GenMysql,
+			Generator:  GenTiDB,
 			Override:   "mysql",
 			Desc:       "TiDB",
 			Home:       "https://www.pingcap.com/tidb",
@@ -420,6 +425,16 @@ func BaseSchemes() []Scheme {
 			Dialect:     "duckdb",
 		},
 		{
+			Driver:     "gizmosql",
+			Generator:  GenGizmoSQL,
+			Aliases:    []string{"gz", "gizmo"},
+			Desc:       "GizmoSQL",
+			GoPackage:  "github.com/apache/arrow-go/v18/arrow/flight/flightsql/driver",
+			DriverURL:  "https://github.com/apache/arrow-go/tree/main/arrow/flight/flightsql/driver",
+			Deployment: DeploymentServer,
+			Dialect:    "gizmosql",
+		},
+		{
 			Driver:     "godynamo",
 			Generator:  GenDynamo,
 			Aliases:    []string{"dy", "dyn", "dynamo", "dynamodb"},
@@ -477,7 +492,7 @@ func BaseSchemes() []Scheme {
 		},
 		{
 			Driver:     "h2",
-			Generator:  GenFromURL("h2://localhost:9092/"),
+			Generator:  GenFromURL("h2://localhost"),
 			Desc:       "Apache H2",
 			Home:       "https://h2database.com",
 			GoPackage:  "github.com/jmrobles/h2go",
@@ -487,7 +502,7 @@ func BaseSchemes() []Scheme {
 		},
 		{
 			Driver:     "hdb",
-			Generator:  GenScheme("hdb"),
+			Generator:  GenFromURL("hdb://localhost:30015"),
 			Aliases:    []string{"sa", "saphana", "sap", "hana"},
 			Desc:       "SAP HANA",
 			Home:       "https://www.sap.com/products/technology-platform/hana.html",
@@ -564,7 +579,7 @@ func BaseSchemes() []Scheme {
 		},
 		{
 			Driver:     "nzgo",
-			Generator:  GenPostgres,
+			Generator:  GenNzgo,
 			Transport:  TransportUnix,
 			Aliases:    []string{"nz", "netezza"},
 			Desc:       "Netezza",
@@ -599,6 +614,16 @@ func BaseSchemes() []Scheme {
 			Dialect:    "ots",
 		},
 		{
+			Driver:     "pinot",
+			Generator:  GenPinot,
+			Desc:       "Apache Pinot",
+			Home:       "https://pinot.apache.org",
+			GoPackage:  "github.com/xo/dbimp/pinot",
+			DriverURL:  "https://github.com/xo/dbimp",
+			Deployment: DeploymentServer,
+			Dialect:    "pinot",
+		},
+		{
 			Driver:     "presto",
 			Generator:  GenPresto,
 			Aliases:    []string{"prestodb"},
@@ -621,6 +646,26 @@ func BaseSchemes() []Scheme {
 			Dialect:    "ql",
 		},
 		{
+			Driver:     "questdb",
+			Generator:  GenQuestDB,
+			Desc:       "QuestDB",
+			Home:       "https://questdb.com",
+			GoPackage:  "github.com/jackc/pgx/v5/stdlib",
+			DriverURL:  "https://github.com/jackc/pgx",
+			Deployment: DeploymentServer,
+			Dialect:    "questdb",
+		},
+		{
+			Driver:     "rqlite",
+			Generator:  GenRqlite,
+			Desc:       "rqlite",
+			Home:       "https://rqlite.io",
+			GoPackage:  "github.com/xo/dbimp/rqlite",
+			DriverURL:  "https://github.com/xo/dbimp",
+			Deployment: DeploymentServer,
+			Dialect:    "rqlite",
+		},
+		{
 			Driver:     "snowflake",
 			Generator:  GenSnowflake,
 			Aliases:    []string{"sf"},
@@ -634,6 +679,7 @@ func BaseSchemes() []Scheme {
 		{
 			Driver:     "spanner",
 			Generator:  GenSpanner,
+			Transport:  TransportUnix,
 			Aliases:    []string{"sp"},
 			Desc:       "Google Spanner",
 			Home:       "https://cloud.google.com/spanner",
@@ -652,6 +698,16 @@ func BaseSchemes() []Scheme {
 			DriverURL:  "https://github.com/xo/dbimp",
 			Deployment: DeploymentServer,
 			Dialect:    "surrealdb",
+		},
+		{
+			Driver:     "tdengine",
+			Generator:  GenTDengine,
+			Desc:       "TDengine",
+			Home:       "https://tdengine.com",
+			GoPackage:  "github.com/xo/dbimp/tdengine",
+			DriverURL:  "https://github.com/xo/dbimp",
+			Deployment: DeploymentServer,
+			Dialect:    "tdengine",
 		},
 		{
 			Driver:     "trino",

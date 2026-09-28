@@ -61,13 +61,14 @@ func writeReadme() error {
 	b.WriteString(buildTable())
 	b.WriteString("\n")
 	b.Write(buf[end:])
-	return os.WriteFile("README.md", b.Bytes(), 0o644)
+	// README.md and LICENSE are published files that every checkout can read.
+	return os.WriteFile("README.md", b.Bytes(), 0o644) //nolint:gosec
 }
 
 // writeLicense rewrites LICENSE with the current year.
 func writeLicense(start int, author string) error {
 	s := fmt.Sprintf(license, start, time.Now().Year(), author)
-	return os.WriteFile("LICENSE", append([]byte(s), '\n'), 0o644)
+	return os.WriteFile("LICENSE", append([]byte(s), '\n'), 0o644) //nolint:gosec
 }
 
 // buildTable builds the driver table and its link definitions.
@@ -132,16 +133,17 @@ func buildTable() string {
 		}
 		return strings.ToLower(rows[i].desc) < strings.ToLower(rows[j].desc)
 	})
-	s := tableRow(widths, ' ', hdr) + tableRow(widths, '-', nil)
+	var s strings.Builder
+	s.WriteString(tableRow(widths, ' ', hdr) + tableRow(widths, '-', nil))
 	for i, row := range rows {
 		// one blank row where the forced order ends and the rest begins
 		if i > 0 && rank(rows[i-1].driver) < len(forcedOrder) && rank(row.driver) == len(forcedOrder) {
-			s += tableRow(widths, ' ', nil)
+			s.WriteString(tableRow(widths, ' ', nil))
 		}
-		s += tableRow(widths, ' ', row.cells)
+		s.WriteString(tableRow(widths, ' ', row.cells))
 	}
 	sort.Strings(links)
-	return s + "\n" + strings.Join(links, "\n") + "\n"
+	return s.String() + "\n" + strings.Join(links, "\n") + "\n"
 }
 
 // forcedOrder is the order the first rows of the table appear in. It is
@@ -205,7 +207,8 @@ func quoteJoin(v []string) string {
 
 // tableRow builds one markdown table row, padded to widths.
 func tableRow(widths []int, pad rune, row []string) string {
-	s := "|"
+	var s strings.Builder
+	s.WriteString("|")
 	for i, w := range widths {
 		cell := ""
 		if i < len(row) {
@@ -214,9 +217,9 @@ func tableRow(widths []int, pad rune, row []string) string {
 		if pad == '-' {
 			cell = strings.Repeat("-", w)
 		}
-		s += string(pad) + cell + strings.Repeat(string(pad), w-utf8.RuneCountInString(cell)) + string(pad) + "|"
+		s.WriteString(string(pad) + cell + strings.Repeat(string(pad), w-utf8.RuneCountInString(cell)) + string(pad) + "|")
 	}
-	return s + "\n"
+	return s.String() + "\n"
 }
 
 const (

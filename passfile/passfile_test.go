@@ -1,6 +1,8 @@
 package passfile
 
 import (
+	"database/sql"
+	"database/sql/driver"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -120,6 +122,36 @@ func TestMatchUserAndDatabase(t *testing.T) {
 				t.Errorf("expected %v, got: %v", test.exp, user)
 			}
 		})
+	}
+}
+
+// stubDriver is a database/sql driver that is never connected. OpenURL only
+// has to reach it by name.
+type stubDriver struct{}
+
+func (stubDriver) Open(string) (driver.Conn, error) {
+	return nil, driver.ErrSkip
+}
+
+func init() {
+	// pgx is not linked here, so the name is free for the stub.
+	sql.Register("pgx", stubDriver{})
+}
+
+func TestOpenURLUsesGoDriver(t *testing.T) {
+	// cockroachdb returns the Driver cockroachdb and the GoDriver pgx (D30),
+	// so OpenURL must open pgx. No driver is named cockroachdb.
+	u, err := dburl.Parse("cockroachdb://user:pass@host/db")
+	if err != nil {
+		t.Fatalf("expected no error, got: %v", err)
+	}
+	db, err := OpenURL(u, t.TempDir(), "testpass")
+	if err != nil {
+		t.Fatalf("expected no error, got: %v", err)
+	}
+	defer db.Close()
+	if _, ok := db.Driver().(stubDriver); !ok {
+		t.Errorf("expected the pgx driver, got: %T", db.Driver())
 	}
 }
 

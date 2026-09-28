@@ -41,7 +41,7 @@ Where:
 | Component           | Description                                                                          |
 | ------------------- | ------------------------------------------------------------------------------------ |
 | protocol            | driver name or alias (see below)                                                     |
-| transport           | "tcp", "udp", "unix" or driver name (odbc)                                           |
+| transport           | "tcp", "udp", "unix", "http", "https", or a driver name for odbc                     |
 | user                | username                                                                             |
 | pass                | password                                                                             |
 | host                | host                                                                                 |
@@ -105,8 +105,11 @@ odbc+postgres://user:pass@localhost:port/dbname?option1=
 
 The table lists every supported `dburl` protocol scheme, with its aliases and
 its Go driver. The scheme is usually also the driver name that `dburl` returns.
-A row marked ‡ uses the driver of another row, and `pq` returns `postgres`,
-which is the name that `github.com/lib/pq` registers:
+A row marked ‡ reaches the driver of another row through `Override`. `pq`
+returns `postgres`, which is the name that `github.com/lib/pq` registers. A
+few schemes open a driver under another name, which `URL.GoDriver` holds:
+`cockroachdb` and `cratedb` open `pgx`, and `influxql` opens `influxdb`.
+`dburl.Open` uses `GoDriver` when it is set:
 
 <!-- DRIVER DETAILS START -->
 
@@ -128,6 +131,7 @@ which is the name that `github.com/lib/pq` registers:
 | Apache H2            | `h2`            |                                                | [github.com/jmrobles/h2go][d-h2]                                                            |
 | Apache Hive          | `hive`          | `hi`, `hive2`                                  | [github.com/beltran/gohive/v2][d-hive]                                                      |
 | Apache Impala        | `impala`        | `im`                                           | [github.com/sclgo/impala-go][d-impala]                                                      |
+| Apache Pinot         | `pinot`         | `pi`                                           | [github.com/xo/dbimp/pinot][d-pinot]                                                        |
 | ArangoDB             | `arangodb`      | `ar`, `arango`                                 | [github.com/xo/dbimp/arangodb][d-arangodb]                                                  |
 | AWS Athena           | `awsathena`     | `s3`, `aws`, `athena`                          | [github.com/uber/athenadriver/go][d-awsathena] <sup>[¶][f-hosted]</sup>                     |
 | Azure CosmosDB       | `cosmos`        | `cm`, `gocosmos`                               | [github.com/btnguyen2k/gocosmos][d-cosmos] <sup>[¶][f-hosted]</sup>                         |
@@ -143,6 +147,7 @@ which is the name that `github.com/lib/pq` registers:
 | Exasol               | `exasol`        | `ex`, `exa`                                    | [github.com/exasol/exasol-driver-go][d-exasol]                                              |
 | Firebird             | `firebirdsql`   | `fb`, `firebird`                               | [github.com/nakagami/firebirdsql][d-firebirdsql]                                            |
 | FlightSQL            | `flightsql`     | `fl`, `flight`                                 | [github.com/apache/arrow-go/v18/arrow/flight/flightsql/driver][d-flightsql]                 |
+| GizmoSQL             | `gizmosql`      | `gz`, `gizmo`                                  | [github.com/apache/arrow-go/v18/arrow/flight/flightsql/driver][d-gizmosql]                  |
 | GO DRiver for ORacle | `godror`        | `gr`                                           | [github.com/godror/godror][d-godror] <sup>[†][f-cgo]</sup>                                  |
 | Google BigQuery      | `bigquery`      | `bq`                                           | [gorm.io/driver/bigquery/driver][d-bigquery] <sup>[¶][f-hosted]</sup>                       |
 | Google Spanner       | `spanner`       | `sp`                                           | [github.com/googleapis/go-sql-spanner][d-spanner] <sup>[¶][f-hosted]</sup>                  |
@@ -155,10 +160,13 @@ which is the name that `github.com/lib/pq` registers:
 | PostgreSQL lib/pq    | `pq`            | `libpq`                                        | [github.com/lib/pq][d-pq]                                                                   |
 | PostgreSQL PGX       | `pgx`           | `px`                                           | [github.com/jackc/pgx/v5/stdlib][d-pgx]                                                     |
 | Presto               | `presto`        | `pr`, `prestodb`                               | [github.com/prestodb/presto-go-client/v2][d-presto]                                         |
+| QuestDB              | `questdb`       | `qu`                                           | [github.com/jackc/pgx/v5/stdlib][d-questdb]                                                 |
+| rqlite               | `rqlite`        | `rq`                                           | [github.com/xo/dbimp/rqlite][d-rqlite]                                                      |
 | SAP HANA             | `hdb`           | `sa`, `sap`, `hana`, `saphana`                 | [github.com/SAP/go-hdb/driver][d-hdb]                                                       |
 | SingleStore MemSQL   | `memsql`        | `me`                                           | [github.com/go-sql-driver/mysql][d-mysql] <sup>[‡][f-wire]</sup>                            |
 | Snowflake            | `snowflake`     | `sf`                                           | [github.com/snowflakedb/gosnowflake/v2][d-snowflake] <sup>[¶][f-hosted]</sup>               |
 | SurrealDB            | `surrealdb`     | `sr`, `sur`, `surreal`                         | [github.com/xo/dbimp/surrealdb][d-surrealdb]                                                |
+| TDengine             | `tdengine`      | `td`                                           | [github.com/xo/dbimp/tdengine][d-tdengine]                                                  |
 | TiDB                 | `tidb`          | `ti`                                           | [github.com/go-sql-driver/mysql][d-mysql] <sup>[‡][f-wire]</sup>                            |
 | Trino                | `trino`         | `tr`, `trs`, `trinos`                          | [github.com/trinodb/trino-go-client/trino][d-trino]                                         |
 | Vertica              | `vertica`       | `ve`                                           | [github.com/vertica/vertica-sql-go][d-vertica]                                              |
@@ -184,6 +192,7 @@ which is the name that `github.com/lib/pq` registers:
 [d-exasol]: https://github.com/exasol/exasol-driver-go
 [d-firebirdsql]: https://github.com/nakagami/firebirdsql
 [d-flightsql]: https://github.com/apache/arrow-go/tree/main/arrow/flight/flightsql/driver
+[d-gizmosql]: https://github.com/apache/arrow-go/tree/main/arrow/flight/flightsql/driver
 [d-godror]: https://github.com/godror/godror
 [d-godynamo]: https://github.com/btnguyen2k/godynamo
 [d-h2]: https://github.com/jmrobles/h2go
@@ -201,14 +210,18 @@ which is the name that `github.com/lib/pq` registers:
 [d-oracle]: https://github.com/sijms/go-ora
 [d-ots]: https://github.com/aliyun/aliyun-tablestore-go-sql-driver
 [d-pgx]: https://github.com/jackc/pgx
+[d-pinot]: https://github.com/xo/dbimp
 [d-pq]: https://github.com/lib/pq
 [d-presto]: https://github.com/prestodb/presto-go-client
 [d-ql]: https://gitlab.com/cznic/ql
+[d-questdb]: https://github.com/jackc/pgx
+[d-rqlite]: https://github.com/xo/dbimp
 [d-snowflake]: https://github.com/snowflakedb/gosnowflake
 [d-spanner]: https://github.com/googleapis/go-sql-spanner
 [d-sqlite3]: https://github.com/mattn/go-sqlite3
 [d-sqlserver]: https://github.com/microsoft/go-mssqldb
 [d-surrealdb]: https://github.com/xo/dbimp
+[d-tdengine]: https://github.com/xo/dbimp
 [d-trino]: https://github.com/trinodb/trino-go-client
 [d-vertica]: https://github.com/vertica/vertica-sql-go
 [d-voltdb]: https://github.com/VoltDB/voltdb-client-go
@@ -217,14 +230,14 @@ which is the name that `github.com/lib/pq` registers:
 <!-- DRIVER DETAILS END -->
 
 [f-cgo]: #f-cgo "Requires CGO"
-[f-wire]: #f-wire "Uses another driver"
+[f-wire]: #f-wire "Uses the driver of another row"
 [f-embedded]: #f-embedded "Embedded"
 [f-hosted]: #f-hosted "Hosted service"
 
 <p>
   <i>
     <a id="f-cgo"><sup>†</sup> Requires CGO</a><br>
-    <a id="f-wire"><sup>‡</sup> Uses the driver of another row, as a wire compatible database does</a><br>
+    <a id="f-wire"><sup>‡</sup> Uses the driver of another row, through <code>Override</code></a><br>
     <a id="f-embedded"><sup>§</sup> Embedded, with no server to run</a><br>
     <a id="f-hosted"><sup>¶</sup> Hosted service, with no server you can run</a>
   </i>
