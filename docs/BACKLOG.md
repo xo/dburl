@@ -9,13 +9,6 @@ decided on the way (D27).
 
 ## Schemes
 
-### Release the schemes on main
-
-`main` holds `neo4j` (D28) and `influxdb` with `influxql` (D29), which no
-release carries. `neo4j` is checked against dbimp `v0.3.0`, and the InfluxDB
-generators against dbimp `v0.4.0`. Ken decided on 2026-09-28 to release them
-together, and nothing now blocks that release.
-
 ### Add the schemes for the next dbimp drivers
 
 dbimp D73 sets the order of the drivers after Neo4j: InfluxDB, CrateDB,
