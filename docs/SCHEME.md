@@ -69,6 +69,14 @@ everything else. Use it when the DSN is not a URL, such as the `key=value`
 form that lib/pq, nzgo and ODBC take. Use it also when the generator needs to
 reject something.
 
+A generator returns an error when the URL lacks a field that the driver
+requires: `ErrMissingHost`, `ErrMissingPath` or `ErrMissingUser`. It does not
+fill the field in with a guess. `GenSurrealDB` returns `ErrMissingPath` when
+the path does not name both the namespace and the database, and
+`GenSchemeHost` returns `ErrMissingHost` for awsathena and bigquery, whose
+host is a bucket or a project and not a server. A default host or port under
+step 4 is not a guess, because it names a real server. That is D38.
+
 ## 4. Supply the defaults, then let the URL override them
 
 A `dburl` URL carries the settings that identify the server, so the caller does

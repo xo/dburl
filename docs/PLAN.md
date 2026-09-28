@@ -41,12 +41,13 @@ if D11 amends D4, then D4 says so too.
 | [D29](#d29-influxql-is-a-scheme-of-its-own-on-the-influxdb-driver) | Amended by D34 and D37 |
 | [D30](#d30-cockroachdb-and-cratedb-each-have-a-dialect-of-their-own) | Amended by D34 and D37 |
 | [D31](#d31-a-password-file-entry-matches-the-database-and-the-user) | Decided |
-| [D32](#d32-arangodb-is-a-provisional-scheme-for-the-dbimp-driver) | Amended by D34 |
+| [D32](#d32-arangodb-is-a-provisional-scheme-for-the-dbimp-driver) | Amended by D34 and D38 |
 | [D33](#d33-passfile-opens-the-go-driver-that-dburlopen-opens) | Amended by D37 |
 | [D34](#d34-a-default-port-is-added-only-where-the-driver-has-none) | Decided |
 | [D35](#d35-a-spanner-url-names-its-host-first) | Decided |
-| [D36](#d36-gizmosql-questdb-and-three-provisional-schemes) | Decided |
+| [D36](#d36-gizmosql-questdb-and-three-provisional-schemes) | Amended by D38 |
 | [D37](#d37-a-scheme-names-its-driver-and-override-is-gone) | Decided |
+| [D38](#d38-a-missing-required-field-is-an-error-and-provisional-schemes-can-ship) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -1360,7 +1361,10 @@ and dbmeta do not call it. `TestNormalize` is new, because nothing tested it.
 with no entry for it, an entry that supplies the user, an entry for one
 database, and an empty password. It failed on the old `Normalize`.
 
-### D32. arangodb is a provisional scheme for the dbimp driver. Amended by D34.
+### D32. arangodb is a provisional scheme for the dbimp driver. Amended by D34 and D38.
+
+Amended by D38: a release may carry this scheme before the driver is
+tagged. The check against `ParseDSN` still comes when the tag exists.
 
 Amended by D34: `GenArangoDB` adds no port now, because the driver in
 dbimp's working tree defaults to 8529.
@@ -1527,7 +1531,11 @@ The output was run through `ExtractConnectorConfig` at v1.26.0. The host, the
 project, the instance, the database and `usePlainText` came back as intended,
 with a host and without one.
 
-### D36. gizmosql, questdb, and three provisional schemes. Decided.
+### D36. gizmosql, questdb, and three provisional schemes. Amended by D38.
+
+Amended by D38: a release may carry the provisional schemes before their
+drivers are tagged. The aliases are `qs`, `td`, `pi` and `rq`, and Pinot keeps
+port 8000.
 
 Ken decided on 2026-09-29 to add these schemes for the containers that
 dbmeta lists as Staged:
@@ -1653,3 +1661,54 @@ WHAT CHANGES FOR A CALLER
 `TestSchemeMetadata` no longer has rules for `Override`, and every scheme but
 `file` must document its package. `TestParseDialect` checks `SchemeName`,
 `Driver` and `Dialect` for every kind of scheme.
+
+### D38. A missing required field is an error, and provisional schemes can ship. Amends D32 and D36.
+
+Ken decided these on 2026-09-29.
+
+A MISSING REQUIRED FIELD IS AN ERROR
+
+When dburl knows that the driver needs a field that the URL lacks, such as
+the host, the port or the path, the generator returns an error that names the
+field. It does not fill the field in. Ken asked for the rule to be checked
+against the existing schemes before it was written down. It already held in
+seven places: `GenOpaque` and `file:` return `ErrMissingPath`, `GenSpanner`
+returns `ErrMissingPath`, `GenDatabend` returns `ErrMissingHost`,
+`GenCosmos` returns `ErrMissingUser`, and `GenDatabricks` and `GenSnowflake`
+return `ErrMissingHost` and `ErrMissingUser`.
+
+A default host or port under rule 7 is not a filled field, because it names a
+real server that the caller did not have to write.
+
+The port audit of D34 found three schemes that broke the rule, and two are
+fixed:
+
+- `GenSurrealDB` returns `ErrMissingPath` when the path does not name both
+  the namespace and the database, which the driver needs. Before, it passed
+  the URL through and the driver refused it.
+- awsathena and bigquery use the new `GenSchemeHost`, which returns
+  `ErrMissingHost` for a URL with no host. The host of awsathena is the S3
+  bucket, and the host of bigquery is the project, so the `localhost` that
+  `GenScheme` supplied named a bucket or a project that does not exist. A URL
+  such as `athena:///db` still fails first in `Parse`, as an invalid
+  transport, because `Parse` reads no host with a path as a unix socket.
+
+`clickhouse+https` without `secure=true` waits for the dbimp ClickHouse
+driver. Three generators still fill a field: `GenHive` makes the database
+`default`, which D16 decided, and `GenPresto` and `GenTrino` make the catalog
+`default`. The backlog holds them for Ken.
+
+RELEASE, ALIASES AND A RENAME
+
+- A release carries every scheme on `main` at once, including the
+  provisional ones of D32 and D36, before their drivers are tagged. Each is
+  still checked against its `ParseDSN` when the tag exists.
+- The aliases of the new schemes are `qs` for questdb, `td` for tdengine,
+  `pi` for pinot and `rq` for rqlite. `qs` replaces the automatic `qu`.
+- Pinot keeps port 8000, the port of the broker in dbmeta's all-in-one
+  container.
+- `SchemeDriverAndAliases` is now `SchemeNameAndAliases`, because since D37
+  it returns the scheme's `Name` and not a driver.
+
+`TestBadParse` covers the new errors for surrealdb, awsathena and bigquery,
+and `TestParseDialect` covers `qs`.

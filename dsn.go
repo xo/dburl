@@ -35,6 +35,21 @@ func GenScheme(scheme string) func(*URL) (string, string, error) {
 	}
 }
 
+// GenSchemeHost returns a generator that rewrites only the scheme, as
+// [GenScheme] does, and that returns [ErrMissingHost] when the URL names no
+// host. It is for a scheme whose host is not a server, such as the S3 bucket
+// of awsathena or the project of bigquery, where localhost is never right
+// (D38).
+func GenSchemeHost(scheme string) func(*URL) (string, string, error) {
+	gen := GenScheme(scheme)
+	return func(u *URL) (string, string, error) {
+		if u.Host == "" {
+			return "", "", ErrMissingHost
+		}
+		return gen(u)
+	}
+}
+
 // genRewrite writes u with the scheme of the driver, which a driver that
 // refuses any scheme but its own name needs. The user information, the path
 // with its escaping and the passed raw query pass through. The host defaults
@@ -950,10 +965,16 @@ func GenSqlserver(u *URL) (string, string, error) {
 // and refuses any other scheme. The path names the namespace and the
 // database, as /namespace/database, and passes through with its escaping. The
 // user information and the query pass through as they were written. It adds
-// no port, because the driver defaults to 8000 (D34).
+// no port, because the driver defaults to 8000 (D34). A path that does not
+// name both returns [ErrMissingPath] (D38).
 //
 // [xo/dbimp/surrealdb]: https://github.com/xo/dbimp
 func GenSurrealDB(u *URL) (string, string, error) {
+	// the driver needs both the namespace and the database (D38)
+	ns, db, _ := strings.Cut(strings.TrimPrefix(u.Path, "/"), "/")
+	if ns == "" || db == "" {
+		return "", "", ErrMissingPath
+	}
 	return genRewrite(u, "surrealdb", "", u.RawQuery), "", nil
 }
 

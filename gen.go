@@ -91,7 +91,7 @@ func buildTable() string {
 		if scheme.Desc == "" {
 			continue
 		}
-		_, aliases := dburl.SchemeDriverAndAliases(scheme.Name)
+		_, aliases := dburl.SchemeNameAndAliases(scheme.Name)
 		// the scheme is its own column, so it is not repeated as an alias
 		aliases = slices.DeleteFunc(aliases, func(a string) bool { return a == scheme.Name })
 		// a database detected by its file header also answers to file:

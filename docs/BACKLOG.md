@@ -15,6 +15,7 @@ dbimp D73 sets the order of the drivers after Neo4j: InfluxDB, CrateDB,
 ArangoDB, Databend, TDengine, Apache Pinot, rqlite, then libSQL and Turso.
 InfluxDB is done (D29). CrateDB is done on pgx and gets no dbimp driver (D30
 and dbimp D88). ArangoDB is provisional (D32), and so are TDengine, Pinot and rqlite (D36).
+D38 lets a release carry them before their drivers are tagged.
 dbimp settles the name and the URL form of each one in its step 9, and the
 name is the database as one lower case word (dbimp D26, D28 and D30). Add
 each scheme when its driver has `ParseDSN` at a tag, under rule 3.
@@ -47,14 +48,22 @@ to the server as a session property, and switches to HTTPS only with an
 `ssl_*` key, and clickhouse-go uses `secure=true`. When each dbimp driver
 exists, read its `ParseDSN` and decide its ports and `tls` with Ken.
 
-### Fix the defaults that the port audit found broken
+### Decide clickhouse+https without secure=true
 
-The port audit of D34 found these, and none of them is a port:
+The port audit of D34 found that `clickhouse+https://` fails in clickhouse-go
+unless the URL also names `secure=true`. D38 fixed the other two defaults it
+found, for `surrealdb`, `awsathena` and `bigquery`. This one waits for the
+dbimp ClickHouse driver, with the rest of its TLS handling.
 
-- `surrealdb://` with no path fails in the driver, which needs
-  `/namespace/database`.
-- `clickhouse+https://` fails in clickhouse-go unless the URL also names
-  `secure=true`.
-- For `awsathena`, the default host `localhost` becomes the S3 bucket, and
-  for `bigquery` it becomes the project, so a URL with no host reaches a
-  bucket or a project named localhost.
+### Decide the three generators that fill a missing field
+
+D38 says a generator returns an error for a required field that the URL
+lacks. Three generators fill one in instead:
+
+- `GenHive` makes the database `default` when the path is empty, which D16
+  decided.
+- `GenPresto` makes the catalog `default`.
+- `GenTrino` makes the catalog `default`.
+
+Presto and Trino wait for their dbimp drivers. Ken decides whether hive keeps
+its default under D16.

@@ -160,7 +160,7 @@ to `sql.Open`:
 | PostgreSQL lib/pq    | `pq`            | `libpq`                                        | [github.com/lib/pq][d-pq]                                                                   |
 | PostgreSQL PGX       | `pgx`           | `px`                                           | [github.com/jackc/pgx/v5/stdlib][d-pgx]                                                     |
 | Presto               | `presto`        | `pr`, `prestodb`                               | [github.com/prestodb/presto-go-client/v2][d-presto]                                         |
-| QuestDB              | `questdb`       | `qu`                                           | [github.com/jackc/pgx/v5/stdlib][d-questdb]                                                 |
+| QuestDB              | `questdb`       | `qs`                                           | [github.com/jackc/pgx/v5/stdlib][d-questdb]                                                 |
 | rqlite               | `rqlite`        | `rq`                                           | [github.com/xo/dbimp/rqlite][d-rqlite]                                                      |
 | SAP HANA             | `hdb`           | `sa`, `sap`, `hana`, `saphana`                 | [github.com/SAP/go-hdb/driver][d-hdb]                                                       |
 | SingleStore MemSQL   | `memsql`        | `me`                                           | [github.com/go-sql-driver/mysql][d-memsql]                                                  |

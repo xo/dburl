@@ -285,7 +285,7 @@ func BaseSchemes() []Scheme {
 		},
 		{
 			Name:       "awsathena",
-			Generator:  GenScheme("s3"),
+			Generator:  GenSchemeHost("s3"),
 			Aliases:    []string{"s3", "aws", "athena"},
 			Desc:       "AWS Athena",
 			Home:       "https://aws.amazon.com/athena",
@@ -307,7 +307,7 @@ func BaseSchemes() []Scheme {
 		},
 		{
 			Name:       "bigquery",
-			Generator:  GenScheme("bigquery"),
+			Generator:  GenSchemeHost("bigquery"),
 			Aliases:    []string{"bq"},
 			Desc:       "Google BigQuery",
 			Home:       "https://cloud.google.com/bigquery",
@@ -600,6 +600,7 @@ func BaseSchemes() []Scheme {
 		{
 			Name:       "pinot",
 			Generator:  GenPinot,
+			Aliases:    []string{"pi"},
 			Desc:       "Apache Pinot",
 			Home:       "https://pinot.apache.org",
 			GoPackage:  "github.com/xo/dbimp/pinot",
@@ -632,6 +633,7 @@ func BaseSchemes() []Scheme {
 		{
 			Name:       "questdb",
 			Generator:  GenQuestDB,
+			Aliases:    []string{"qs"},
 			Desc:       "QuestDB",
 			Home:       "https://questdb.com",
 			GoPackage:  "github.com/jackc/pgx/v5/stdlib",
@@ -642,6 +644,7 @@ func BaseSchemes() []Scheme {
 		{
 			Name:       "rqlite",
 			Generator:  GenRqlite,
+			Aliases:    []string{"rq"},
 			Desc:       "rqlite",
 			Home:       "https://rqlite.io",
 			GoPackage:  "github.com/xo/dbimp/rqlite",
@@ -686,6 +689,7 @@ func BaseSchemes() []Scheme {
 		{
 			Name:       "tdengine",
 			Generator:  GenTDengine,
+			Aliases:    []string{"td"},
 			Desc:       "TDengine",
 			Home:       "https://tdengine.com",
 			GoPackage:  "github.com/xo/dbimp/tdengine",
@@ -918,9 +922,9 @@ func DialectProtocols(name string) []string {
 	return slices.Compact(v)
 }
 
-// SchemeDriverAndAliases returns the registered driver and aliases for a
-// database scheme.
-func SchemeDriverAndAliases(name string) (string, []string) {
+// SchemeNameAndAliases returns the Name and the aliases of the registered
+// scheme that name or an alias names. It was SchemeDriverAndAliases (D38).
+func SchemeNameAndAliases(name string) (string, []string) {
 	if scheme, ok := schemeMap[name]; ok {
 		driver := scheme.Name
 		var aliases []string

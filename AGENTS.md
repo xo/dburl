@@ -70,6 +70,11 @@ yourself and do not write it as though it were settled.
    scheme stays. See D12, and `CONTRIBUTING.md` in `usql`.
 9. When a rule can be tested, write the test in the same commit. Some rules
    here cannot be tested, because the evidence lives in another repository.
+10. When a URL lacks a field that the driver requires, such as the host, the
+    path or the user, return an error from the generator that names it:
+    `ErrMissingHost`, `ErrMissingPath` or `ErrMissingUser`. Do not fill the
+    field in. A default host or port under rule 7 is not a filled field,
+    because it names a real server (D38).
 
 ## The four files
 
