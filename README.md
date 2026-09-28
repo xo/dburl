@@ -128,6 +128,7 @@ which is the name that `github.com/lib/pq` registers:
 | Apache H2            | `h2`            |                                                | [github.com/jmrobles/h2go][d-h2]                                                            |
 | Apache Hive          | `hive`          | `hi`, `hive2`                                  | [github.com/beltran/gohive/v2][d-hive]                                                      |
 | Apache Impala        | `impala`        | `im`                                           | [github.com/sclgo/impala-go][d-impala]                                                      |
+| ArangoDB             | `arangodb`      | `ar`, `arango`                                 | [github.com/xo/dbimp/arangodb][d-arangodb]                                                  |
 | AWS Athena           | `awsathena`     | `s3`, `aws`, `athena`                          | [github.com/uber/athenadriver/go][d-awsathena] <sup>[¶][f-hosted]</sup>                     |
 | Azure CosmosDB       | `cosmos`        | `cm`, `gocosmos`                               | [github.com/btnguyen2k/gocosmos][d-cosmos] <sup>[¶][f-hosted]</sup>                         |
 | Cassandra            | `cql`           | `ca`, `scy`, `scylla`, `datastax`, `cassandra` | [github.com/xo/cql][d-cql]                                                                  |
@@ -165,6 +166,7 @@ which is the name that `github.com/lib/pq` registers:
 | VoltDB               | `voltdb`        | `vo`, `vdb`, `volt`                            | [github.com/VoltDB/voltdb-client-go/voltdbclient][d-voltdb]                                 |
 | YDB                  | `ydb`           | `yd`, `yds`, `ydbs`                            | [github.com/ydb-platform/ydb-go-sdk/v3][d-ydb]                                              |
 
+[d-arangodb]: https://github.com/xo/dbimp
 [d-avatica]: https://github.com/apache/calcite-avatica-go
 [d-awsathena]: https://github.com/uber/athenadriver
 [d-bigquery]: https://github.com/go-gorm/bigquery

@@ -104,6 +104,39 @@ func GenOpaque(u *URL) (string, string, error) {
 	return u.Opaque + genQueryOptions(u.Query()), "", nil
 }
 
+// GenArangoDB generates an arangodb DSN from the passed URL.
+//
+// Targets the driver planned in [xo/dbimp/arangodb], which is to read an
+// arangodb:// URL and refuse any other scheme, so the scheme is always
+// arangodb, whichever alias was parsed. The user information, the path and
+// the query pass through as they were written. The default port is 8529, the
+// port of the HTTP interface of ArangoDB.
+//
+// The driver does not exist yet, so this generator is provisional (D32).
+//
+// [xo/dbimp/arangodb]: https://github.com/xo/dbimp
+func GenArangoDB(u *URL) (string, string, error) {
+	host, port := "localhost", "8529"
+	if h := u.Hostname(); h != "" {
+		host = h
+	}
+	if p := u.Port(); p != "" {
+		port = p
+	}
+	if strings.Contains(host, ":") {
+		host = "[" + host + "]"
+	}
+	z := &url.URL{
+		Scheme:   "arangodb",
+		User:     u.User,
+		Host:     host + ":" + port,
+		Path:     u.Path,
+		RawPath:  u.RawPath,
+		RawQuery: u.RawQuery,
+	}
+	return z.String(), "", nil
+}
+
 // GenCassandra generates a cql DSN from the passed URL.
 //
 // Targets [xo/cql], which reads a cql:// URL with net/url. The scheme is

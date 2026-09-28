@@ -284,6 +284,17 @@ func BaseSchemes() []Scheme {
 		},
 		// other databases
 		{
+			Driver:     "arangodb",
+			Generator:  GenArangoDB,
+			Aliases:    []string{"arango"},
+			Desc:       "ArangoDB",
+			Home:       "https://arangodb.com",
+			GoPackage:  "github.com/xo/dbimp/arangodb",
+			DriverURL:  "https://github.com/xo/dbimp",
+			Deployment: DeploymentServer,
+			Dialect:    "arangodb",
+		},
+		{
 			Driver:     "awsathena",
 			Generator:  GenScheme("s3"),
 			Aliases:    []string{"s3", "aws", "athena"},

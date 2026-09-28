@@ -41,6 +41,7 @@ if D11 amends D4, then D4 says so too.
 | [D29](#d29-influxql-is-a-scheme-of-its-own-on-the-influxdb-driver) | Decided |
 | [D30](#d30-cockroachdb-and-cratedb-each-have-a-dialect-of-their-own) | Decided |
 | [D31](#d31-a-password-file-entry-matches-the-database-and-the-user) | Decided |
+| [D32](#d32-arangodb-is-a-provisional-scheme-for-the-dbimp-driver) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -1298,3 +1299,37 @@ and dbmeta do not call it. `TestNormalize` is new, because nothing tested it.
 `TestMatchUserAndDatabase` covers the case that dbmeta reported, a URL user
 with no entry for it, an entry that supplies the user, an entry for one
 database, and an empty password. It failed on the old `Normalize`.
+
+### D32. arangodb is a provisional scheme for the dbimp driver. Decided.
+
+Ken asked on 2026-09-29 for an ArangoDB scheme for the dbimp driver, before
+the driver exists, as he did for InfluxDB in D29. ArangoDB is next in the
+order of dbimp D73. dburl had no ArangoDB scheme, and `usql` has no ArangoDB
+driver.
+
+The scheme is `arangodb`, with the alias `arango` and the automatic two
+letter alias `ar`. `Driver` and `Dialect` are both `arangodb`. `GoPackage` is
+`github.com/xo/dbimp/arangodb`.
+
+`GenArangoDB` writes `arangodb://user:pass@host:port/path?query`, whichever
+alias was parsed, and passes the user information, the path with its
+escaping and the query through as they were written. The default host is
+`localhost`, and the default port is 8529 under rule 7.
+
+THE PROVISIONAL PARTS
+
+dbimp has no ArangoDB driver and no `ParseDSN`, so rule 3 had no evidence.
+Every part of this scheme rests on the facts in dbimp `docs/ARANGODB.md`, on
+the rule of dbimp D26, D28 and D30 that a driver registers the name of the
+database as one lower case word, and on Ken's request:
+
+- The name `arangodb`, which dbimp has not confirmed.
+- The default port 8529, which is the port of the HTTP interface.
+- The path, which passes through. The HTTP interface names the database in
+  its path as `/_db/<database>/`, and dbimp step 9 decides how the URL names
+  it.
+- The alias `arango`, which Ken has not chosen.
+
+A release of this library that carries D32 waits for a dbimp tag with the
+driver. The output is then run through its `ParseDSN`, and the generator and
+the aliases change where the two disagree, before this library is tagged.

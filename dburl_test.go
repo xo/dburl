@@ -177,6 +177,7 @@ func TestParseDialect(t *testing.T) {
 		{`godror://user:pass@host/sid`, "godror", "oracle"},
 		{`oracle://user:pass@host/sid`, "oracle", "oracle"},
 		{`nz://host/db`, "nzgo", "nzgo"},
+		{`arango://host/db`, "arangodb", "arangodb"},
 		{`influxdb://host/db`, "influxdb", "influxdb"},
 		{`influxql://host/db`, "influxql", "influxql"},
 		// file: resolves to the scheme of the file, and takes its Dialect
@@ -1226,6 +1227,30 @@ func TestParse(t *testing.T) {
 			`influxql://[::1]:8086/db`,
 			`influxdb`,
 			`influxdb://[::1]:8086/db?sqlmode=disable`,
+			``,
+		},
+		{
+			`arangodb://`,
+			`arangodb`,
+			`arangodb://localhost:8529`,
+			``,
+		},
+		{
+			`ar://root:pw@127.0.0.1/dbmeta`,
+			`arangodb`,
+			`arangodb://root:pw@127.0.0.1:8529/dbmeta`,
+			``,
+		},
+		{
+			`arango://user:p%40ss@host:9000/my%2Fdb?tls=true`,
+			`arangodb`,
+			`arangodb://user:p%40ss@host:9000/my%2Fdb?tls=true`,
+			``,
+		},
+		{
+			`arangodb://[::1]/_system`,
+			`arangodb`,
+			`arangodb://[::1]:8529/_system`,
 			``,
 		},
 		{
