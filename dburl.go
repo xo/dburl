@@ -37,11 +37,7 @@ func Open(urlstr string) (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	driver := u.Driver
-	if u.GoDriver != "" {
-		driver = u.GoDriver
-	}
-	return sql.Open(driver, u.DSN)
+	return sql.Open(u.Driver, u.DSN)
 }
 
 // OpenMap takes a map of URL components and opens a standard [sql.DB] connection.
@@ -56,7 +52,7 @@ func OpenMap(components map[string]any) (*sql.DB, error) {
 }
 
 // URL wraps the standard [net/url.URL] type, adding the OriginalScheme,
-// Transport, Driver, GoDriver, UnaliasedDriver, Dialect and DSN strings.
+// Transport, SchemeName, Driver, Dialect and DSN strings.
 type URL struct {
 	// URL is the base [net/url.URL].
 	url.URL
@@ -66,23 +62,20 @@ type URL struct {
 	// Transport is the specified transport protocol (ie, "tcp", "udp",
 	// "unix", ...), if provided.
 	Transport string
-	// Driver is the non-aliased SQL driver name to use in a call to
-	// [sql.Open].
+	// SchemeName is the [Scheme.Name] of the parsed scheme, with no alias, as
+	// "tidb" for ti:// and tidb://.
+	SchemeName string
+	// Driver is the name to pass to [sql.Open], which the Go driver
+	// registered. It is always set, and it is the SchemeName unless the
+	// scheme opens a driver of another name: tidb opens mysql, postgres and
+	// cockroachdb open pgx, pq opens postgres, and influxql opens influxdb.
 	Driver string
-	// GoDriver is the name to pass to [sql.Open] in place of Driver, when the
-	// generator returns one. [Open] uses it when it is set. It is pgx for
-	// cockroachdb and cratedb, influxdb for influxql, gocosmos for cosmos,
-	// and sqlserver or azuresql for sqlserver.
-	GoDriver string
-	// UnaliasedDriver is the unaliased driver name.
-	UnaliasedDriver string
-	// Dialect is the [Scheme.Dialect] of the parsed scheme: the Driver of the
+	// Dialect is the [Scheme.Dialect] of the parsed scheme: the Name of the
 	// scheme that is canonical for the database product.
 	//
 	// Use it, and not Driver, to learn which product a URL connects to.
-	// Driver names the Go driver, so postgres:// and pgx:// both return pgx
-	// as their Driver, and pq:// returns postgres. All three have the Dialect
-	// postgres.
+	// Driver names the Go driver, so postgres:// and pgx:// both open pgx,
+	// and pq:// opens postgres. All three have the Dialect postgres.
 	Dialect string
 	// DSN is the built connection "data source name" that can be used in a
 	// call to [sql.Open].
@@ -97,8 +90,8 @@ type URL struct {
 
 // Parse parses a URL string, similar to the standard [net/url.Parse].
 //
-// Handles parsing the OriginalScheme, Transport, Driver, GoDriver,
-// UnaliasedDriver, Dialect and DSN fields.
+// Handles parsing the OriginalScheme, Transport, SchemeName, Driver, Dialect
+// and DSN fields.
 //
 // Note: an opaque URL is written "scheme:" and not "scheme://". When the
 // database scheme does not support an opaque component, Parse rebuilds the
@@ -135,7 +128,7 @@ func Parse(urlstr string) (*URL, error) {
 	switch {
 	case !ok:
 		return nil, ErrUnknownDatabaseScheme
-	case scheme.Driver == "file":
+	case scheme.Name == "file":
 		// determine scheme for file
 		s := u.opaqueOrPath()
 		switch {
@@ -178,14 +171,13 @@ func Parse(urlstr string) (*URL, error) {
 			return nil, ErrInvalidTransportProtocol
 		}
 	}
-	// set driver
-	u.Driver, u.UnaliasedDriver, u.Dialect = scheme.Driver, scheme.Driver, scheme.Dialect
-	if scheme.Override != "" {
-		u.Driver = scheme.Override
-	}
-	// generate dsn
-	if u.DSN, u.GoDriver, err = scheme.Generator(u); err != nil {
+	// set the scheme, and the driver the generator names
+	u.SchemeName, u.Dialect = scheme.Name, scheme.Dialect
+	if u.DSN, u.Driver, err = scheme.Generator(u); err != nil {
 		return nil, err
+	}
+	if u.Driver == "" {
+		u.Driver = scheme.Name
 	}
 	return u, nil
 }
@@ -268,7 +260,7 @@ func (u *URL) Short() string {
 // not empty and at least cut fields. It drops a field only when empty is
 // the empty string.
 func (u *URL) Normalize(sep, empty string, cut int) string {
-	s := []string{u.UnaliasedDriver, "", "", "", ""}
+	s := []string{u.SchemeName, "", "", "", ""}
 	if u.Transport != "tcp" && u.Transport != "unix" {
 		s[0] += "+" + u.Transport
 	}

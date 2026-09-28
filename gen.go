@@ -74,11 +74,6 @@ func writeLicense(start int, author string) error {
 // buildTable builds the driver table and its link definitions.
 func buildTable() string {
 	schemes := dburl.BaseSchemes()
-	// byDriver resolves a wire compatible scheme to the scheme it overrides
-	byDriver := make(map[string]dburl.Scheme, len(schemes))
-	for _, scheme := range schemes {
-		byDriver[scheme.Driver] = scheme
-	}
 	hdr := []string{"Database", "Scheme / Tag", "Scheme Aliases", "Driver Package / Notes"}
 	widths := make([]int, len(hdr))
 	for i, s := range hdr {
@@ -96,34 +91,26 @@ func buildTable() string {
 		if scheme.Desc == "" {
 			continue
 		}
-		// a scheme that borrows its driver through Override documents the
-		// driver it reaches. One with its own GoPackage documents itself.
-		driver := scheme
-		if scheme.Override != "" && scheme.GoPackage == "" {
-			if v, ok := byDriver[scheme.Override]; ok {
-				driver = v
-			}
-		}
-		_, aliases := dburl.SchemeDriverAndAliases(scheme.Driver)
+		_, aliases := dburl.SchemeDriverAndAliases(scheme.Name)
 		// the scheme is its own column, so it is not repeated as an alias
-		aliases = slices.DeleteFunc(aliases, func(a string) bool { return a == scheme.Driver })
+		aliases = slices.DeleteFunc(aliases, func(a string) bool { return a == scheme.Name })
 		// a database detected by its file header also answers to file:
-		if slices.Contains(dburl.FileTypes(), scheme.Driver) {
+		if slices.Contains(dburl.FileTypes(), scheme.Name) {
 			aliases = append(aliases, "file")
 		}
 		cells := []string{
 			scheme.Desc,
-			"`" + scheme.Driver + "`",
+			"`" + scheme.Name + "`",
 			quoteJoin(aliases),
-			fmt.Sprintf("[%s][d-%s]%s", driver.GoPackage, driver.Driver, notes(scheme)),
+			fmt.Sprintf("[%s][d-%s]%s", scheme.GoPackage, scheme.Name, notes(scheme)),
 		}
 		for i, c := range cells {
 			widths[i] = max(widths[i], utf8.RuneCountInString(c))
 		}
-		rows = append(rows, row{scheme.Driver, scheme.Desc, cells})
-		if !seen[driver.Driver] && driver.DriverURL != "" {
-			seen[driver.Driver] = true
-			links = append(links, fmt.Sprintf("[d-%s]: %s", driver.Driver, driver.DriverURL))
+		rows = append(rows, row{scheme.Name, scheme.Desc, cells})
+		if !seen[scheme.Name] && scheme.DriverURL != "" {
+			seen[scheme.Name] = true
+			links = append(links, fmt.Sprintf("[d-%s]: %s", scheme.Name, scheme.DriverURL))
 		}
 	}
 	sort.SliceStable(rows, func(i, j int) bool {
@@ -180,9 +167,6 @@ func notes(scheme dburl.Scheme) string {
 	var s string
 	if scheme.RequiresCGO {
 		s += " <sup>[†][f-cgo]</sup>"
-	}
-	if scheme.Override != "" && scheme.GoPackage == "" {
-		s += " <sup>[‡][f-wire]</sup>"
 	}
 	// both markers tell a reader there is nothing to start, so neither is
 	// added to a database that is also a server anyone can run

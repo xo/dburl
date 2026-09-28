@@ -134,12 +134,12 @@ as `scheme://<opaque>` and parses it again.
 ## 6. Register the scheme
 
 Add an entry to `BaseSchemes` in `scheme.go`. The fields are named, because
-seven of them are strings and a positional entry turns a transposition into a
+six of them are strings and a positional entry turns a transposition into a
 silent bug. That is D17.
 
 ```go
 {
-    Driver:     "name",              // the sql.Register name the driver uses
+    Name:       "name",              // the scheme; the generator names the driver
     Generator:  GenName,
     Aliases:    []string{"alias"},
     Desc:       "Database Name",
@@ -152,51 +152,40 @@ silent bug. That is D17.
 ```
 
 Set `Transport` when the scheme takes `+unix` or another transport, and set
-`Opaque` for a database held in a file. Set `Override` when the scheme must
-return a different driver name from its own, as the paragraphs below explain.
+`Opaque` for a database held in a file.
 
-The `Driver` field is usually the exact name the driver passes to
-`sql.Register`. Read it from the driver source. Do not guess it from the
-package name.
+`Name` is the name of the scheme. `Parse` stores it as `URL.SchemeName`. The
+generator returns the name to pass to `sql.Open` as its second value, which
+`Parse` stores as `URL.Driver`. An empty second value means the `Name`, which
+is right when the driver registers the scheme's own name, as `mysql` and
+`sqlite3` do. Read the registered name from the driver source, where it calls
+`sql.Register`. Do not guess it from the package name.
 
-A scheme that is a product of its own, but opens a driver that another
-scheme or product also uses, keeps its own name as `Driver`. Its generator
-returns the registered name as its second value, which `Parse` stores as
-`URL.GoDriver`, and `Open` and `usql` pass that name to `sql.Open`. So
-`influxql` returns `influxdb`, `cockroachdb` and `cratedb` return `pgx`, and
-`cosmos` returns `gocosmos`. Use `GoDriver` and not `Override` when the
-scheme needs a `Dialect` of its own, because a scheme with an `Override`
-takes the `Dialect` of the scheme it names. That is D29 and D30.
+A scheme that opens a driver of another name returns that name. `tidb`,
+`memsql` and `vitess` return `mysql`, `postgres`, `cockroachdb`, `redshift`
+and `questdb` return `pgx`, `pq` returns `postgres`, which lib/pq registers,
+and `influxql` returns `influxdb`. `Open` and `usql` pass `URL.Driver` to
+`sql.Open`. That is D37.
 
 Fill in the metadata as well. `Desc` is the database display name, as it
 appears in the first column of the README table. `GoPackage` is the import
 path of the driver, including the major version, and is not the module path:
 for pgx the module is `github.com/jackc/pgx/v5` and the import path is
 `github.com/jackc/pgx/v5/stdlib`. `DriverURL` is the driver's home page, which
-carries no version. Set `RequiresCGO` when the driver needs cgo. Leave `Home`
-blank unless you have the database provider's page.
-
-A wire compatible scheme that shares the `Dialect` of the product it speaks
-to, such as `memsql`, `tidb`, `vitess` or `redshift`, sets `Override` and
-leaves `GoPackage` and `DriverURL` blank, because it reaches its driver
-through the scheme it points at. That is D17. A wire compatible product with
-a `Dialect` of its own, such as `cockroachdb` or `cratedb`, uses `GoDriver`
-as described above, and sets its own `GoPackage` and `DriverURL` (D30).
-
-`Override` also serves a scheme whose driver registered a name that another
-scheme holds. lib/pq registers `postgres`, but the `postgres` scheme returns
-`pgx`, so the `pq` scheme sets `Override: "postgres"`. No scheme documents
-lib/pq, so `pq` sets its own `GoPackage` and `DriverURL`. The rule is: when
-the scheme named by `Override` itself has an `Override`, the scheme documents
-its own driver. `TestSchemeMetadata` checks all of this. That is D22.
+carries no version. Every scheme except `file` sets both, including a scheme
+that shares its driver with another. Set `RequiresCGO` when the driver needs
+cgo. Leave `Home` blank unless you have the database provider's page.
+`TestSchemeMetadata` checks all of this.
 
 Set `Deployment` to how the database is deployed, which is D18. Set `Dialect`
-to the `Driver` of the scheme that is canonical for the product, which is the
-scheme's own `Driver` unless you are adding a second Go driver for a product
-that already has one. `pgx` and `postgres` are both PostgreSQL and share a
-`Dialect`. A scheme with an `Override` takes the `Dialect` of the scheme it
-overrides. That is D19, as D22 amends it. `Parse` copies it to `URL.Dialect`, which is
-how a consumer learns the product a URL connects to. That is D24.
+to the `Name` of the scheme that is canonical for the product, which is the
+scheme's own `Name` unless you are adding a second Go driver for a product
+that already has one. `pgx`, `pq` and `postgres` are all PostgreSQL and share
+a `Dialect`. A product that speaks another's wire protocol has a `Dialect` of
+its own, because its catalog differs: `tidb` opens the mysql driver, and its
+`Dialect` is `tidb`. That is D19, as D37 amends it. `Parse` copies it to
+`URL.Dialect`, which is how a consumer learns the product a URL connects to.
+That is D24.
 
 A two letter alias is registered automatically from the first two characters
 of the name, unless one of the aliases is already two characters.

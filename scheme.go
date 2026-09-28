@@ -40,17 +40,16 @@ const (
 // Scheme wraps information used for registering a database URL scheme for use
 // with [Parse]/[Open].
 type Scheme struct {
-	// Driver is the name of the scheme, and usually the name of the SQL
-	// driver. [Parse] sets it as the UnaliasedDriver of the returned URL, and
-	// as its Driver unless Override is set. A generator that returns a Go
-	// driver name opens that driver in its place.
+	// Name is the name of the scheme. [Parse] sets it as the SchemeName of the
+	// returned URL, and as its Driver when the generator names no driver.
 	//
 	// Note: a 2 letter alias is registered automatically, taken from the
-	// first 2 characters of the Driver. This does not happen when one of the
+	// first 2 characters of the Name. This does not happen when one of the
 	// Aliases is already 2 characters.
-	Driver string
+	Name string
 	// Generator is the func responsible for generating a DSN based on parsed
-	// URL information.
+	// URL information. It returns the DSN, and the name to pass to sql.Open
+	// when that is not the Name, as mysql for tidb or pgx for postgres.
 	//
 	// Note: this func must not modify the passed URL.
 	Generator func(*URL) (string, string, error)
@@ -60,37 +59,20 @@ type Scheme struct {
 	Opaque bool
 	// Aliases are any additional aliases for the scheme.
 	Aliases []string
-	// Override is the Go SQL driver to use instead of Driver.
+	// Dialect is the Name of the scheme that is canonical for the database
+	// product, which is this scheme's own Name when it is the canonical one.
 	//
-	// Used by a wire compatible scheme that shares the Dialect of the scheme
-	// it names, such as memsql or redshift, by postgres to open pgx, and by a
-	// scheme whose driver registered a name another scheme holds: pq returns
-	// postgres, which lib/pq registers. A scheme that needs a Dialect of its
-	// own returns a Go driver name from its generator instead.
-	Override string
-	// Dialect is the Driver of the scheme that is canonical for the database
-	// product, which is this scheme's own Driver when it is the canonical
-	// one.
-	//
-	// A product reached by more than one Go driver has a scheme per driver,
-	// because each Driver is a name a caller passes to sql.Open. They share a
-	// Dialect: pgx and postgres are both PostgreSQL, as moderncsqlite and
-	// sqlite3 are both SQLite3.
-	//
-	// A scheme with an Override takes the Dialect of the scheme it overrides.
-	// For memsql, tidb, vitess and redshift, that is the product they speak
-	// to.
+	// A product reached by more than one Go driver has a scheme per driver.
+	// They share a Dialect: pgx, pq and postgres are all PostgreSQL, as
+	// moderncsqlite and sqlite3 are both SQLite3. A product that speaks the
+	// wire protocol of another has a Dialect of its own, because its catalog
+	// differs: tidb opens the mysql driver, and its Dialect is tidb.
 	Dialect string
 	// Desc is the database display name, as "Apache Hive".
 	Desc string
 	// Home is the home page of the database provider. It can be blank.
 	Home string
 	// DriverURL is the home page of the Go database driver.
-	//
-	// Blank for a scheme whose Override names a scheme that opens its own
-	// name, such as memsql, redshift or postgres, which reaches its driver
-	// through that scheme. Every other scheme sets it, including pq, whose
-	// Override names a driver that no scheme opens.
 	DriverURL string
 	// GoPackage is the import path of the Go database driver, including the
 	// major version when the module carries one.
@@ -98,8 +80,6 @@ type Scheme struct {
 	// This is the import path and not the module path. The two differ: for
 	// pgx the module is github.com/jackc/pgx/v5 and the import path that
 	// registers the driver is github.com/jackc/pgx/v5/stdlib.
-	//
-	// Blank and set exactly as DriverURL is.
 	GoPackage string
 	// RequiresCGO reports whether the Go database driver needs cgo.
 	RequiresCGO bool
@@ -111,7 +91,7 @@ type Scheme struct {
 func BaseSchemes() []Scheme {
 	return []Scheme{
 		{
-			Driver:     "file",
+			Name:       "file",
 			Generator:  GenOpaque,
 			Opaque:     true,
 			Aliases:    []string{"file"},
@@ -119,7 +99,7 @@ func BaseSchemes() []Scheme {
 		},
 		// core databases
 		{
-			Driver:     "mysql",
+			Name:       "mysql",
 			Generator:  GenMysql,
 			Transport:  TransportTCP | TransportUDP | TransportUnix,
 			Aliases:    []string{"mariadb", "maria", "percona", "aurora"},
@@ -131,7 +111,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "mysql",
 		},
 		{
-			Driver:     "oracle",
+			Name:       "oracle",
 			Generator:  GenFromURL("oracle://localhost:1521"),
 			Aliases:    []string{"ora", "oci", "oci8", "odpi", "odpi-c"},
 			Desc:       "Oracle Database",
@@ -142,18 +122,19 @@ func BaseSchemes() []Scheme {
 			Dialect:    "oracle",
 		},
 		{
-			Driver:     "postgres",
+			Name:       "postgres",
 			Generator:  GenPgx,
 			Transport:  TransportUnix,
 			Aliases:    []string{"pg", "postgresql", "pgsql"},
-			Override:   "pgx",
 			Desc:       "PostgreSQL",
 			Home:       "https://www.postgresql.org",
+			GoPackage:  "github.com/jackc/pgx/v5/stdlib",
+			DriverURL:  "https://github.com/jackc/pgx",
 			Deployment: DeploymentServer,
 			Dialect:    "postgres",
 		},
 		{
-			Driver:      "sqlite3",
+			Name:        "sqlite3",
 			Generator:   GenOpaque,
 			Opaque:      true,
 			Aliases:     []string{"sqlite"},
@@ -166,7 +147,7 @@ func BaseSchemes() []Scheme {
 			Dialect:     "sqlite3",
 		},
 		{
-			Driver:     "sqlserver",
+			Name:       "sqlserver",
 			Generator:  GenSqlserver,
 			Aliases:    []string{"ms", "mssql", "azuresql"},
 			Desc:       "Microsoft SQL Server",
@@ -176,9 +157,9 @@ func BaseSchemes() []Scheme {
 			Deployment: DeploymentServer,
 			Dialect:    "sqlserver",
 		},
-		// schemes that speak the wire protocol of another database
+		// products that speak the wire protocol of another database
 		{
-			Driver:     "cockroachdb",
+			Name:       "cockroachdb",
 			Generator:  GenCockroachDB,
 			Aliases:    []string{"cr", "cockroach", "crdb", "cdb"},
 			Desc:       "CockroachDB",
@@ -189,7 +170,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "cockroachdb",
 		},
 		{
-			Driver:     "cratedb",
+			Name:       "cratedb",
 			Generator:  GenCrateDB,
 			Aliases:    []string{"ct", "crate"},
 			Desc:       "CrateDB",
@@ -200,46 +181,50 @@ func BaseSchemes() []Scheme {
 			Dialect:    "cratedb",
 		},
 		{
-			Driver:     "memsql",
+			Name:       "memsql",
 			Generator:  GenMysql,
-			Override:   "mysql",
 			Desc:       "SingleStore MemSQL",
 			Home:       "https://www.singlestore.com",
+			GoPackage:  "github.com/go-sql-driver/mysql",
+			DriverURL:  "https://github.com/go-sql-driver/mysql",
 			Deployment: DeploymentServer,
-			Dialect:    "mysql",
+			Dialect:    "memsql",
 		},
 		{
-			Driver:     "redshift",
+			Name:       "redshift",
 			Generator:  GenPgxFromURL("postgres://localhost:5439/"),
 			Aliases:    []string{"rs"},
-			Override:   "pgx",
 			Desc:       "Amazon Redshift",
 			Home:       "https://aws.amazon.com/redshift",
+			GoPackage:  "github.com/jackc/pgx/v5/stdlib",
+			DriverURL:  "https://github.com/jackc/pgx",
 			Deployment: DeploymentHosted,
-			Dialect:    "postgres",
+			Dialect:    "redshift",
 		},
 		{
-			Driver:     "tidb",
+			Name:       "tidb",
 			Generator:  GenTiDB,
-			Override:   "mysql",
 			Desc:       "TiDB",
 			Home:       "https://www.pingcap.com/tidb",
+			GoPackage:  "github.com/go-sql-driver/mysql",
+			DriverURL:  "https://github.com/go-sql-driver/mysql",
 			Deployment: DeploymentServer,
-			Dialect:    "mysql",
+			Dialect:    "tidb",
 		},
 		{
-			Driver:     "vitess",
+			Name:       "vitess",
 			Generator:  GenMysql,
 			Aliases:    []string{"vt"},
-			Override:   "mysql",
 			Desc:       "Vitess Database",
 			Home:       "https://vitess.io",
+			GoPackage:  "github.com/go-sql-driver/mysql",
+			DriverURL:  "https://github.com/go-sql-driver/mysql",
 			Deployment: DeploymentServer,
-			Dialect:    "mysql",
+			Dialect:    "vitess",
 		},
 		// alternate implementations
 		{
-			Driver:      "godror",
+			Name:        "godror",
 			Generator:   GenGodror,
 			Aliases:     []string{"gr"},
 			Desc:        "GO DRiver for ORacle",
@@ -251,7 +236,7 @@ func BaseSchemes() []Scheme {
 			Dialect:     "oracle",
 		},
 		{
-			Driver:     "moderncsqlite",
+			Name:       "moderncsqlite",
 			Generator:  GenOpaque,
 			Opaque:     true,
 			Aliases:    []string{"mq", "modernsqlite"},
@@ -263,7 +248,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "sqlite3",
 		},
 		{
-			Driver:     "pgx",
+			Name:       "pgx",
 			Generator:  GenPgx,
 			Transport:  TransportUnix,
 			Aliases:    []string{"px"},
@@ -275,11 +260,10 @@ func BaseSchemes() []Scheme {
 			Dialect:    "postgres",
 		},
 		{
-			Driver:     "pq",
-			Generator:  GenPostgres,
+			Name:       "pq",
+			Generator:  GenPq,
 			Transport:  TransportUnix,
 			Aliases:    []string{"libpq"},
-			Override:   "postgres",
 			Desc:       "PostgreSQL lib/pq",
 			Home:       "https://www.postgresql.org",
 			GoPackage:  "github.com/lib/pq",
@@ -289,7 +273,7 @@ func BaseSchemes() []Scheme {
 		},
 		// other databases
 		{
-			Driver:     "arangodb",
+			Name:       "arangodb",
 			Generator:  GenArangoDB,
 			Aliases:    []string{"arango"},
 			Desc:       "ArangoDB",
@@ -300,7 +284,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "arangodb",
 		},
 		{
-			Driver:     "awsathena",
+			Name:       "awsathena",
 			Generator:  GenScheme("s3"),
 			Aliases:    []string{"s3", "aws", "athena"},
 			Desc:       "AWS Athena",
@@ -311,7 +295,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "awsathena",
 		},
 		{
-			Driver:     "avatica",
+			Name:       "avatica",
 			Generator:  GenFromURL("http://localhost:8765/"),
 			Aliases:    []string{"phoenix"},
 			Desc:       "Apache Avatica",
@@ -322,7 +306,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "avatica",
 		},
 		{
-			Driver:     "bigquery",
+			Name:       "bigquery",
 			Generator:  GenScheme("bigquery"),
 			Aliases:    []string{"bq"},
 			Desc:       "Google BigQuery",
@@ -333,7 +317,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "bigquery",
 		},
 		{
-			Driver:     "clickhouse",
+			Name:       "clickhouse",
 			Generator:  GenClickhouse,
 			Transport:  TransportAny,
 			Aliases:    []string{"ch"},
@@ -345,7 +329,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "clickhouse",
 		},
 		{
-			Driver:     "cosmos",
+			Name:       "cosmos",
 			Generator:  GenCosmos,
 			Aliases:    []string{"cm", "gocosmos"},
 			Desc:       "Azure CosmosDB",
@@ -356,7 +340,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "cosmos",
 		},
 		{
-			Driver:     "couchbase",
+			Name:       "couchbase",
 			Generator:  GenCouchbase,
 			Aliases:    []string{"n1ql", "n1"},
 			Desc:       "Couchbase",
@@ -367,7 +351,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "couchbase",
 		},
 		{
-			Driver:     "cql",
+			Name:       "cql",
 			Generator:  GenCassandra,
 			Aliases:    []string{"ca", "cassandra", "datastax", "scy", "scylla"},
 			Desc:       "Cassandra",
@@ -378,7 +362,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "cql",
 		},
 		{
-			Driver:     "csvq",
+			Name:       "csvq",
 			Generator:  GenOpaque,
 			Opaque:     true,
 			Aliases:    []string{"csv", "tsv", "json"},
@@ -390,7 +374,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "csvq",
 		},
 		{
-			Driver:     "databend",
+			Name:       "databend",
 			Generator:  GenDatabend,
 			Aliases:    []string{"dd", "bend"},
 			Desc:       "Databend",
@@ -401,7 +385,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "databend",
 		},
 		{
-			Driver:     "databricks",
+			Name:       "databricks",
 			Generator:  GenDatabricks,
 			Aliases:    []string{"br", "brick", "bricks", "databrick"},
 			Desc:       "Databricks",
@@ -412,7 +396,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "databricks",
 		},
 		{
-			Driver:      "duckdb",
+			Name:        "duckdb",
 			Generator:   GenDuckDB,
 			Opaque:      true,
 			Aliases:     []string{"dk", "ddb", "duck"},
@@ -425,7 +409,7 @@ func BaseSchemes() []Scheme {
 			Dialect:     "duckdb",
 		},
 		{
-			Driver:     "gizmosql",
+			Name:       "gizmosql",
 			Generator:  GenGizmoSQL,
 			Aliases:    []string{"gz", "gizmo"},
 			Desc:       "GizmoSQL",
@@ -435,7 +419,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "gizmosql",
 		},
 		{
-			Driver:     "godynamo",
+			Name:       "godynamo",
 			Generator:  GenDynamo,
 			Aliases:    []string{"dy", "dyn", "dynamo", "dynamodb"},
 			Desc:       "DynamoDb",
@@ -446,7 +430,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "godynamo",
 		},
 		{
-			Driver:     "exasol",
+			Name:       "exasol",
 			Generator:  GenExasol,
 			Aliases:    []string{"ex", "exa"},
 			Desc:       "Exasol",
@@ -457,7 +441,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "exasol",
 		},
 		{
-			Driver:     "firebirdsql",
+			Name:       "firebirdsql",
 			Generator:  GenFirebird,
 			Aliases:    []string{"fb", "firebird"},
 			Desc:       "Firebird",
@@ -468,7 +452,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "firebirdsql",
 		},
 		{
-			Driver:     "flightsql",
+			Name:       "flightsql",
 			Generator:  GenScheme("flightsql"),
 			Aliases:    []string{"fl", "flight"},
 			Desc:       "FlightSQL",
@@ -479,7 +463,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "flightsql",
 		},
 		{
-			Driver:     "chai",
+			Name:       "chai",
 			Generator:  GenOpaque,
 			Opaque:     true,
 			Aliases:    []string{"ci", "chaisql", "genji"},
@@ -491,7 +475,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "chai",
 		},
 		{
-			Driver:     "h2",
+			Name:       "h2",
 			Generator:  GenFromURL("h2://localhost"),
 			Desc:       "Apache H2",
 			Home:       "https://h2database.com",
@@ -501,7 +485,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "h2",
 		},
 		{
-			Driver:     "hdb",
+			Name:       "hdb",
 			Generator:  GenFromURL("hdb://localhost:30015"),
 			Aliases:    []string{"sa", "saphana", "sap", "hana"},
 			Desc:       "SAP HANA",
@@ -512,7 +496,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "hdb",
 		},
 		{
-			Driver:     "hive",
+			Name:       "hive",
 			Generator:  GenHive,
 			Aliases:    []string{"hive2"},
 			Desc:       "Apache Hive",
@@ -523,7 +507,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "hive",
 		},
 		{
-			Driver:     "impala",
+			Name:       "impala",
 			Generator:  GenScheme("impala"),
 			Desc:       "Apache Impala",
 			Home:       "https://impala.apache.org",
@@ -533,7 +517,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "impala",
 		},
 		{
-			Driver:     "influxdb",
+			Name:       "influxdb",
 			Generator:  GenInfluxDB,
 			Aliases:    []string{"in", "influx"},
 			Desc:       "InfluxDB",
@@ -544,7 +528,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "influxdb",
 		},
 		{
-			Driver:     "influxql",
+			Name:       "influxql",
 			Generator:  GenInfluxQL,
 			Aliases:    []string{"iq"},
 			Desc:       "InfluxDB InfluxQL",
@@ -555,7 +539,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "influxql",
 		},
 		{
-			Driver:     "maxcompute",
+			Name:       "maxcompute",
 			Generator:  GenMaxCompute,
 			Transport:  TransportAny,
 			Aliases:    []string{"mc"},
@@ -567,7 +551,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "maxcompute",
 		},
 		{
-			Driver:     "neo4j",
+			Name:       "neo4j",
 			Generator:  GenNeo4j,
 			Aliases:    []string{"nj", "neo", "n4j"},
 			Desc:       "Neo4j",
@@ -578,7 +562,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "neo4j",
 		},
 		{
-			Driver:     "nzgo",
+			Name:       "nzgo",
 			Generator:  GenNzgo,
 			Transport:  TransportUnix,
 			Aliases:    []string{"nz", "netezza"},
@@ -590,7 +574,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "nzgo",
 		},
 		{
-			Driver:      "odbc",
+			Name:        "odbc",
 			Generator:   GenOdbc,
 			Transport:   TransportAny,
 			Desc:        "ODBC",
@@ -602,7 +586,7 @@ func BaseSchemes() []Scheme {
 			Dialect:     "odbc",
 		},
 		{
-			Driver:     "ots",
+			Name:       "ots",
 			Generator:  GenTableStore,
 			Transport:  TransportAny,
 			Aliases:    []string{"tablestore"},
@@ -614,7 +598,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "ots",
 		},
 		{
-			Driver:     "pinot",
+			Name:       "pinot",
 			Generator:  GenPinot,
 			Desc:       "Apache Pinot",
 			Home:       "https://pinot.apache.org",
@@ -624,7 +608,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "pinot",
 		},
 		{
-			Driver:     "presto",
+			Name:       "presto",
 			Generator:  GenPresto,
 			Aliases:    []string{"prestodb"},
 			Desc:       "Presto",
@@ -635,7 +619,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "presto",
 		},
 		{
-			Driver:     "ql",
+			Name:       "ql",
 			Generator:  GenOpaque,
 			Opaque:     true,
 			Aliases:    []string{"ql", "cznic", "cznicql"},
@@ -646,7 +630,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "ql",
 		},
 		{
-			Driver:     "questdb",
+			Name:       "questdb",
 			Generator:  GenQuestDB,
 			Desc:       "QuestDB",
 			Home:       "https://questdb.com",
@@ -656,7 +640,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "questdb",
 		},
 		{
-			Driver:     "rqlite",
+			Name:       "rqlite",
 			Generator:  GenRqlite,
 			Desc:       "rqlite",
 			Home:       "https://rqlite.io",
@@ -666,7 +650,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "rqlite",
 		},
 		{
-			Driver:     "snowflake",
+			Name:       "snowflake",
 			Generator:  GenSnowflake,
 			Aliases:    []string{"sf"},
 			Desc:       "Snowflake",
@@ -677,7 +661,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "snowflake",
 		},
 		{
-			Driver:     "spanner",
+			Name:       "spanner",
 			Generator:  GenSpanner,
 			Transport:  TransportUnix,
 			Aliases:    []string{"sp"},
@@ -689,7 +673,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "spanner",
 		},
 		{
-			Driver:     "surrealdb",
+			Name:       "surrealdb",
 			Generator:  GenSurrealDB,
 			Aliases:    []string{"sr", "sur", "surreal"},
 			Desc:       "SurrealDB",
@@ -700,7 +684,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "surrealdb",
 		},
 		{
-			Driver:     "tdengine",
+			Name:       "tdengine",
 			Generator:  GenTDengine,
 			Desc:       "TDengine",
 			Home:       "https://tdengine.com",
@@ -710,7 +694,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "tdengine",
 		},
 		{
-			Driver:     "trino",
+			Name:       "trino",
 			Generator:  GenTrino,
 			Aliases:    []string{"trino", "trinos", "trs"},
 			Desc:       "Trino",
@@ -721,7 +705,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "trino",
 		},
 		{
-			Driver:     "vertica",
+			Name:       "vertica",
 			Generator:  GenFromURL("vertica://localhost:5433/"),
 			Desc:       "Vertica",
 			Home:       "https://www.vertica.com",
@@ -731,7 +715,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "vertica",
 		},
 		{
-			Driver:     "voltdb",
+			Name:       "voltdb",
 			Generator:  GenVoltdb,
 			Aliases:    []string{"volt", "vdb"},
 			Desc:       "VoltDB",
@@ -742,7 +726,7 @@ func BaseSchemes() []Scheme {
 			Dialect:    "voltdb",
 		},
 		{
-			Driver:     "ydb",
+			Name:       "ydb",
 			Generator:  GenYDB,
 			Aliases:    []string{"yd", "yds", "ydbs"},
 			Desc:       "YDB",
@@ -805,35 +789,34 @@ func Register(scheme Scheme) {
 		panic("scheme must support only Opaque or Unix protocols, not both")
 	}
 	// check if registered
-	if _, ok := schemeMap[scheme.Driver]; ok {
-		panic(fmt.Sprintf("scheme %s already registered", scheme.Driver))
+	if _, ok := schemeMap[scheme.Name]; ok {
+		panic(fmt.Sprintf("scheme %s already registered", scheme.Name))
 	}
 	sz := &Scheme{
-		Driver:    scheme.Driver,
+		Name:      scheme.Name,
 		Generator: scheme.Generator,
 		Transport: scheme.Transport,
 		Opaque:    scheme.Opaque,
-		Override:  scheme.Override,
 		Dialect:   scheme.Dialect,
 	}
-	schemeMap[scheme.Driver] = sz
+	schemeMap[scheme.Name] = sz
 	// add aliases
 	var hasShort bool
 	for _, alias := range scheme.Aliases {
 		if len(alias) == 2 {
 			hasShort = true
 		}
-		if scheme.Driver != alias {
-			registerAlias(scheme.Driver, alias, false)
+		if scheme.Name != alias {
+			registerAlias(scheme.Name, alias, false)
 		}
 	}
-	if !hasShort && len(scheme.Driver) > 2 {
-		registerAlias(scheme.Driver, scheme.Driver[:2], false)
+	if !hasShort && len(scheme.Name) > 2 {
+		registerAlias(scheme.Name, scheme.Name[:2], false)
 	}
 	// ensure always at least one alias, and that if Driver is 2 characters,
 	// that it gets added as well
-	if len(sz.Aliases) == 0 || len(scheme.Driver) == 2 {
-		sz.Aliases = append(sz.Aliases, scheme.Driver)
+	if len(sz.Aliases) == 0 || len(scheme.Name) == 2 {
+		sz.Aliases = append(sz.Aliases, scheme.Name)
 	}
 	// sort
 	sort.Slice(sz.Aliases, func(i, j int) bool {
@@ -901,7 +884,7 @@ func FileTypes() []string {
 // [Scheme] name.
 func Protocols(name string) []string {
 	if scheme, ok := schemeMap[name]; ok {
-		return append([]string{scheme.Driver}, scheme.Aliases...)
+		return append([]string{scheme.Name}, scheme.Aliases...)
 	}
 	return nil
 }
@@ -928,7 +911,7 @@ func DialectProtocols(name string) []string {
 			continue
 		}
 		seen[s] = true
-		v = append(v, s.Driver)
+		v = append(v, s.Name)
 		v = append(v, s.Aliases...)
 	}
 	sort.Strings(v)
@@ -939,10 +922,7 @@ func DialectProtocols(name string) []string {
 // database scheme.
 func SchemeDriverAndAliases(name string) (string, []string) {
 	if scheme, ok := schemeMap[name]; ok {
-		driver := scheme.Driver
-		if scheme.Override != "" {
-			driver = scheme.Override
-		}
+		driver := scheme.Name
 		var aliases []string
 		for _, alias := range scheme.Aliases {
 			if alias == driver {

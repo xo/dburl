@@ -44,63 +44,36 @@ func TestNoDependencies(t *testing.T) {
 func TestSchemeMetadata(t *testing.T) {
 	schemes := BaseSchemes()
 	dialects := make(map[string]string, len(schemes))
-	byDriver := make(map[string]Scheme, len(schemes))
 	for _, scheme := range schemes {
-		dialects[scheme.Driver] = scheme.Dialect
-		byDriver[scheme.Driver] = scheme
+		dialects[scheme.Name] = scheme.Dialect
 	}
 	for _, scheme := range schemes {
 		// file is a pseudo scheme that resolves paths on disk, and has no
 		// database and no driver behind it
-		if scheme.Driver == "file" {
+		if scheme.Name == "file" {
 			continue
 		}
 		if scheme.Desc == "" {
-			t.Errorf("%s: expected a Desc, got: %q", scheme.Driver, scheme.Desc)
+			t.Errorf("%s: expected a Desc, got: %q", scheme.Name, scheme.Desc)
 		}
 		if scheme.Deployment == 0 {
-			t.Errorf("%s: expected a Deployment, got: %d", scheme.Driver, scheme.Deployment)
+			t.Errorf("%s: expected a Deployment, got: %d", scheme.Name, scheme.Deployment)
 		}
 		if scheme.Dialect == "" {
-			t.Errorf("%s: expected a Dialect, got: %q", scheme.Driver, scheme.Dialect)
+			t.Errorf("%s: expected a Dialect, got: %q", scheme.Name, scheme.Dialect)
 		}
 		// a Dialect names a registered scheme, and that scheme is canonical
 		// for its product, so it names itself
 		if _, ok := dialects[scheme.Dialect]; !ok {
-			t.Errorf("%s: Dialect %q is not a registered scheme", scheme.Driver, scheme.Dialect)
+			t.Errorf("%s: Dialect %q is not a registered scheme", scheme.Name, scheme.Dialect)
 		} else if d := dialects[scheme.Dialect]; d != scheme.Dialect {
-			t.Errorf("%s: Dialect %q itself has Dialect %q", scheme.Driver, scheme.Dialect, d)
-		}
-		if scheme.Override != "" {
-			target, ok := byDriver[scheme.Override]
-			if !ok {
-				t.Errorf("%s: Override %q is not a registered scheme", scheme.Driver, scheme.Override)
-				continue
-			}
-			// a scheme speaks the dialect of the scheme it overrides
-			if scheme.Dialect != target.Dialect {
-				t.Errorf("%s: expected Dialect %q, got: %q", scheme.Driver, target.Dialect, scheme.Dialect)
-			}
-			// when the scheme registered under the Override name opens that
-			// name, the driver fields belong to it. When it overrides the
-			// name itself, as postgres does for pgx, the name belongs to a
-			// driver that no scheme documents, so the overriding scheme
-			// documents it.
-			if target.Override == "" {
-				if scheme.GoPackage != "" {
-					t.Errorf("%s: expected no GoPackage, got: %q", scheme.Driver, scheme.GoPackage)
-				}
-				if scheme.DriverURL != "" {
-					t.Errorf("%s: expected no DriverURL, got: %q", scheme.Driver, scheme.DriverURL)
-				}
-				continue
-			}
+			t.Errorf("%s: Dialect %q itself has Dialect %q", scheme.Name, scheme.Dialect, d)
 		}
 		if scheme.GoPackage == "" {
-			t.Errorf("%s: expected a GoPackage, got: %q", scheme.Driver, scheme.GoPackage)
+			t.Errorf("%s: expected a GoPackage, got: %q", scheme.Name, scheme.GoPackage)
 		}
 		if scheme.DriverURL == "" {
-			t.Errorf("%s: expected a DriverURL, got: %q", scheme.Driver, scheme.DriverURL)
+			t.Errorf("%s: expected a DriverURL, got: %q", scheme.Name, scheme.DriverURL)
 		}
 	}
 }
@@ -162,38 +135,47 @@ func TestNormalize(t *testing.T) {
 }
 
 func TestParseDialect(t *testing.T) {
+	// SchemeName is the scheme, Driver is the name for sql.Open, and Dialect
+	// is the product (D37)
 	tests := []struct {
-		s, driver, dialect string
+		s, scheme, driver, dialect string
 	}{
-		{`postgres://host/db`, "pgx", "postgres"},
-		{`pgx://host/db`, "pgx", "postgres"},
-		{`pq://host/db`, "postgres", "postgres"},
-		{`cr://host/db`, "cockroachdb", "cockroachdb"},
-		{`ct://host/db`, "cratedb", "cratedb"},
-		{`crate://host/db`, "cratedb", "cratedb"},
-		{`rs://host/db`, "pgx", "postgres"},
-		{`tidb://host/db`, "mysql", "mysql"},
-		{`gizmosql://host`, "gizmosql", "gizmosql"},
-		{`questdb://host/qdb`, "questdb", "questdb"},
-		{`tdengine://host/db`, "tdengine", "tdengine"},
-		{`pinot://host`, "pinot", "pinot"},
-		{`rqlite://host`, "rqlite", "rqlite"},
-		{`moderncsqlite:file.db`, "moderncsqlite", "sqlite3"},
-		{`godror://user:pass@host/sid`, "godror", "oracle"},
-		{`oracle://user:pass@host/sid`, "oracle", "oracle"},
-		{`nz://host/db`, "nzgo", "nzgo"},
-		{`arango://host/db`, "arangodb", "arangodb"},
-		{`influxdb://host/db`, "influxdb", "influxdb"},
-		{`influxql://host/db`, "influxql", "influxql"},
+		{`postgres://host/db`, "postgres", "pgx", "postgres"},
+		{`pgx://host/db`, "pgx", "pgx", "postgres"},
+		{`pq://host/db`, "pq", "postgres", "postgres"},
+		{`cr://host/db`, "cockroachdb", "pgx", "cockroachdb"},
+		{`ct://host/db`, "cratedb", "pgx", "cratedb"},
+		{`crate://host/db`, "cratedb", "pgx", "cratedb"},
+		{`rs://host/db`, "redshift", "pgx", "redshift"},
+		{`mysql://host/db`, "mysql", "mysql", "mysql"},
+		{`tidb://host/db`, "tidb", "mysql", "tidb"},
+		{`memsql://host/db`, "memsql", "mysql", "memsql"},
+		{`vt://host/db`, "vitess", "mysql", "vitess"},
+		{`gizmosql://host`, "gizmosql", "flightsql", "gizmosql"},
+		{`questdb://host/qdb`, "questdb", "pgx", "questdb"},
+		{`tdengine://host/db`, "tdengine", "tdengine", "tdengine"},
+		{`pinot://host`, "pinot", "pinot", "pinot"},
+		{`rqlite://host`, "rqlite", "rqlite", "rqlite"},
+		{`moderncsqlite:file.db`, "moderncsqlite", "moderncsqlite", "sqlite3"},
+		{`godror://user:pass@host/sid`, "godror", "godror", "oracle"},
+		{`oracle://user:pass@host/sid`, "oracle", "oracle", "oracle"},
+		{`nz://host/db`, "nzgo", "nzgo", "nzgo"},
+		{`arango://host/db`, "arangodb", "arangodb", "arangodb"},
+		{`influxdb://host/db`, "influxdb", "influxdb", "influxdb"},
+		{`influxql://host/db`, "influxql", "influxdb", "influxql"},
+		{`cosmos://key@host/db`, "cosmos", "gocosmos", "cosmos"},
 		// file: resolves to the scheme of the file, and takes its Dialect
-		{`file:fake.sqlite3`, "sqlite3", "sqlite3"},
-		{`file:/var/run/postgresql`, "pgx", "postgres"},
+		{`file:fake.sqlite3`, "sqlite3", "sqlite3", "sqlite3"},
+		{`file:/var/run/postgresql`, "postgres", "pgx", "postgres"},
 	}
 	for _, test := range tests {
 		t.Run(test.s, func(t *testing.T) {
 			u, err := Parse(test.s)
 			if err != nil {
 				t.Fatalf("expected no error, got: %v", err)
+			}
+			if u.SchemeName != test.scheme {
+				t.Errorf("expected scheme %q, got: %q", test.scheme, u.SchemeName)
 			}
 			if u.Driver != test.driver {
 				t.Errorf("expected driver %q, got: %q", test.driver, u.Driver)
@@ -210,8 +192,10 @@ func TestDialectProtocols(t *testing.T) {
 		name string
 		exp  []string
 	}{
-		{"postgres", []string{"libpq", "pg", "pgsql", "pgx", "postgres", "postgresql", "pq", "px", "redshift", "rs"}},
-		{"pq", []string{"libpq", "pg", "pgsql", "pgx", "postgres", "postgresql", "pq", "px", "redshift", "rs"}},
+		{"postgres", []string{"libpq", "pg", "pgsql", "pgx", "postgres", "postgresql", "pq", "px"}},
+		{"pq", []string{"libpq", "pg", "pgsql", "pgx", "postgres", "postgresql", "pq", "px"}},
+		{"redshift", []string{"redshift", "rs"}},
+		{"tidb", []string{"ti", "tidb"}},
 		{"cockroachdb", []string{"cdb", "cockroach", "cockroachdb", "cr", "crdb"}},
 		{"cratedb", []string{"crate", "cratedb", "ct"}},
 		{"nzgo", []string{"netezza", "nz", "nzgo"}},
@@ -225,12 +209,16 @@ func TestDialectProtocols(t *testing.T) {
 			}
 		})
 	}
-	// the mysql family is every wire compatible scheme plus mysql itself
-	v := DialectProtocols("tidb")
-	for _, name := range []string{"mysql", "my", "tidb", "vitess", "memsql"} {
-		if !slices.Contains(v, name) {
-			t.Errorf("expected %q in %v", name, v)
+	// a product that speaks the wire protocol of mysql has a dialect of its
+	// own, so the mysql family holds only mysql (D37)
+	v := DialectProtocols("mysql")
+	for _, name := range []string{"tidb", "vitess", "memsql"} {
+		if slices.Contains(v, name) {
+			t.Errorf("expected no %q in %v", name, v)
 		}
+	}
+	if !slices.Contains(v, "mysql") {
+		t.Errorf("expected %q in %v", "mysql", v)
 	}
 }
 
@@ -1761,9 +1749,7 @@ func testParse(t *testing.T, s, d, exp, path string) {
 	switch {
 	case err != nil:
 		t.Errorf("%q expected no error, got: %v", s, err)
-	case u.GoDriver != "" && u.GoDriver != d:
-		t.Errorf("%q expected go driver %q, got: %q", s, d, u.GoDriver)
-	case u.GoDriver == "" && u.Driver != d:
+	case u.Driver != d:
 		t.Errorf("%q expected driver %q, got: %q", s, d, u.Driver)
 	case u.DSN != exp:
 		_, err := Stat(path)

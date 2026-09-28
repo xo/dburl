@@ -26,26 +26,27 @@ if D11 amends D4, then D4 says so too.
 | [D14](#d14-an-alias-that-cannot-work-is-removed-not-left-failing) | Decided |
 | [D15](#d15-dburl-does-not-validate-driver-option-values) | Decided |
 | [D16](#d16-a-required-option-with-no-valid-empty-value-gets-a-default) | Decided |
-| [D17](#d17-a-scheme-describes-its-own-database-and-driver) | Amended by D22 and D30 |
+| [D17](#d17-a-scheme-describes-its-own-database-and-driver) | Amended by D22, D30 and D37 |
 | [D18](#d18-a-scheme-records-how-the-database-is-deployed) | Decided |
-| [D19](#d19-a-scheme-names-the-dialect-of-its-product) | Amended by D22 and D30 |
+| [D19](#d19-a-scheme-names-the-dialect-of-its-product) | Amended by D22, D30 and D37 |
 | [D20](#d20-the-schemes-of-four-removed-drivers-leave-in-one-release) | Decided |
 | [D21](#d21-the-maxcompute-endpoint-protocol-comes-from-the-transport) | Decided |
-| [D22](#d22-postgres-opens-pgx-and-pq-opens-libpq) | Amended by D30 |
+| [D22](#d22-postgres-opens-pgx-and-pq-opens-libpq) | Amended by D30 and D37 |
 | [D23](#d23-cql-opens-xocql-and-gets-a-url) | Decided |
-| [D24](#d24-a-parsed-url-carries-its-dialect) | Amended by D30 |
+| [D24](#d24-a-parsed-url-carries-its-dialect) | Amended by D30 and D37 |
 | [D25](#d25-couchbase-opens-xodbimpcouchbase) | Amended by D34 |
 | [D26](#d26-surrealdb-opens-xodbimpsurrealdb) | Amended by D34 |
 | [D27](#d27-dburl-is-set-up-for-coding-agents-as-every-xo-repository-is) | Decided |
 | [D28](#d28-neo4j-opens-xodbimpneo4j) | Amended by D34 |
-| [D29](#d29-influxql-is-a-scheme-of-its-own-on-the-influxdb-driver) | Amended by D34 |
-| [D30](#d30-cockroachdb-and-cratedb-each-have-a-dialect-of-their-own) | Amended by D34 |
+| [D29](#d29-influxql-is-a-scheme-of-its-own-on-the-influxdb-driver) | Amended by D34 and D37 |
+| [D30](#d30-cockroachdb-and-cratedb-each-have-a-dialect-of-their-own) | Amended by D34 and D37 |
 | [D31](#d31-a-password-file-entry-matches-the-database-and-the-user) | Decided |
 | [D32](#d32-arangodb-is-a-provisional-scheme-for-the-dbimp-driver) | Amended by D34 |
-| [D33](#d33-passfile-opens-the-go-driver-that-dburlopen-opens) | Decided |
+| [D33](#d33-passfile-opens-the-go-driver-that-dburlopen-opens) | Amended by D37 |
 | [D34](#d34-a-default-port-is-added-only-where-the-driver-has-none) | Decided |
 | [D35](#d35-a-spanner-url-names-its-host-first) | Decided |
 | [D36](#d36-gizmosql-questdb-and-three-provisional-schemes) | Decided |
+| [D37](#d37-a-scheme-names-its-driver-and-override-is-gone) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -404,7 +405,10 @@ library does.
 The general test, for the next option that looks like this one: ask what the
 driver does with nothing, not only what it does with something wrong.
 
-### D17. A scheme describes its own database and driver. Amends D10 and D13. Amended by D22 and D30.
+### D17. A scheme describes its own database and driver. Amends D10 and D13. Amended by D22, D30 and D37.
+
+Amended by D37: `Override` is gone. Every scheme except `file` documents its
+own `GoPackage` and `DriverURL`, and `Scheme.Driver` is now `Scheme.Name`.
 
 Amended by D30: a wire compatible product with a `Dialect` of its own, such
 as `cockroachdb` and `cratedb`, has no `Override`. Its generator returns the
@@ -545,7 +549,11 @@ same terms: low rate of change, and the field earns its place otherwise.
 
 `TestSchemeMetadata` requires a non-zero `Deployment` on every scheme.
 
-### D19. A scheme names the dialect of its product. Amended by D22 and D30.
+### D19. A scheme names the dialect of its product. Amended by D22, D30 and D37.
+
+Amended by D37: a product that speaks another's wire protocol has a
+`Dialect` of its own. `memsql`, `tidb`, `vitess` and `redshift` are now
+their own dialects.
 
 Amended by D30: a wire compatible scheme takes the `Dialect` of what it
 speaks only when it has an `Override`. `cockroachdb` and `cratedb` speak
@@ -686,7 +694,12 @@ endpoint, the project, the tunnel endpoint and the hints all came out as
 intended. `TestParse` covers the default, both transports and the alias.
 `TestBadParse` covers `+tcp` and `+unix`.
 
-### D22. postgres opens pgx, and pq opens lib/pq. Amends D17 and D19. Amended by D30.
+### D22. postgres opens pgx, and pq opens lib/pq. Amends D17 and D19. Amended by D30 and D37.
+
+Amended by D37: `postgres` and `pq` no longer use `Override`. `postgres://`
+gives `URL.SchemeName` `postgres` and `URL.Driver` `pgx`, and `pq://` gives
+`pq` and `postgres`. `passfile` matches the dialect family of the scheme
+only.
 
 Amended by D30: `cockroachdb` has no `Override` now. It returns the Driver
 `cockroachdb`, the GoDriver `pgx` and the Dialect `cockroachdb`. `redshift`
@@ -933,7 +946,10 @@ The check was run again against that tag, fetched from `proxy.golang.org`,
 and every result matched the check against the working tree. The condition
 above is met.
 
-### D24. A parsed URL carries its Dialect. Amended by D30.
+### D24. A parsed URL carries its Dialect. Amended by D30 and D37.
+
+Amended by D37: `URL.UnaliasedDriver` is gone. `URL.SchemeName` names the
+scheme, and `URL.Driver` is always the name for `sql.Open`.
 
 Amended by D30: `cockroachdb://` now returns the Driver `cockroachdb` and the
 Dialect `cockroachdb`, not `pgx` and `postgres`. The rest of this entry
@@ -1157,7 +1173,10 @@ commit the generator was written against. The check was run again against
 `v0.3.0` from `proxy.golang.org`, and every result matched. The condition
 above is met.
 
-### D29. influxql is a scheme of its own on the influxdb driver. Amends D7. Amended by D34.
+### D29. influxql is a scheme of its own on the influxdb driver. Amends D7. Amended by D34 and D37.
+
+Amended by D37: `URL.GoDriver` is gone. `influxql://` gives `URL.SchemeName`
+`influxql` and `URL.Driver` `influxdb`.
 
 Amended by D34: `GenInfluxDB` and `GenInfluxQL` add no port now, because
 the driver defaults to 8086 for `version` 1 and 2, and 8181 otherwise.
@@ -1245,7 +1264,11 @@ The generator now reads it with `strconv.Atoi` too. The output of both
 generators was run through `ParseDSN` at `v0.4.0` from `proxy.golang.org`,
 and every result matched. The condition above is met.
 
-### D30. cockroachdb and cratedb each have a dialect of their own. Amends D17, D19, D22 and D24. Amended by D34.
+### D30. cockroachdb and cratedb each have a dialect of their own. Amends D17, D19, D22 and D24. Amended by D34 and D37.
+
+Amended by D37: `cockroachdb://` gives `URL.SchemeName` `cockroachdb` and
+`URL.Driver` `pgx`, where it gave `URL.Driver` `cockroachdb` and
+`URL.GoDriver` `pgx`.
 
 Amended by D34: `GenCrateDB` adds no port now, because pgx defaults to
 5432, which is the port of CrateDB. `GenCockroachDB` keeps 26257.
@@ -1384,7 +1407,10 @@ always the password of the URL, and `auth=bearer` sends it as a bearer token.
 The driver still has no `ParseDSN` at a tag, so the condition above still
 holds.
 
-### D33. passfile opens the Go driver that dburl.Open opens. Decided.
+### D33. passfile opens the Go driver that dburl.Open opens. Amended by D37.
+
+Amended by D37: `URL.Driver` is now always the name for `sql.Open`, so
+`passfile` and `dburl.Open` both call `sql.Open(u.Driver, u.DSN)`.
 
 A documentation sweep on 2026-09-29 found that `passfile.OpenURL`, and so
 `passfile.Open`, called `sql.Open(u.Driver, u.DSN)` and ignored
@@ -1538,3 +1564,92 @@ through. A release that carries these waits for a dbimp tag with each driver,
 and each is checked against its `ParseDSN` first. Ken has not chosen aliases
 for `questdb`, `tdengine`, `pinot` or `rqlite`, so each has only its
 automatic two letter alias.
+
+### D37. A scheme names its driver, and Override is gone. Amends D17, D19, D22, D24, D29, D30 and D33.
+
+Ken decided on 2026-09-29 to drop `Scheme.Override`, the construct that made
+a scheme "wire compatible" with another. The question went to the `usql`,
+dbmeta and dbimp sessions, and to Gemini and DeepSeek. All five recommended
+dropping it, in one breaking release.
+
+WHY
+
+`Override` made `URL.Driver` mean two things. For most schemes it named the
+product, and for a scheme with an `Override` it named a registered Go
+driver. So `tidb://` looked the same as `mysql://` once it was parsed, and a
+user of `usql` saw `mysql` or `pgx` where they expected the product.
+`Override` also forced the target's `Dialect`, which D29 and D30 worked around
+with a Go driver name returned by the generator. dbimp added the case that
+`Override` cannot express at all: its Avatica driver will serve Phoenix and
+Druid, and its Trino driver will serve Presto, each flavor with a `Dialect`
+of its own on one driver (dbimp D98).
+
+THE FIELDS
+
+| Before | After |
+| --- | --- |
+| `Scheme.Driver` | `Scheme.Name` |
+| `Scheme.Override` | gone |
+| `URL.Driver`, the scheme or the `Override` | `URL.SchemeName`, always the scheme |
+| `URL.UnaliasedDriver` | gone, because it equalled `URL.SchemeName` |
+| `URL.GoDriver`, set only when it differed | `URL.Driver`, always the name for `sql.Open` |
+
+`net/url.URL`, which `URL` embeds, already has a `Scheme` field, which
+`Parse` sets to the scheme with no transport. So the new field is
+`SchemeName`, and it does not shadow `Scheme`. A generator still returns the
+name for `sql.Open` as its second value, and an empty value means the scheme's
+`Name`. `Parse` always sets `URL.Driver`, so `sql.Open(u.Driver, u.DSN)`
+always works, and `Open` and `passfile` call exactly that.
+
+Ken chose one breaking release in v0, with the renames, and not a new `/v2`
+module. Gemini proposed `/v2`. DeepSeek and `usql` proposed a v0 release,
+because xo projects make no promise of backward compatibility before v1, and
+`usql` pins `dburl` and moves with each release. The renames turn most of the
+break into compile errors, so a caller cannot keep reading a field whose
+meaning changed.
+
+THE SCHEMES THAT MOVED
+
+| Scheme | `URL.SchemeName` | `URL.Driver` | `URL.Dialect` |
+| --- | --- | --- | --- |
+| `postgres` | `postgres` | `pgx` | `postgres` |
+| `pq` | `pq` | `postgres` | `postgres` |
+| `redshift` | `redshift` | `pgx` | `redshift` |
+| `memsql` | `memsql` | `mysql` | `memsql` |
+| `tidb` | `tidb` | `mysql` | `tidb` |
+| `vitess` | `vitess` | `mysql` | `vitess` |
+
+Each now documents its own `GoPackage` and `DriverURL`, which name the driver
+it opens. `genMysql` names `mysql`, `genPgx` names `pgx`, and the new `GenPq`
+names `postgres`.
+
+Ken chose a `Dialect` of its own for `memsql`, `tidb`, `vitess` and `redshift`.
+DeepSeek argued for the family until a product model exists, because a
+dialect that no model reads is not tested. dbmeta answered that it prefers a
+model per product that shares statements, as its CockroachDB model does, to a
+fallback, and that it has no model for any of the four yet. So `usql` reads no
+metadata for them until dbmeta writes each model.
+
+WHAT CHANGES FOR A CALLER
+
+- A caller that read `URL.GoDriver` or `URL.UnaliasedDriver` does not
+  compile, and reads `URL.Driver` or `URL.SchemeName`.
+- A caller that read `URL.Driver` to learn the scheme reads `URL.SchemeName`.
+  This one does not fail to compile, because `URL.Driver` keeps its name and
+  changes its meaning. A new name for the `sql.Open` field, such as
+  `SQLDriver`, would have made every old read fail to build. Ken chose to keep
+  `Driver`, so each reader of `URL.Driver` must be checked by hand. `usql`
+  has 58, and it was told which.
+- `usql` keys its registry by the scheme, so it needs an entry under each
+  moved name. Its `libpq` driver moves from `postgres` to `pq`, and its pgx
+  driver takes `postgres`.
+- `passfile.Match` matches the dialect family of the scheme, and no longer
+  the names of the driver. So a `mysql:` entry no longer supplies a
+  password to `tidb://`, and a `postgres:` entry no longer supplies one to
+  `redshift://`, as D30 did for `cockroachdb://`.
+- The README marks no row with ‡, because no row borrows another row's
+  driver. `gen.go` loses the code that resolved `Override`.
+
+`TestSchemeMetadata` no longer has rules for `Override`, and every scheme but
+`file` must document its package. `TestParseDialect` checks `SchemeName`,
+`Driver` and `Dialect` for every kind of scheme.

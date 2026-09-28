@@ -261,8 +261,8 @@ func GenCouchbase(u *URL) (string, string, error) {
 //
 // CockroachDB speaks the wire protocol of PostgreSQL, so the DSN is the one
 // [GenPgxFromURL] writes, with the default port 26257 and sslmode=disable. It
-// returns pgx as the Go driver. The scheme has a Dialect of its own, because
-// it is a product of its own, and so it has no Override.
+// returns pgx as the driver. The scheme has a Dialect of its own, because it
+// is a product of its own.
 func GenCockroachDB(u *URL) (string, string, error) {
 	dsn, _, err := cockroachdb(u)
 	return dsn, "pgx", err
@@ -279,7 +279,7 @@ func GenCrateDB(u *URL) (string, string, error) {
 	return dsn, "pgx", err
 }
 
-// PostgreSQL wire compatible generators.
+// Generators for products that speak the wire protocol of PostgreSQL.
 var (
 	cockroachdb = GenPgxFromURL("postgres://localhost:26257/?sslmode=disable")
 	cratedb     = GenPgxFromURL("postgres://localhost/")
@@ -538,7 +538,9 @@ func GenTiDB(u *URL) (string, string, error) {
 }
 
 // genMysql generates a mysql DSN from the passed URL, with the passed default
-// port, which is empty when the driver's own default applies.
+// port, which is empty when the driver's own default applies. It names mysql
+// as the driver, for mysql and for memsql, tidb and vitess, which speak its
+// wire protocol.
 func genMysql(u *URL, defaultPort string) (string, string, error) {
 	host, port, dbname := u.Hostname(), u.Port(), strings.TrimPrefix(u.Path, "/")
 	// build dsn
@@ -577,7 +579,7 @@ func genMysql(u *URL, defaultPort string) (string, string, error) {
 	}
 	// add proto and database
 	dsn += u.Transport + "(" + host + port + ")" + "/" + dbname
-	return dsn + genQueryOptions(u.Query()), "", nil
+	return dsn + genQueryOptions(u.Query()), "mysql", nil
 }
 
 // GenNeo4j generates a neo4j DSN from the passed URL.
@@ -663,7 +665,8 @@ func GenPgxFromURL(urlstr string) func(*URL) (string, string, error) {
 	}
 }
 
-// genPgx generates a pgx DSN from the passed URL and defaults. See [GenPgx].
+// genPgx generates a pgx DSN from the passed URL and defaults, and names pgx
+// as the driver. See [GenPgx].
 func genPgx(u *URL, defHost, defPort string, defQuery url.Values) (string, string, error) {
 	host, port, dbname := u.Hostname(), u.Port(), strings.TrimPrefix(u.Path, "/")
 	if host == "." {
@@ -735,12 +738,21 @@ func genPgx(u *URL, defHost, defPort string, defQuery url.Values) (string, strin
 		}
 		b.WriteString(sep + escapePgx(k) + "=" + escapePgx(strings.Join(q[k], ",")))
 	}
-	return b.String(), "", nil
+	return b.String(), "pgx", nil
 }
 
 // escapePgx percent-encodes a pgx URL component, writing a space as %20.
 func escapePgx(s string) string {
 	return strings.ReplaceAll(url.QueryEscape(s), "+", "%20")
+}
+
+// GenPq generates a pq DSN from the passed URL.
+//
+// It is the DSN of [GenPostgres], and it names postgres as the driver, which
+// is the name that lib/pq registers.
+func GenPq(u *URL) (string, string, error) {
+	dsn, _, err := GenPostgres(u)
+	return dsn, "postgres", err
 }
 
 // GenPostgres generates a postgres DSN from the passed URL.

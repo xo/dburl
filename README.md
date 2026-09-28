@@ -104,18 +104,18 @@ odbc+postgres://user:pass@localhost:port/dbname?option1=
 ## Database Schemes, Aliases, and Drivers
 
 The table lists every supported `dburl` protocol scheme, with its aliases and
-its Go driver. The scheme is usually also the driver name that `dburl` returns.
-A row marked ‡ reaches the driver of another row through `Override`. `pq`
-returns `postgres`, which is the name that `github.com/lib/pq` registers. A
-few schemes open a driver under another name, which `URL.GoDriver` holds:
-`cockroachdb` and `cratedb` open `pgx`, and `influxql` opens `influxdb`.
-`dburl.Open` uses `GoDriver` when it is set:
+its Go driver. A parsed URL names the scheme in `URL.SchemeName` and the name
+to pass to `sql.Open` in `URL.Driver`. The two differ when a scheme opens a
+driver that another product also uses: `tidb` opens `mysql`, `postgres`,
+`cockroachdb` and `redshift` open `pgx`, and `pq` opens `postgres`, which is
+the name that `github.com/lib/pq` registers. `dburl.Open` passes `URL.Driver`
+to `sql.Open`:
 
 <!-- DRIVER DETAILS START -->
 
 | Database             | Scheme / Tag    | Scheme Aliases                                 | Driver Package / Notes                                                                      |
 |----------------------|-----------------|------------------------------------------------|---------------------------------------------------------------------------------------------|
-| PostgreSQL           | `postgres`      | `pg`, `pgsql`, `postgresql`                    | [github.com/jackc/pgx/v5/stdlib][d-pgx] <sup>[‡][f-wire]</sup>                              |
+| PostgreSQL           | `postgres`      | `pg`, `pgsql`, `postgresql`                    | [github.com/jackc/pgx/v5/stdlib][d-postgres]                                                |
 | MySQL                | `mysql`         | `my`, `maria`, `aurora`, `mariadb`, `percona`  | [github.com/go-sql-driver/mysql][d-mysql]                                                   |
 | Microsoft SQL Server | `sqlserver`     | `ms`, `mssql`, `azuresql`                      | [github.com/microsoft/go-mssqldb][d-sqlserver]                                              |
 | Oracle Database      | `oracle`        | `or`, `ora`, `oci`, `oci8`, `odpi`, `odpi-c`   | [github.com/sijms/go-ora/v3][d-oracle]                                                      |
@@ -126,7 +126,7 @@ few schemes open a driver under another name, which `URL.GoDriver` holds:
 |                      |                 |                                                |                                                                                             |
 | Alibaba MaxCompute   | `maxcompute`    | `mc`                                           | [github.com/aliyun/aliyun-odps-go-sdk/sqldriver][d-maxcompute] <sup>[¶][f-hosted]</sup>     |
 | Alibaba Tablestore   | `ots`           | `ot`, `tablestore`                             | [github.com/aliyun/aliyun-tablestore-go-sql-driver][d-ots] <sup>[¶][f-hosted]</sup>         |
-| Amazon Redshift      | `redshift`      | `rs`                                           | [github.com/jackc/pgx/v5/stdlib][d-pgx] <sup>[‡][f-wire]</sup> <sup>[¶][f-hosted]</sup>     |
+| Amazon Redshift      | `redshift`      | `rs`                                           | [github.com/jackc/pgx/v5/stdlib][d-redshift] <sup>[¶][f-hosted]</sup>                       |
 | Apache Avatica       | `avatica`       | `av`, `phoenix`                                | [github.com/apache/calcite-avatica-go/v5][d-avatica]                                        |
 | Apache H2            | `h2`            |                                                | [github.com/jmrobles/h2go][d-h2]                                                            |
 | Apache Hive          | `hive`          | `hi`, `hive2`                                  | [github.com/beltran/gohive/v2][d-hive]                                                      |
@@ -163,14 +163,14 @@ few schemes open a driver under another name, which `URL.GoDriver` holds:
 | QuestDB              | `questdb`       | `qu`                                           | [github.com/jackc/pgx/v5/stdlib][d-questdb]                                                 |
 | rqlite               | `rqlite`        | `rq`                                           | [github.com/xo/dbimp/rqlite][d-rqlite]                                                      |
 | SAP HANA             | `hdb`           | `sa`, `sap`, `hana`, `saphana`                 | [github.com/SAP/go-hdb/driver][d-hdb]                                                       |
-| SingleStore MemSQL   | `memsql`        | `me`                                           | [github.com/go-sql-driver/mysql][d-mysql] <sup>[‡][f-wire]</sup>                            |
+| SingleStore MemSQL   | `memsql`        | `me`                                           | [github.com/go-sql-driver/mysql][d-memsql]                                                  |
 | Snowflake            | `snowflake`     | `sf`                                           | [github.com/snowflakedb/gosnowflake/v2][d-snowflake] <sup>[¶][f-hosted]</sup>               |
 | SurrealDB            | `surrealdb`     | `sr`, `sur`, `surreal`                         | [github.com/xo/dbimp/surrealdb][d-surrealdb]                                                |
 | TDengine             | `tdengine`      | `td`                                           | [github.com/xo/dbimp/tdengine][d-tdengine]                                                  |
-| TiDB                 | `tidb`          | `ti`                                           | [github.com/go-sql-driver/mysql][d-mysql] <sup>[‡][f-wire]</sup>                            |
+| TiDB                 | `tidb`          | `ti`                                           | [github.com/go-sql-driver/mysql][d-tidb]                                                    |
 | Trino                | `trino`         | `tr`, `trs`, `trinos`                          | [github.com/trinodb/trino-go-client/trino][d-trino]                                         |
 | Vertica              | `vertica`       | `ve`                                           | [github.com/vertica/vertica-sql-go][d-vertica]                                              |
-| Vitess Database      | `vitess`        | `vt`                                           | [github.com/go-sql-driver/mysql][d-mysql] <sup>[‡][f-wire]</sup>                            |
+| Vitess Database      | `vitess`        | `vt`                                           | [github.com/go-sql-driver/mysql][d-vitess]                                                  |
 | VoltDB               | `voltdb`        | `vo`, `vdb`, `volt`                            | [github.com/VoltDB/voltdb-client-go/voltdbclient][d-voltdb]                                 |
 | YDB                  | `ydb`           | `yd`, `yds`, `ydbs`                            | [github.com/ydb-platform/ydb-go-sdk/v3][d-ydb]                                              |
 
@@ -202,6 +202,7 @@ few schemes open a driver under another name, which `URL.GoDriver` holds:
 [d-influxdb]: https://github.com/xo/dbimp
 [d-influxql]: https://github.com/xo/dbimp
 [d-maxcompute]: https://github.com/aliyun/aliyun-odps-go-sdk
+[d-memsql]: https://github.com/go-sql-driver/mysql
 [d-moderncsqlite]: https://gitlab.com/cznic/sqlite
 [d-mysql]: https://github.com/go-sql-driver/mysql
 [d-neo4j]: https://github.com/xo/dbimp
@@ -211,10 +212,12 @@ few schemes open a driver under another name, which `URL.GoDriver` holds:
 [d-ots]: https://github.com/aliyun/aliyun-tablestore-go-sql-driver
 [d-pgx]: https://github.com/jackc/pgx
 [d-pinot]: https://github.com/xo/dbimp
+[d-postgres]: https://github.com/jackc/pgx
 [d-pq]: https://github.com/lib/pq
 [d-presto]: https://github.com/prestodb/presto-go-client
 [d-ql]: https://gitlab.com/cznic/ql
 [d-questdb]: https://github.com/jackc/pgx
+[d-redshift]: https://github.com/jackc/pgx
 [d-rqlite]: https://github.com/xo/dbimp
 [d-snowflake]: https://github.com/snowflakedb/gosnowflake
 [d-spanner]: https://github.com/googleapis/go-sql-spanner
@@ -222,22 +225,22 @@ few schemes open a driver under another name, which `URL.GoDriver` holds:
 [d-sqlserver]: https://github.com/microsoft/go-mssqldb
 [d-surrealdb]: https://github.com/xo/dbimp
 [d-tdengine]: https://github.com/xo/dbimp
+[d-tidb]: https://github.com/go-sql-driver/mysql
 [d-trino]: https://github.com/trinodb/trino-go-client
 [d-vertica]: https://github.com/vertica/vertica-sql-go
+[d-vitess]: https://github.com/go-sql-driver/mysql
 [d-voltdb]: https://github.com/VoltDB/voltdb-client-go
 [d-ydb]: https://github.com/ydb-platform/ydb-go-sdk
 
 <!-- DRIVER DETAILS END -->
 
 [f-cgo]: #f-cgo "Requires CGO"
-[f-wire]: #f-wire "Uses the driver of another row"
 [f-embedded]: #f-embedded "Embedded"
 [f-hosted]: #f-hosted "Hosted service"
 
 <p>
   <i>
     <a id="f-cgo"><sup>†</sup> Requires CGO</a><br>
-    <a id="f-wire"><sup>‡</sup> Uses the driver of another row, through <code>Override</code></a><br>
     <a id="f-embedded"><sup>§</sup> Embedded, with no server to run</a><br>
     <a id="f-hosted"><sup>¶</sup> Hosted service, with no server you can run</a>
   </i>

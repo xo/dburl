@@ -164,15 +164,13 @@ func MatchFile(u *dburl.URL, file string, protocols ...string) (*url.Userinfo, e
 // from the file in $HOME/.<name> or $ENV{NAME}.
 //
 // An entry matches when its protocol names any scheme that shares the dialect
-// of the URL's scheme, or any name of the URL's driver. So a postgres: entry
-// matches postgres://, pq:// and redshift:// URLs.
+// of the URL's scheme. So a postgres: entry matches postgres://, pgx:// and
+// pq:// URLs.
 //
-// Equivalent to MatchFile(u, Path(homeDir, name), protocols...), where
-// protocols is dburl.DialectProtocols(u.UnaliasedDriver) followed by
-// dburl.Protocols(u.Driver).
+// Equivalent to MatchFile(u, Path(homeDir, name),
+// dburl.DialectProtocols(u.SchemeName)...).
 func Match(u *dburl.URL, homeDir, name string) (*url.Userinfo, error) {
-	protocols := append(dburl.DialectProtocols(u.UnaliasedDriver), dburl.Protocols(u.Driver)...)
-	return MatchFile(u, Path(homeDir, name), protocols...)
+	return MatchFile(u, Path(homeDir, name), dburl.DialectProtocols(u.SchemeName)...)
 }
 
 // MatchProtocols returns a Userinfo from a passfile entry matching database
@@ -231,14 +229,9 @@ func OpenURL(u *dburl.URL, homeDir, name string) (*sql.DB, error) {
 	return open(v)
 }
 
-// open opens u as [dburl.Open] does: with GoDriver when it is set, and with
-// Driver otherwise.
+// open opens u as [dburl.Open] does.
 func open(u *dburl.URL) (*sql.DB, error) {
-	driver := u.Driver
-	if u.GoDriver != "" {
-		driver = u.GoDriver
-	}
-	return sql.Open(driver, u.DSN)
+	return sql.Open(u.Driver, u.DSN)
 }
 
 // Open opens a database connection for a URL, reading the named passfile in

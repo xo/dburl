@@ -30,13 +30,8 @@ func Example_parse() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// GoDriver names the driver to open when it differs from Driver, as
-	// Open does it.
-	driver := u.Driver
-	if u.GoDriver != "" {
-		driver = u.GoDriver
-	}
-	db, err := sql.Open(driver, u.DSN)
+	// Driver is the name that the Go driver registered, which is pgx here.
+	db, err := sql.Open(u.Driver, u.DSN)
 	if err != nil {
 		log.Fatal(err)
 	}

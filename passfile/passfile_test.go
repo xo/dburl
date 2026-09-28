@@ -59,13 +59,17 @@ mysql:*:*:*:myuser:mypass
 		{`pgx://host/db`, url.UserPassword("pguser", "pgpass")},
 		{`pq://host/db`, url.UserPassword("pguser", "pgpass")},
 		{`libpq://host/db`, url.UserPassword("pguser", "pgpass")},
-		{`rs://host/db`, url.UserPassword("pguser", "pgpass")},
+		// redshift has a dialect of its own, so a postgres: entry does not
+		// reach it (D37)
+		{`rs://host/db`, nil},
 		// CockroachDB has a dialect of its own, so a cockroachdb: entry
 		// matches only its own URLs, and a postgres: entry does not reach them
 		{`cr://crhost/db`, url.UserPassword("cruser", "crpass")},
 		{`postgres://crhost/db`, url.UserPassword("pguser", "pgpass")},
 		{`cr://host/db`, nil},
-		{`tidb://host/db`, url.UserPassword("myuser", "mypass")},
+		{`mysql://host/db`, url.UserPassword("myuser", "mypass")},
+		// and so does tidb, so a mysql: entry does not reach it
+		{`tidb://host/db`, nil},
 		{`oracle://host/db`, nil},
 		// a URL that carries a password is left alone
 		{`postgres://u:p@host/db`, nil},
@@ -114,7 +118,7 @@ func TestMatchUserAndDatabase(t *testing.T) {
 			if err != nil {
 				t.Fatalf("expected no error, got: %v", err)
 			}
-			user, err := MatchEntries(u, entries, dburl.DialectProtocols(u.UnaliasedDriver)...)
+			user, err := MatchEntries(u, entries, dburl.DialectProtocols(u.SchemeName)...)
 			if err != nil {
 				t.Fatalf("expected no error, got: %v", err)
 			}
@@ -138,9 +142,9 @@ func init() {
 	sql.Register("pgx", stubDriver{})
 }
 
-func TestOpenURLUsesGoDriver(t *testing.T) {
-	// cockroachdb returns the Driver cockroachdb and the GoDriver pgx (D30),
-	// so OpenURL must open pgx. No driver is named cockroachdb.
+func TestOpenURLUsesDriver(t *testing.T) {
+	// cockroachdb has the SchemeName cockroachdb and the Driver pgx (D37), so
+	// OpenURL must open pgx. No driver is named cockroachdb.
 	u, err := dburl.Parse("cockroachdb://user:pass@host/db")
 	if err != nil {
 		t.Fatalf("expected no error, got: %v", err)
