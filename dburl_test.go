@@ -135,6 +135,32 @@ func TestEveryDecisionIsIndexed(t *testing.T) {
 	}
 }
 
+func TestNormalize(t *testing.T) {
+	tests := []struct {
+		s   string
+		cut int
+		exp string
+	}{
+		{`postgres://crate@127.0.0.1:5432/doc`, 3, `postgres:127.0.0.1:5432:doc:crate`},
+		{`postgres://127.0.0.1:5432/doc`, 3, `postgres:127.0.0.1:5432:doc`},
+		{`postgres://crate@127.0.0.1:5432`, 3, `postgres:127.0.0.1:5432::crate`},
+		{`postgres://127.0.0.1`, 3, `postgres:127.0.0.1:`},
+		{`postgres://127.0.0.1`, 0, `postgres:127.0.0.1:::`},
+		{`mysql://user@host/db`, 0, `mysql:host::db:user`},
+	}
+	for _, test := range tests {
+		t.Run(test.s, func(t *testing.T) {
+			u, err := Parse(test.s)
+			if err != nil {
+				t.Fatalf("expected no error, got: %v", err)
+			}
+			if s := u.Normalize(":", "", test.cut); s != test.exp {
+				t.Errorf("expected %q, got: %q", test.exp, s)
+			}
+		})
+	}
+}
+
 func TestParseDialect(t *testing.T) {
 	tests := []struct {
 		s, driver, dialect string
@@ -142,7 +168,9 @@ func TestParseDialect(t *testing.T) {
 		{`postgres://host/db`, "pgx", "postgres"},
 		{`pgx://host/db`, "pgx", "postgres"},
 		{`pq://host/db`, "postgres", "postgres"},
-		{`cr://host/db`, "pgx", "postgres"},
+		{`cr://host/db`, "cockroachdb", "cockroachdb"},
+		{`ct://host/db`, "cratedb", "cratedb"},
+		{`crate://host/db`, "cratedb", "cratedb"},
 		{`rs://host/db`, "pgx", "postgres"},
 		{`tidb://host/db`, "mysql", "mysql"},
 		{`moderncsqlite:file.db`, "moderncsqlite", "sqlite3"},
@@ -176,8 +204,10 @@ func TestDialectProtocols(t *testing.T) {
 		name string
 		exp  []string
 	}{
-		{"postgres", []string{"cdb", "cockroach", "cockroachdb", "cr", "crdb", "libpq", "pg", "pgsql", "pgx", "postgres", "postgresql", "pq", "px", "redshift", "rs"}},
-		{"pq", []string{"cdb", "cockroach", "cockroachdb", "cr", "crdb", "libpq", "pg", "pgsql", "pgx", "postgres", "postgresql", "pq", "px", "redshift", "rs"}},
+		{"postgres", []string{"libpq", "pg", "pgsql", "pgx", "postgres", "postgresql", "pq", "px", "redshift", "rs"}},
+		{"pq", []string{"libpq", "pg", "pgsql", "pgx", "postgres", "postgresql", "pq", "px", "redshift", "rs"}},
+		{"cockroachdb", []string{"cdb", "cockroach", "cockroachdb", "cr", "crdb"}},
+		{"cratedb", []string{"crate", "cratedb", "ct"}},
 		{"nzgo", []string{"netezza", "nz", "nzgo"}},
 		{"file", []string{"file", "fi"}},
 		{"unknown", nil},
@@ -225,6 +255,8 @@ func TestBadParse(t *testing.T) {
 		{`tidb+unix:///var/run/mysqld/mysqld.sock`, ErrInvalidTransportProtocol},
 		{`vitess+unix:///var/run/mysqld/mysqld.sock`, ErrInvalidTransportProtocol},
 		{`cockroach:/var/run/postgresql`, ErrInvalidTransportProtocol},
+		{`cratedb:/var/run/postgresql`, ErrInvalidTransportProtocol},
+		{`ct+unix:/var/run/postgresql`, ErrInvalidTransportProtocol},
 		{`cockroach+unix:/var/run/postgresql`, ErrInvalidTransportProtocol},
 		{`cockroach:./path`, ErrInvalidTransportProtocol},
 		{`cockroach+unix:./path`, ErrInvalidTransportProtocol},
@@ -837,6 +869,24 @@ func TestParse(t *testing.T) {
 			``,
 		},
 		{
+			`ct://`,
+			`pgx`,
+			`postgres://localhost:5432`,
+			``,
+		},
+		{
+			`crate://crate@127.0.0.1/doc`,
+			`pgx`,
+			`postgres://crate@127.0.0.1:5432/doc`,
+			``,
+		},
+		{
+			`cratedb://user:pass@host:6543/doc?sslmode=require&application_name=my%20app`,
+			`pgx`,
+			`postgres://user:pass@host:6543/doc?application_name=my%20app&sslmode=require`,
+			``,
+		},
+		{
 			`rs://`,
 			`pgx`,
 			`postgres://localhost:5439`,
@@ -1146,6 +1196,12 @@ func TestParse(t *testing.T) {
 			`influxdb://host/db?sqlmode=allow&version=2`,
 			`influxdb`,
 			`influxdb://host:8086/db?sqlmode=allow&version=2`,
+			``,
+		},
+		{
+			`influxdb://host/db?version=01`,
+			`influxdb`,
+			`influxdb://host:8086/db?version=01`,
 			``,
 		},
 		{

@@ -132,8 +132,9 @@ which is the name that `github.com/lib/pq` registers:
 | Azure CosmosDB       | `cosmos`        | `cm`, `gocosmos`                               | [github.com/btnguyen2k/gocosmos][d-cosmos] <sup>[¶][f-hosted]</sup>                         |
 | Cassandra            | `cql`           | `ca`, `scy`, `scylla`, `datastax`, `cassandra` | [github.com/xo/cql][d-cql]                                                                  |
 | ChaiSQL              | `chai`          | `ci`, `genji`, `chaisql`                       | [github.com/chaisql/chai][d-chai] <sup>[§][f-embedded]</sup>                                |
-| CockroachDB          | `cockroachdb`   | `cr`, `cdb`, `crdb`, `cockroach`               | [github.com/jackc/pgx/v5/stdlib][d-pgx] <sup>[‡][f-wire]</sup>                              |
+| CockroachDB          | `cockroachdb`   | `cr`, `cdb`, `crdb`, `cockroach`               | [github.com/jackc/pgx/v5/stdlib][d-cockroachdb]                                             |
 | Couchbase            | `couchbase`     | `n1`, `n1ql`                                   | [github.com/xo/dbimp/couchbase][d-couchbase]                                                |
+| CrateDB              | `cratedb`       | `ct`, `crate`                                  | [github.com/jackc/pgx/v5/stdlib][d-cratedb]                                                 |
 | Cznic QL             | `ql`            | `cznic`, `cznicql`                             | [modernc.org/ql][d-ql] <sup>[§][f-embedded]</sup>                                           |
 | Databend             | `databend`      | `dd`, `bend`                                   | [github.com/datafuselabs/databend-go][d-databend]                                           |
 | Databricks           | `databricks`    | `br`, `brick`, `bricks`, `databrick`           | [github.com/databricks/databricks-sql-go][d-databricks] <sup>[¶][f-hosted]</sup>            |
@@ -169,9 +170,11 @@ which is the name that `github.com/lib/pq` registers:
 [d-bigquery]: https://github.com/go-gorm/bigquery
 [d-chai]: https://github.com/chaisql/chai
 [d-clickhouse]: https://github.com/ClickHouse/clickhouse-go
+[d-cockroachdb]: https://github.com/jackc/pgx
 [d-cosmos]: https://github.com/btnguyen2k/gocosmos
 [d-couchbase]: https://github.com/xo/dbimp
 [d-cql]: https://github.com/xo/cql
+[d-cratedb]: https://github.com/jackc/pgx
 [d-csvq]: https://github.com/mithrandie/csvq-driver
 [d-databend]: https://github.com/datafuselabs/databend-go
 [d-databricks]: https://github.com/databricks/databricks-sql-go

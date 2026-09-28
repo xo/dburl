@@ -58,9 +58,11 @@ mysql:*:*:*:myuser:mypass
 		{`pq://host/db`, url.UserPassword("pguser", "pgpass")},
 		{`libpq://host/db`, url.UserPassword("pguser", "pgpass")},
 		{`rs://host/db`, url.UserPassword("pguser", "pgpass")},
-		// and a cockroachdb: entry matches a PostgreSQL URL on its host
+		// CockroachDB has a dialect of its own, so a cockroachdb: entry
+		// matches only its own URLs, and a postgres: entry does not reach them
 		{`cr://crhost/db`, url.UserPassword("cruser", "crpass")},
-		{`postgres://crhost/db`, url.UserPassword("cruser", "crpass")},
+		{`postgres://crhost/db`, url.UserPassword("pguser", "pgpass")},
+		{`cr://host/db`, nil},
 		{`tidb://host/db`, url.UserPassword("myuser", "mypass")},
 		{`oracle://host/db`, nil},
 		// a URL that carries a password is left alone
@@ -73,6 +75,44 @@ mysql:*:*:*:myuser:mypass
 				t.Fatalf("expected no error, got: %v", err)
 			}
 			user, err := Match(u, "", "testpass")
+			if err != nil {
+				t.Fatalf("expected no error, got: %v", err)
+			}
+			if !reflect.DeepEqual(user, test.exp) {
+				t.Errorf("expected %v, got: %v", test.exp, user)
+			}
+		})
+	}
+}
+
+func TestMatchUserAndDatabase(t *testing.T) {
+	entries := []Entry{
+		{"postgres", "*", "*", "reports", "*", "reportspass"},
+		{"postgres", "*", "*", "*", "postgres", "pgpass"},
+		{"postgres", "*", "*", "*", "crate", "cratepass"},
+	}
+	tests := []struct {
+		s   string
+		exp *url.Userinfo
+	}{
+		// a user that the URL names is never replaced with another one
+		{`postgres://crate@127.0.0.1:5432/doc?sslmode=disable`, url.UserPassword("crate", "cratepass")},
+		{`postgres://other@127.0.0.1:5432/doc`, nil},
+		// an entry supplies the user when the URL names none
+		{`postgres://127.0.0.1:5432/doc`, url.UserPassword("postgres", "pgpass")},
+		// an entry for one database matches only that database, and its
+		// user * keeps the user that the URL names
+		{`postgres://crate@127.0.0.1:5432/reports`, url.UserPassword("crate", "reportspass")},
+		// an empty password is a password, so the file is not read
+		{`postgres://crate:@127.0.0.1:5432/doc`, nil},
+	}
+	for _, test := range tests {
+		t.Run(test.s, func(t *testing.T) {
+			u, err := dburl.Parse(test.s)
+			if err != nil {
+				t.Fatalf("expected no error, got: %v", err)
+			}
+			user, err := MatchEntries(u, entries, dburl.DialectProtocols(u.UnaliasedDriver)...)
 			if err != nil {
 				t.Fatalf("expected no error, got: %v", err)
 			}

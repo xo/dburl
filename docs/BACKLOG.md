@@ -9,33 +9,30 @@ decided on the way (D27).
 
 ## Schemes
 
-### Release neo4j when dbimp tags its driver
+### Release the schemes on main
 
-D28 added the `neo4j` scheme against dbimp commit `b475894`, which no tag
-holds. When dbimp tags a release that holds the driver, run the check of D28
-again against the tag, then tag this library.
+`main` holds `neo4j` (D28) and `influxdb` with `influxql` (D29), which no
+release carries. `neo4j` is checked against dbimp `v0.3.0`, and the InfluxDB
+generators against dbimp `v0.4.0`. Ken decided on 2026-09-28 to release them
+together, and nothing now blocks that release.
 
 ### Add the schemes for the next dbimp drivers
 
 dbimp D73 sets the order of the drivers after Neo4j: InfluxDB, CrateDB,
 ArangoDB, Databend, TDengine, Apache Pinot, rqlite, then libSQL and Turso.
+InfluxDB is done (D29). CrateDB is done on pgx and gets no dbimp driver (D30
+and dbimp D88).
 dbimp settles the name and the URL form of each one in its step 9, and the
 name is the database as one lower case word (dbimp D26, D28 and D30). Add
 each scheme when its driver has `ParseDSN` at a tag, under rule 3.
 
 Ken decided these names on 2026-09-28, in dbimp D76:
 
-- CrateDB is `cratedb`, in the package `github.com/xo/dbimp/cratedb`.
 - libSQL and Turso are one product with one driver, `libsql`, in the package
   `github.com/xo/dbimp/libsql`. `turso` is an alias here.
 - Databend moves to `github.com/xo/dbimp/databend`, which registers
   `databend` and replaces `github.com/datafuselabs/databend-go` here and in
   `usql` (dbimp D24). The two are never linked together.
-
-InfluxDB is two schemes, `influxdb` and `influxql`, with the generators
-`GenInfluxDB` and `GenInfluxQL`, as D29 decides. Both are written, before
-the driver exists. When the dbimp driver has `ParseDSN` at a tag, run both
-through it, fix each place where they disagree, and then tag this library.
 
 When the `databend` scheme moves, `GenDatabend` must write the scheme
 `databend` itself. Today it passes the URL through, so `bend://` reaches the

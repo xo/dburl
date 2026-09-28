@@ -198,6 +198,34 @@ func GenCouchbase(u *URL) (string, string, error) {
 	return z.String(), "", nil
 }
 
+// GenCockroachDB generates a cockroachdb DSN from the passed URL.
+//
+// CockroachDB speaks the wire protocol of PostgreSQL, so the DSN is the one
+// [GenPgxFromURL] writes, with the default port 26257 and sslmode=disable. It
+// returns pgx as the Go driver. The scheme has a Dialect of its own, because
+// it is a product of its own, and so it has no Override.
+func GenCockroachDB(u *URL) (string, string, error) {
+	dsn, _, err := cockroachdb(u)
+	return dsn, "pgx", err
+}
+
+// GenCrateDB generates a cratedb DSN from the passed URL.
+//
+// CrateDB speaks the wire protocol of PostgreSQL, so the DSN is the one
+// [GenPgxFromURL] writes, with the default port 5432, which is the port of
+// its PostgreSQL interface. It returns pgx as the Go driver, as
+// [GenCockroachDB] does.
+func GenCrateDB(u *URL) (string, string, error) {
+	dsn, _, err := cratedb(u)
+	return dsn, "pgx", err
+}
+
+// PostgreSQL wire compatible generators.
+var (
+	cockroachdb = GenPgxFromURL("postgres://localhost:26257/?sslmode=disable")
+	cratedb     = GenPgxFromURL("postgres://localhost:5432/")
+)
+
 // GenCosmos generates a cosmos DSN from the passed URL.
 func GenCosmos(u *URL) (string, string, error) {
 	host, port, dbname := u.Hostname(), u.Port(), strings.TrimPrefix(u.Path, "/")
@@ -380,8 +408,9 @@ func GenHive(u *URL) (string, string, error) {
 // pass through as they were written. It adds no driver option, so the driver
 // reads sqlmode and version with its own defaults. See [GenInfluxQL].
 //
-// The default port follows the version key: 8086 for InfluxDB 1 and 2, and
-// 8181 otherwise, which is the port of InfluxDB 3.
+// The default port follows the version key, as the driver's does: 8086 for
+// InfluxDB 1 and 2, and 8181 otherwise, which is the port of InfluxDB 3. The
+// key is read with strconv.Atoi, as the driver reads it.
 //
 // [xo/dbimp/influxdb]: https://github.com/xo/dbimp
 func GenInfluxDB(u *URL) (string, string, error) {
@@ -407,7 +436,7 @@ func GenInfluxQL(u *URL) (string, string, error) {
 // genInfluxDB writes an influxdb:// DSN from the passed URL and raw query.
 func genInfluxDB(u *URL, rawQuery string) string {
 	host, port := "localhost", "8181"
-	if v := u.Query().Get("version"); v == "1" || v == "2" {
+	if v, err := strconv.Atoi(u.Query().Get("version")); err == nil && (v == 1 || v == 2) {
 		port = "8086"
 	}
 	if h := u.Hostname(); h != "" {

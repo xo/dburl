@@ -31,14 +31,16 @@ if D11 amends D4, then D4 says so too.
 | [D19](#d19-a-scheme-names-the-dialect-of-its-product) | Amended by D22 |
 | [D20](#d20-the-schemes-of-four-removed-drivers-leave-in-one-release) | Decided |
 | [D21](#d21-the-maxcompute-endpoint-protocol-comes-from-the-transport) | Decided |
-| [D22](#d22-postgres-opens-pgx-and-pq-opens-libpq) | Decided |
+| [D22](#d22-postgres-opens-pgx-and-pq-opens-libpq) | Amended by D30 |
 | [D23](#d23-cql-opens-xocql-and-gets-a-url) | Decided |
-| [D24](#d24-a-parsed-url-carries-its-dialect) | Decided |
+| [D24](#d24-a-parsed-url-carries-its-dialect) | Amended by D30 |
 | [D25](#d25-couchbase-opens-xodbimpcouchbase) | Decided |
 | [D26](#d26-surrealdb-opens-xodbimpsurrealdb) | Decided |
 | [D27](#d27-dburl-is-set-up-for-coding-agents-as-every-xo-repository-is) | Decided |
 | [D28](#d28-neo4j-opens-xodbimpneo4j) | Decided |
 | [D29](#d29-influxql-is-a-scheme-of-its-own-on-the-influxdb-driver) | Decided |
+| [D30](#d30-cockroachdb-and-cratedb-each-have-a-dialect-of-their-own) | Decided |
+| [D31](#d31-a-password-file-entry-matches-the-database-and-the-user) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -661,7 +663,11 @@ endpoint, the project, the tunnel endpoint and the hints all came out as
 intended. `TestParse` covers the default, both transports and the alias.
 `TestBadParse` covers `+tcp` and `+unix`.
 
-### D22. postgres opens pgx, and pq opens lib/pq. Decided.
+### D22. postgres opens pgx, and pq opens lib/pq. Amended by D30.
+
+Amended by D30: `cockroachdb` has no `Override` now. It returns the Driver
+`cockroachdb`, the GoDriver `pgx` and the Dialect `cockroachdb`. `redshift`
+is unchanged. The rest of this entry stands.
 
 Ken decided on 2026-09-27 that `github.com/jackc/pgx/v5/stdlib` is the
 primary PostgreSQL driver, and that `github.com/lib/pq`, which is still
@@ -904,7 +910,11 @@ The check was run again against that tag, fetched from `proxy.golang.org`,
 and every result matched the check against the working tree. The condition
 above is met.
 
-### D24. A parsed URL carries its Dialect. Decided.
+### D24. A parsed URL carries its Dialect. Amended by D30.
+
+Amended by D30: `cockroachdb://` now returns the Driver `cockroachdb` and the
+Dialect `cockroachdb`, not `pgx` and `postgres`. The rest of this entry
+stands.
 
 Ken decided on 2026-09-27 that `Parse` sets `URL.Dialect` to the `Dialect` of
 the scheme it parsed. It ships in v0.32.0.
@@ -1110,6 +1120,11 @@ No dbimp tag holds the driver yet. A release of this library that carries D28
 waits for one, and the check is to be run again against it, as D23 set for
 cql.
 
+dbimp `v0.3.0` was tagged on 2026-09-28, at commit `b475894`, which is the
+commit the generator was written against. The check was run again against
+`v0.3.0` from `proxy.golang.org`, and every result matched. The condition
+above is met.
+
 ### D29. influxql is a scheme of its own on the influxdb driver. Decided.
 
 Ken decided on 2026-09-28 how dburl holds the design of dbimp D78. dbimp has
@@ -1182,3 +1197,104 @@ dbimp `docs/INFLUXDB.md` and on Ken's approval:
 A release of this library that carries D29 waits for a dbimp tag with the
 driver. The output is then run through its `ParseDSN`, and each generator
 changes where the two disagree, before this library is tagged.
+
+dbimp `v0.4.0` was released on 2026-09-29 with the driver. Its `ParseDSN`,
+under dbimp D82, matches all three provisional parts. The scheme is only
+`influxdb`, the path names at most one database, the default port is 8086 for
+`version` 1 and 2 and 8181 otherwise, and a token is the password. The query
+takes `sqlmode`, `version`, `describe`, `chunked`, `rp` and `tls`.
+
+One change followed. The driver reads `version` with `strconv.Atoi`, so
+`version=01` is 1 and takes port 8086, and the generator compared the text.
+The generator now reads it with `strconv.Atoi` too. The output of both
+generators was run through `ParseDSN` at `v0.4.0` from `proxy.golang.org`,
+and every result matched. The condition above is met.
+
+### D30. cockroachdb and cratedb each have a dialect of their own. Amends D22 and D24.
+
+Ken decided on 2026-09-29 to add a scheme for CrateDB, and to give CrateDB and
+CockroachDB each a dialect of its own. dbmeta is writing a model for each at
+the same time, and dbmeta chooses its model by `URL.Dialect`, as D24 says.
+
+Both products speak the wire protocol of PostgreSQL, and pgx opens both.
+Neither is PostgreSQL, so a `Dialect` of `postgres` would give dbmeta the
+wrong model. Under D19 and D22, a scheme with an `Override` takes the
+`Dialect` of the scheme it overrides. So neither scheme has an `Override`.
+Each generator returns `pgx` as the Go driver instead, as `GenInfluxQL` does
+in D29 and `GenCosmos` does for `gocosmos`:
+
+| Scheme | Aliases | `URL.Driver` | `URL.GoDriver` | `URL.Dialect` | Default |
+| --- | --- | --- | --- | --- | --- |
+| `cockroachdb` | `cr`, `cdb`, `crdb`, `cockroach` | `cockroachdb` | `pgx` | `cockroachdb` | `localhost:26257`, `sslmode=disable` |
+| `cratedb` | `ct`, `crate` | `cratedb` | `pgx` | `cratedb` | `localhost:5432` |
+
+`GenCockroachDB` and `GenCrateDB` write the DSN with `GenPgxFromURL`, from the
+templates in the last column. Each scheme carries its own `GoPackage` and
+`DriverURL`, which name pgx, because it has no `Override`, and the README row
+of each has no ‡.
+
+Ken chose `ct` and `crate` for CrateDB. The automatic two letter alias of
+`cratedb` is `cr`, which `cockroachdb` holds, so `cratedb` lists `ct`. The
+default port 5432 is the port of the PostgreSQL interface of CrateDB, which
+is not the port of its HTTP interface, 4200.
+
+WHAT CHANGES FOR COCKROACHDB
+
+Until now `cockroachdb` had `Override: "pgx"` and the `Dialect` `postgres`.
+That changes three things that a caller can see:
+
+- `URL.Driver` is `cockroachdb`, not `pgx`. `usql` looks up its driver by
+  `URL.Driver`, so it needs an entry named `cockroachdb`.
+- `URL.Dialect` is `cockroachdb`, not `postgres`.
+- `cockroachdb` leaves the PostgreSQL family of `DialectProtocols`, so a
+  `postgres:` entry in a password file no longer matches a `cockroachdb://`
+  URL, and a `cockroachdb:` entry no longer matches a `postgres://` URL. D22
+  chose the dialect rule for `passfile`, and it now works as written: a
+  family is a product.
+
+The DSN of `cockroachdb` does not change, and `dburl.Open` still opens pgx,
+through `GoDriver`.
+
+Both DSNs were run through `pgconn.ParseConfig` at pgx v5.11.0. The host, the
+port, the database, the user, a password holding `@`, an option holding a
+space and the `sslmode` of each came back as intended.
+
+dbimp D76 had given `cratedb` to a future dbimp driver for the HTTP
+interface of CrateDB, in `github.com/xo/dbimp/cratedb`. Ken decided on
+2026-09-29, in dbimp D88, that dbimp writes no CrateDB driver. `usql` reaches
+CrateDB with pgx, as this scheme does, so the scheme stays on pgx.
+
+### D31. A password file entry matches the database and the user. Decided.
+
+The dbmeta session reported on 2026-09-29 that `usql` connected as the user
+`postgres` for `postgres://crate@127.0.0.1:5432/doc`, which names the user
+`crate`. The same URL written as `crate:@`, with an empty password, connected
+as `crate`. The fault was in this library, in two places, and not in `usql`.
+
+`passfile.MatchEntries` reads the password file only when the URL carries no
+password, so `crate:@` never read it. For `crate@` it took the first entry
+that matched the protocol, the host and the port, and returned the user of
+that entry, `postgres`, in place of `crate`. `Entry.Equals` never compared the
+database or the user, although the format is
+`protocol:host:port:dbname:user:pass`, as in a `.pgpass` file.
+
+`Equals` now compares every field. A field of the entry matches when it is
+`*` or equal to the field of the URL. The user has one exception: an entry
+matches a URL that names no user, so that the entry can supply the user. An
+entry never replaces a user that the URL names with a different one.
+
+The second fault made the first one invisible to a fix. `URL.Normalize`
+builds the fields that `MatchEntries` compares. With `cut`, it trims the
+empty fields at the end, and it cut one field too many: the last field that
+was not empty. So `postgres://crate@host:5432/doc` gave
+`postgres:host:5432:doc` with no user, and a URL that named a database and no
+user lost the database. `Normalize` now keeps the last field that is not
+empty, and it still keeps at least `cut` fields, which is what the old code
+gave when every field at the end was empty.
+
+`Normalize` is in `dburl.go` and is exported, so a change there reaches every
+caller. `passfile` is the only caller in this repository, and `usql`, dbtpl
+and dbmeta do not call it. `TestNormalize` is new, because nothing tested it.
+`TestMatchUserAndDatabase` covers the case that dbmeta reported, a URL user
+with no entry for it, an entry that supplies the user, an entry for one
+database, and an empty password. It failed on the old `Normalize`.

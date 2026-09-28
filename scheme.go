@@ -174,13 +174,25 @@ func BaseSchemes() []Scheme {
 		// wire compatibles
 		{
 			Driver:     "cockroachdb",
-			Generator:  GenPgxFromURL("postgres://localhost:26257/?sslmode=disable"),
+			Generator:  GenCockroachDB,
 			Aliases:    []string{"cr", "cockroach", "crdb", "cdb"},
-			Override:   "pgx",
 			Desc:       "CockroachDB",
 			Home:       "https://www.cockroachlabs.com",
+			GoPackage:  "github.com/jackc/pgx/v5/stdlib",
+			DriverURL:  "https://github.com/jackc/pgx",
 			Deployment: DeploymentServer | DeploymentHosted,
-			Dialect:    "postgres",
+			Dialect:    "cockroachdb",
+		},
+		{
+			Driver:     "cratedb",
+			Generator:  GenCrateDB,
+			Aliases:    []string{"ct", "crate"},
+			Desc:       "CrateDB",
+			Home:       "https://cratedb.com",
+			GoPackage:  "github.com/jackc/pgx/v5/stdlib",
+			DriverURL:  "https://github.com/jackc/pgx",
+			Deployment: DeploymentServer,
+			Dialect:    "cratedb",
 		},
 		{
 			Driver:     "memsql",
@@ -831,8 +843,9 @@ func Protocols(name string) []string {
 // schemes that share the Dialect of the named scheme, sorted. A scheme with no
 // Dialect returns its own [Protocols].
 //
-// For postgres it returns the names of postgres, pgx, pq, cockroachdb and
-// redshift, which all speak PostgreSQL.
+// For postgres it returns the names of postgres, pgx, pq and redshift.
+// cockroachdb and cratedb speak PostgreSQL, and are products of their own, so
+// each has a Dialect and a family of its own.
 func DialectProtocols(name string) []string {
 	scheme, ok := schemeMap[name]
 	switch {

@@ -288,12 +288,10 @@ func (u *URL) Normalize(sep, empty string, cut int) string {
 		}
 	}
 	if cut > 0 {
-		// cut to only populated fields
-		i := len(s) - 1
-		for ; i > cut; i-- {
-			if s[i] != "" {
-				break
-			}
+		// cut the empty fields at the end, and keep at least cut fields
+		i := len(s)
+		for i > cut && s[i-1] == "" {
+			i--
 		}
 		s = s[:i]
 	}

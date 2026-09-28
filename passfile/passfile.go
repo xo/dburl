@@ -102,10 +102,17 @@ func ParseFile(file string) ([]Entry, error) {
 }
 
 // Equals returns true when v matches the entry.
+//
+// Each field of the entry matches when it is "*" or equal to the field of v,
+// as in a .pgpass file. The user is the exception: an entry matches a v that
+// names no user, so that the entry can supply one. An entry never replaces a
+// user that v names with a different one.
 func (entry Entry) Equals(v Entry, protocols ...string) bool {
 	return (entry.Protocol == "*" || slices.Contains(protocols, entry.Protocol)) &&
 		(entry.Host == "*" || entry.Host == v.Host) &&
-		(entry.Port == "*" || entry.Port == v.Port)
+		(entry.Port == "*" || entry.Port == v.Port) &&
+		(entry.DBName == "*" || entry.DBName == v.DBName) &&
+		(entry.Username == "*" || v.Username == "" || entry.Username == v.Username)
 }
 
 // MatchEntries returns a Userinfo when the normalized v is found in entries.
@@ -158,7 +165,7 @@ func MatchFile(u *dburl.URL, file string, protocols ...string) (*url.Userinfo, e
 //
 // An entry matches when its protocol names any scheme that shares the dialect
 // of the URL's scheme, or any name of the URL's driver. So a postgres: entry
-// matches postgres://, pq:// and cockroachdb:// URLs.
+// matches postgres://, pq:// and redshift:// URLs.
 //
 // Equivalent to MatchFile(u, Path(homeDir, name), protocols...), where
 // protocols is dburl.DialectProtocols(u.UnaliasedDriver) followed by
