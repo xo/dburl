@@ -14,15 +14,12 @@ decided on the way (D27).
 dbimp D73 sets the order of the drivers after Neo4j: InfluxDB, CrateDB,
 ArangoDB, Databend, TDengine, Apache Pinot, rqlite, then libSQL and Turso.
 InfluxDB is done (D29). CrateDB is done on pgx and gets no dbimp driver (D30
-and dbimp D88). ArangoDB is provisional (D32), and so are TDengine, Pinot and rqlite (D36).
+and dbimp D88). ArangoDB is done, and checked against dbimp v0.5.0 (D32). TDengine, Pinot
+and rqlite are provisional (D36).
 D38 lets a release carry them before their drivers are tagged.
 dbimp settles the name and the URL form of each one in its step 9, and the
 name is the database as one lower case word (dbimp D26, D28 and D30). Add
 each scheme when its driver has `ParseDSN` at a tag, under rule 3.
-
-ArangoDB has a provisional scheme, `arangodb`, under D32. When the dbimp
-driver has `ParseDSN` at a tag, run `GenArangoDB` through it, and confirm the
-name and the aliases with Ken, before this library is tagged.
 
 Ken decided these names on 2026-09-28, in dbimp D76:
 

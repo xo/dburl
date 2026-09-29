@@ -1411,6 +1411,14 @@ always the password of the URL, and `auth=bearer` sends it as a bearer token.
 The driver still has no `ParseDSN` at a tag, so the condition above still
 holds.
 
+dbimp `v0.5.0` was released on 2026-09-29 with the driver, and Ken approved
+it. `GenArangoDB`, as v0.36.0 of this library ships it, was run through
+`arangodb.ParseDSN` at `v0.5.0` from `proxy.golang.org`. With no port the
+driver used 8529, with no path it used `_system`, and a database holding
+`%2F`, `tls`, `cancel`, `batch` and `auth=bearer` all came back as intended.
+A path of two segments, an unknown key and `batch=0` failed in the driver.
+The generator needs no change, and the scheme is no longer provisional.
+
 ### D33. passfile opens the Go driver that dburl.Open opens. Amended by D37.
 
 Amended by D37: `URL.Driver` is now always the name for `sql.Open`, so
