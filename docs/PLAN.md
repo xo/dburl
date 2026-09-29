@@ -20,7 +20,7 @@ if D11 amends D4, then D4 says so too.
 | [D8](#d8-a-scheme-is-added-only-when-the-driver-is-expected-in-usql) | Decided |
 | [D9](#d9-golangci-lint-runs-in-ci-at-a-pinned-version) | Decided |
 | [D10](#d10-a-rule-that-has-no-test-is-not-a-rule) | Amended by D17 |
-| [D11](#d11-netezza-keeps-sharing-genpostgres) | Decided |
+| [D11](#d11-netezza-keeps-sharing-genpostgres) | Replaced by D40 |
 | [D12](#d12-a-scheme-follows-its-driver-out-of-usql) | Decided |
 | [D13](#d13-this-registry-writes-two-published-driver-tables) | Amended by D17 |
 | [D14](#d14-an-alias-that-cannot-work-is-removed-not-left-failing) | Decided |
@@ -43,12 +43,13 @@ if D11 amends D4, then D4 says so too.
 | [D31](#d31-a-password-file-entry-matches-the-database-and-the-user) | Decided |
 | [D32](#d32-arangodb-is-a-provisional-scheme-for-the-dbimp-driver) | Amended by D34 and D38 |
 | [D33](#d33-passfile-opens-the-go-driver-that-dburlopen-opens) | Amended by D37 |
-| [D34](#d34-a-default-port-is-added-only-where-the-driver-has-none) | Decided |
+| [D34](#d34-a-default-port-is-added-only-where-the-driver-has-none) | Amended by D40 |
 | [D35](#d35-a-spanner-url-names-its-host-first) | Decided |
 | [D36](#d36-gizmosql-questdb-and-three-provisional-schemes) | Amended by D38 |
 | [D37](#d37-a-scheme-names-its-driver-and-override-is-gone) | Decided |
 | [D38](#d38-a-missing-required-field-is-an-error-and-provisional-schemes-can-ship) | Decided |
 | [D39](#d39-databend-moves-to-the-dbimp-driver) | Decided |
+| [D40](#d40-the-nzgo-scheme-is-removed) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -200,7 +201,10 @@ step 9 of [SCHEME.md](SCHEME.md).
 
 When you write a rule in this file, write the test in the same commit.
 
-### D11. Netezza keeps sharing GenPostgres. Decided.
+### D11. Netezza keeps sharing GenPostgres. Replaced by D40.
+
+Replaced by D40: the `nzgo` scheme is removed, so no Netezza scheme shares
+`GenPostgres`.
 
 Raised because `nzgo` is registered against `GenPostgres`, which `postgres`
 also uses, and because the README does not mark Netezza wire compatible.
@@ -1439,7 +1443,9 @@ opens a `cockroachdb://` URL, and it failed with `unknown driver
 "cockroachdb"` on the old code. `Example_parse`, which calls `sql.Open`
 itself, now shows how to choose between `GoDriver` and `Driver`.
 
-### D34. A default port is added only where the driver has none. Amends D7, D25, D26, D28, D29, D30 and D32.
+### D34. A default port is added only where the driver has none. Amends D7, D25, D26, D28, D29, D30 and D32. Amended by D40.
+
+Amended by D40: the `nzgo` scheme and its default port 5480 are removed.
 
 Ken decided on 2026-09-29 that a generator adds a default port only when the
 driver that reads the DSN has no default port of its own. Whether it has one
@@ -1764,3 +1770,21 @@ When a dbimp tag holds the driver, `GenDatabend` is run through its
 `ParseDSN`, and it changes where the two disagree. Until `usql` imports the
 dbimp driver, a release that carries D39 names a package that `usql` does
 not link.
+
+### D40. The nzgo scheme is removed. Replaces D11. Amends D34.
+
+Ken decided on 2026-09-29 to remove Netezza. He found no sign that the
+`nzgo` scheme was ever tested or used, and he cannot get a copy of Netezza to
+test against. dbmeta has no Netezza container and no model.
+
+The scheme `nzgo`, its aliases `nz` and `netezza`, and `GenNzgo` are
+removed. `GenPostgres` now serves only lib/pq, through `GenPq`, so D11, which
+kept Netezza on `GenPostgres`, no longer applies. D34's default port of 5480
+for Netezza goes with it. `GenPostgres` keeps its quoting of any Unicode
+space, which nzgo needed and lib/pq accepts.
+
+D12 removes a scheme when `usql` removes its driver. Here both go at once, by
+Ken's decision. `usql` staged the removal of its driver on 2026-09-29, and the
+two can land in either order: `usql` without the driver reports that no
+driver is available for a `netezza://` URL, whichever dburl it pins. Every removed name now returns `ErrUnknownDatabaseScheme`, and
+`TestBadParse` has a case for each, as D20 set for the schemes it removed.

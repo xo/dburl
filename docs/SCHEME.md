@@ -66,7 +66,7 @@ when the DSN is a URL and needs no default port.
 
 A hand written `GenXxx(u *URL) (string, string, error)` in `dsn.go` covers
 everything else. Use it when the DSN is not a URL, such as the `key=value`
-form that lib/pq, nzgo and ODBC take. Use it also when the generator needs to
+form that lib/pq and ODBC take. Use it also when the generator needs to
 reject something.
 
 A generator returns an error when the URL lacks a field that the driver

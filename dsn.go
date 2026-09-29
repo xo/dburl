@@ -2,7 +2,6 @@ package dburl
 
 import (
 	"fmt"
-	"net"
 	"net/url"
 	"path"
 	"sort"
@@ -206,23 +205,6 @@ func GenRqlite(u *URL) (string, string, error) {
 // [xo/dbimp]: https://github.com/xo/dbimp
 func GenTDengine(u *URL) (string, string, error) {
 	return genRewrite(u, "tdengine", "6041", u.RawQuery), "", nil
-}
-
-// GenNzgo generates a nzgo DSN from the passed URL.
-//
-// It is the DSN of [GenPostgres], with the default port 5480, which is the
-// port of Netezza. nzgo would use 5432 (D34). A unix socket keeps no default.
-func GenNzgo(u *URL) (string, string, error) {
-	if u.Port() != "" || u.Transport == "unix" {
-		return GenPostgres(u)
-	}
-	z := *u
-	z.Host = net.JoinHostPort(u.Hostname(), "5480")
-	dsn, goDriver, err := GenPostgres(&z)
-	if u.hostPortDB == nil {
-		u.hostPortDB = z.hostPortDB
-	}
-	return dsn, goDriver, err
 }
 
 // GenCassandra generates a cql DSN from the passed URL.
@@ -664,7 +646,7 @@ func GenOdbc(u *URL) (string, string, error) {
 // GenPgx supplies no default host and no default port, so the driver reads
 // PGHOST and then its socket default. See [GenPgxFromURL] for one that does.
 //
-// See [GenPostgres], which lib/pq and nzgo use instead.
+// See [GenPostgres], which lib/pq uses instead.
 //
 // [jackc/pgx/v5/stdlib]: https://github.com/jackc/pgx
 func GenPgx(u *URL) (string, string, error) {
@@ -780,14 +762,13 @@ func GenPq(u *URL) (string, string, error) {
 
 // GenPostgres generates a postgres DSN from the passed URL.
 //
-// Targets [lib/pq] and [IBM/nzgo/v12], which both read the keyword/value
-// form. A value holding a space, a quote or a backslash is quoted, as both
-// parsers require.
+// Targets [lib/pq], which reads the keyword/value form. A value holding a
+// space, a quote or a backslash is quoted, as the parser requires.
 //
-// See [GenPgx], which postgres uses instead.
+// See [GenPgx], which postgres uses instead, and [GenPq], which names the
+// driver for the pq scheme.
 //
 // [lib/pq]: https://github.com/lib/pq
-// [IBM/nzgo/v12]: https://github.com/IBM/nzgo
 func GenPostgres(u *URL) (string, string, error) {
 	host, port, dbname := u.Hostname(), u.Port(), strings.TrimPrefix(u.Path, "/")
 	if host == "." {

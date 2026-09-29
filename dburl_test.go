@@ -160,7 +160,6 @@ func TestParseDialect(t *testing.T) {
 		{`moderncsqlite:file.db`, "moderncsqlite", "moderncsqlite", "sqlite3"},
 		{`godror://user:pass@host/sid`, "godror", "godror", "oracle"},
 		{`oracle://user:pass@host/sid`, "oracle", "oracle", "oracle"},
-		{`nz://host/db`, "nzgo", "nzgo", "nzgo"},
 		{`arango://host/db`, "arangodb", "arangodb", "arangodb"},
 		{`influxdb://host/db`, "influxdb", "influxdb", "influxdb"},
 		{`influxql://host/db`, "influxql", "influxdb", "influxql"},
@@ -199,7 +198,6 @@ func TestDialectProtocols(t *testing.T) {
 		{"tidb", []string{"ti", "tidb"}},
 		{"cockroachdb", []string{"cdb", "cockroach", "cockroachdb", "cr", "crdb"}},
 		{"cratedb", []string{"crate", "cratedb", "ct"}},
-		{"nzgo", []string{"netezza", "nz", "nzgo"}},
 		{"file", []string{"file", "fi"}},
 		{"unknown", nil},
 	}
@@ -286,6 +284,9 @@ func TestBadParse(t *testing.T) {
 		{`prs://admin@host/catalogname`, ErrUnknownDatabaseScheme},
 		{`prestos://admin@host/catalogname`, ErrUnknownDatabaseScheme},
 		{`prestodbs://admin:pass@host:9998/catalogname`, ErrUnknownDatabaseScheme},
+		{`nzgo://user:pass@host/dbname`, ErrUnknownDatabaseScheme},
+		{`nz://user:pass@host/dbname`, ErrUnknownDatabaseScheme},
+		{`netezza://user:pass@host/dbname`, ErrUnknownDatabaseScheme},
 		{`mymysql://user:pass@host/dbname`, ErrUnknownDatabaseScheme},
 		{`zm://user:pass@host/dbname`, ErrUnknownDatabaseScheme},
 		{`mymy://user:pass@host/dbname`, ErrUnknownDatabaseScheme},
@@ -469,12 +470,6 @@ func TestParse(t *testing.T) {
 			`pq:/var/run/postgresql:6666/mydb`,
 			`postgres`,
 			`dbname=mydb host=/var/run/postgresql port=6666`,
-			``,
-		},
-		{
-			`nz://user:p%20ss@host/db`,
-			`nzgo`,
-			`dbname=db host=host password='p ss' port=5480 user=user`,
 			``,
 		},
 		{
@@ -1273,18 +1268,6 @@ func TestParse(t *testing.T) {
 			`memsql://root@host/db`,
 			`mysql`,
 			`root@tcp(host)/db`,
-			``,
-		},
-		{
-			`nz://user:pass@host:6000/db`,
-			`nzgo`,
-			`dbname=db host=host password=pass port=6000 user=user`,
-			``,
-		},
-		{
-			`nz://`,
-			`nzgo`,
-			`port=5480`,
 			``,
 		},
 		{

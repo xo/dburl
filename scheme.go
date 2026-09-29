@@ -562,18 +562,6 @@ func BaseSchemes() []Scheme {
 			Dialect:    "neo4j",
 		},
 		{
-			Name:       "nzgo",
-			Generator:  GenNzgo,
-			Transport:  TransportUnix,
-			Aliases:    []string{"nz", "netezza"},
-			Desc:       "Netezza",
-			Home:       "https://www.ibm.com/products/netezza",
-			GoPackage:  "github.com/IBM/nzgo/v12",
-			DriverURL:  "https://github.com/IBM/nzgo",
-			Deployment: DeploymentServer,
-			Dialect:    "nzgo",
-		},
-		{
 			Name:        "odbc",
 			Generator:   GenOdbc,
 			Transport:   TransportAny,

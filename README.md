@@ -155,7 +155,6 @@ to `sql.Open`:
 | InfluxDB InfluxQL    | `influxql`      | `iq`                                           | [github.com/xo/dbimp/influxdb][d-influxql]                                                  |
 | ModernC SQLite3      | `moderncsqlite` | `mq`, `modernsqlite`                           | [modernc.org/sqlite][d-moderncsqlite] <sup>[§][f-embedded]</sup>                            |
 | Neo4j                | `neo4j`         | `nj`, `neo`, `n4j`                             | [github.com/xo/dbimp/neo4j][d-neo4j]                                                        |
-| Netezza              | `nzgo`          | `nz`, `netezza`                                | [github.com/IBM/nzgo/v12][d-nzgo]                                                           |
 | ODBC                 | `odbc`          | `od`                                           | [github.com/alexbrainman/odbc][d-odbc] <sup>[†][f-cgo]</sup>                                |
 | PostgreSQL lib/pq    | `pq`            | `libpq`                                        | [github.com/lib/pq][d-pq]                                                                   |
 | PostgreSQL PGX       | `pgx`           | `px`                                           | [github.com/jackc/pgx/v5/stdlib][d-pgx]                                                     |
@@ -206,7 +205,6 @@ to `sql.Open`:
 [d-moderncsqlite]: https://gitlab.com/cznic/sqlite
 [d-mysql]: https://github.com/go-sql-driver/mysql
 [d-neo4j]: https://github.com/xo/dbimp
-[d-nzgo]: https://github.com/IBM/nzgo
 [d-odbc]: https://github.com/alexbrainman/odbc
 [d-oracle]: https://github.com/sijms/go-ora
 [d-ots]: https://github.com/aliyun/aliyun-tablestore-go-sql-driver
