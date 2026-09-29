@@ -675,17 +675,6 @@ func BaseSchemes() []Scheme {
 			Dialect:    "surrealdb",
 		},
 		{
-			Name:       "tdengine",
-			Generator:  GenTDengine,
-			Aliases:    []string{"td"},
-			Desc:       "TDengine",
-			Home:       "https://tdengine.com",
-			GoPackage:  "github.com/xo/dbimp/tdengine",
-			DriverURL:  "https://github.com/xo/dbimp",
-			Deployment: DeploymentServer,
-			Dialect:    "tdengine",
-		},
-		{
 			Name:       "trino",
 			Generator:  GenTrino,
 			Aliases:    []string{"trino", "trinos", "trs"},

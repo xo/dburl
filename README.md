@@ -165,7 +165,6 @@ to `sql.Open`:
 | SingleStore MemSQL   | `memsql`        | `me`                                           | [github.com/go-sql-driver/mysql][d-memsql]                                                  |
 | Snowflake            | `snowflake`     | `sf`                                           | [github.com/snowflakedb/gosnowflake/v2][d-snowflake] <sup>[¶][f-hosted]</sup>               |
 | SurrealDB            | `surrealdb`     | `sr`, `sur`, `surreal`                         | [github.com/xo/dbimp/surrealdb][d-surrealdb]                                                |
-| TDengine             | `tdengine`      | `td`                                           | [github.com/xo/dbimp/tdengine][d-tdengine]                                                  |
 | TiDB                 | `tidb`          | `ti`                                           | [github.com/go-sql-driver/mysql][d-tidb]                                                    |
 | Trino                | `trino`         | `tr`, `trs`, `trinos`                          | [github.com/trinodb/trino-go-client/trino][d-trino]                                         |
 | Vertica              | `vertica`       | `ve`                                           | [github.com/vertica/vertica-sql-go][d-vertica]                                              |
@@ -222,7 +221,6 @@ to `sql.Open`:
 [d-sqlite3]: https://github.com/mattn/go-sqlite3
 [d-sqlserver]: https://github.com/microsoft/go-mssqldb
 [d-surrealdb]: https://github.com/xo/dbimp
-[d-tdengine]: https://github.com/xo/dbimp
 [d-tidb]: https://github.com/go-sql-driver/mysql
 [d-trino]: https://github.com/trinodb/trino-go-client
 [d-vertica]: https://github.com/vertica/vertica-sql-go

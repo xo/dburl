@@ -195,18 +195,6 @@ func GenRqlite(u *URL) (string, string, error) {
 	return genRewrite(u, "rqlite", "4001", u.RawQuery), "", nil
 }
 
-// GenTDengine generates a tdengine DSN from the passed URL.
-//
-// Targets the driver planned in [xo/dbimp], with the default port 6041, which
-// is the port of the REST interface of TDengine. The user information, the
-// path and the query pass through. The driver does not exist yet, so this
-// generator is provisional (D36).
-//
-// [xo/dbimp]: https://github.com/xo/dbimp
-func GenTDengine(u *URL) (string, string, error) {
-	return genRewrite(u, "tdengine", "6041", u.RawQuery), "", nil
-}
-
 // GenCassandra generates a cql DSN from the passed URL.
 //
 // Targets [xo/cql], which reads a cql:// URL with net/url. The scheme is

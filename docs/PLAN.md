@@ -45,11 +45,12 @@ if D11 amends D4, then D4 says so too.
 | [D33](#d33-passfile-opens-the-go-driver-that-dburlopen-opens) | Amended by D37 |
 | [D34](#d34-a-default-port-is-added-only-where-the-driver-has-none) | Amended by D40 |
 | [D35](#d35-a-spanner-url-names-its-host-first) | Decided |
-| [D36](#d36-gizmosql-questdb-and-three-provisional-schemes) | Amended by D38 |
+| [D36](#d36-gizmosql-questdb-and-three-provisional-schemes) | Amended by D38 and D41 |
 | [D37](#d37-a-scheme-names-its-driver-and-override-is-gone) | Decided |
-| [D38](#d38-a-missing-required-field-is-an-error-and-provisional-schemes-can-ship) | Decided |
+| [D38](#d38-a-missing-required-field-is-an-error-and-provisional-schemes-can-ship) | Amended by D41 |
 | [D39](#d39-databend-moves-to-the-dbimp-driver) | Decided |
 | [D40](#d40-the-nzgo-scheme-is-removed) | Decided |
+| [D41](#d41-the-tdengine-scheme-is-removed) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -1546,7 +1547,10 @@ The output was run through `ExtractConnectorConfig` at v1.26.0. The host, the
 project, the instance, the database and `usePlainText` came back as intended,
 with a host and without one.
 
-### D36. gizmosql, questdb, and three provisional schemes. Amended by D38.
+### D36. gizmosql, questdb, and three provisional schemes. Amended by D38 and D41.
+
+Amended by D41: the `tdengine` scheme is removed, because dbimp writes no
+TDengine driver.
 
 Amended by D38: a release may carry the provisional schemes before their
 drivers are tagged. The aliases are `qs`, `td`, `pi` and `rq`, and Pinot keeps
@@ -1677,7 +1681,9 @@ WHAT CHANGES FOR A CALLER
 `file` must document its package. `TestParseDialect` checks `SchemeName`,
 `Driver` and `Dialect` for every kind of scheme.
 
-### D38. A missing required field is an error, and provisional schemes can ship. Amends D32 and D36.
+### D38. A missing required field is an error, and provisional schemes can ship. Amends D32 and D36. Amended by D41.
+
+Amended by D41: the alias `td` goes with the `tdengine` scheme.
 
 Ken decided these on 2026-09-29.
 
@@ -1798,3 +1804,21 @@ Ken's decision. `usql` staged the removal of its driver on 2026-09-29, and the
 two can land in either order: `usql` without the driver reports that no
 driver is available for a `netezza://` URL, whichever dburl it pins. Every removed name now returns `ErrUnknownDatabaseScheme`, and
 `TestBadParse` has a case for each, as D20 set for the schemes it removed.
+
+### D41. The tdengine scheme is removed. Amends D36 and D38.
+
+dbimp D127, which Ken decided on 2026-09-29, says that dbimp writes no
+TDengine driver, and moves TDengine to P3. The REST interface of TDengine
+ends a failed result as valid JSON with code 0 and a partial row count, so a
+driver cannot tell a cut result from a whole one. The WebSocket interface
+reports the failure, but it needs a binary encoding and a transport that is
+not HTTP.
+
+The provisional `tdengine` scheme of D36 therefore has no driver coming, and
+rule 8 allows a scheme only for a driver that `usql` carries or expects soon.
+Ken decided to remove it. The scheme, its alias `td` from D38 and
+`GenTDengine` are removed, and both names return `ErrUnknownDatabaseScheme`.
+The scheme shipped in v0.36.0 and v0.37.0, so the removal is breaking, but no
+driver could open a `tdengine://` URL.
+
+A scheme can return, as D12 says, if a driver for TDengine appears.
