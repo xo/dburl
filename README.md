@@ -140,7 +140,6 @@ to `sql.Open`:
 | CockroachDB          | `cockroachdb`   | `cr`, `cdb`, `crdb`, `cockroach`               | [github.com/jackc/pgx/v5/stdlib][d-cockroachdb]                                             |
 | Couchbase            | `couchbase`     | `n1`, `n1ql`                                   | [github.com/xo/dbimp/couchbase][d-couchbase]                                                |
 | CrateDB              | `cratedb`       | `ct`, `crate`                                  | [github.com/jackc/pgx/v5/stdlib][d-cratedb]                                                 |
-| Cznic QL             | `ql`            | `cznic`, `cznicql`                             | [modernc.org/ql][d-ql] <sup>[§][f-embedded]</sup>                                           |
 | Databend             | `databend`      | `dd`, `bend`                                   | [github.com/xo/dbimp/databend][d-databend]                                                  |
 | Databricks           | `databricks`    | `br`, `brick`, `bricks`, `databrick`           | [github.com/databricks/databricks-sql-go][d-databricks] <sup>[¶][f-hosted]</sup>            |
 | DynamoDb             | `godynamo`      | `dy`, `dyn`, `dynamo`, `dynamodb`              | [github.com/btnguyen2k/godynamo][d-godynamo] <sup>[¶][f-hosted]</sup>                       |
@@ -212,7 +211,6 @@ to `sql.Open`:
 [d-postgres]: https://github.com/jackc/pgx
 [d-pq]: https://github.com/lib/pq
 [d-presto]: https://github.com/prestodb/presto-go-client
-[d-ql]: https://gitlab.com/cznic/ql
 [d-questdb]: https://github.com/jackc/pgx
 [d-redshift]: https://github.com/jackc/pgx
 [d-rqlite]: https://github.com/xo/dbimp

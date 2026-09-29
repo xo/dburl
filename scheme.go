@@ -608,17 +608,6 @@ func BaseSchemes() []Scheme {
 			Dialect:    "presto",
 		},
 		{
-			Name:       "ql",
-			Generator:  GenOpaque,
-			Opaque:     true,
-			Aliases:    []string{"ql", "cznic", "cznicql"},
-			Desc:       "Cznic QL",
-			GoPackage:  "modernc.org/ql",
-			DriverURL:  "https://gitlab.com/cznic/ql",
-			Deployment: DeploymentEmbedded,
-			Dialect:    "ql",
-		},
-		{
 			Name:       "questdb",
 			Generator:  GenQuestDB,
 			Aliases:    []string{"qs"},

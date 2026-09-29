@@ -51,6 +51,7 @@ if D11 amends D4, then D4 says so too.
 | [D39](#d39-databend-moves-to-the-dbimp-driver) | Decided |
 | [D40](#d40-the-nzgo-scheme-is-removed) | Decided |
 | [D41](#d41-the-tdengine-scheme-is-removed) | Decided |
+| [D42](#d42-the-ql-scheme-is-removed) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -1822,3 +1823,17 @@ The scheme shipped in v0.36.0 and v0.37.0, so the removal is breaking, but no
 driver could open a `tdengine://` URL.
 
 A scheme can return, as D12 says, if a driver for TDengine appears.
+
+### D42. The ql scheme is removed. Decided.
+
+Ken decided on 2026-09-30 to remove support for the ql driver,
+`modernc.org/ql`. The `usql` session reported that ql was an unfinished
+experiment, and that a rarely used database must not force logic into `usql`.
+Its handling of a batch as a transaction was the example. `usql` removes its
+driver in the same release.
+
+Under D12, the scheme follows its driver out of `usql`. The `ql` scheme and
+its aliases `cznic` and `cznicql` are removed, and each name now returns
+`ErrUnknownDatabaseScheme`. `TestBadParse` has a case for each, as D20 set.
+The scheme was opaque and used `GenOpaque`, which stays, because every other
+database held in a file uses it.
