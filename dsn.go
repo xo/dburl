@@ -332,11 +332,19 @@ func GenCosmos(u *URL) (string, string, error) {
 }
 
 // GenDatabend generates a databend DSN from the passed URL.
+//
+// Targets the driver planned in [xo/dbimp/databend], which replaces
+// databend-go and reads a databend:// URL and refuses any other scheme, so
+// the scheme is always databend, whichever alias was parsed. The user
+// information, the path, which names the database, and the query pass
+// through as they were written. It adds no port, because the driver defaults
+// to 8000, with TLS or without (D34 and D39).
+//
+// The driver has no tag yet, so this generator is provisional (D39).
+//
+// [xo/dbimp/databend]: https://github.com/xo/dbimp
 func GenDatabend(u *URL) (string, string, error) {
-	if u.Hostname() == "" {
-		return "", "", ErrMissingHost
-	}
-	return u.String(), "", nil
+	return genRewrite(u, "databend", "", u.RawQuery), "", nil
 }
 
 // GenDynamo generates a dynamo DSN from the passed URL.

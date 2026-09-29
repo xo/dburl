@@ -29,11 +29,10 @@ Ken decided these names on 2026-09-28, in dbimp D76:
   `databend` and replaces `github.com/datafuselabs/databend-go` here and in
   `usql` (dbimp D24). The two are never linked together.
 
-When the `databend` scheme moves, `GenDatabend` must write the scheme
-`databend` itself. Today it passes the URL through, so `bend://` reaches the
-driver with the scheme `bend`. `databend-go` v0.9.4 reads only whether the
-scheme ends in `http`, so that works today. The dbimp driver refuses every
-scheme but its own name (dbimp D35).
+The `databend` scheme moved to the dbimp driver under D39, with a provisional
+generator that writes the scheme `databend` and adds no port, as dbimp D117
+decides. When a dbimp tag holds the driver, run `GenDatabend` through its
+`ParseDSN`.
 
 ### Find a driver for gizmosql that keeps a session
 

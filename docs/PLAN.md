@@ -48,6 +48,7 @@ if D11 amends D4, then D4 says so too.
 | [D36](#d36-gizmosql-questdb-and-three-provisional-schemes) | Amended by D38 |
 | [D37](#d37-a-scheme-names-its-driver-and-override-is-gone) | Decided |
 | [D38](#d38-a-missing-required-field-is-an-error-and-provisional-schemes-can-ship) | Decided |
+| [D39](#d39-databend-moves-to-the-dbimp-driver) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -1720,3 +1721,46 @@ RELEASE, ALIASES AND A RENAME
 
 `TestBadParse` covers the new errors for surrealdb, awsathena and bigquery,
 and `TestParseDialect` covers `qs`.
+
+### D39. databend moves to the dbimp driver. Decided.
+
+Ken decided in dbimp D24 and D76 that `github.com/xo/dbimp/databend`
+replaces `github.com/datafuselabs/databend-go` in `usql` and here, and asked
+on 2026-09-29 for the scheme to move now. Ken decided the URL the same day,
+in dbimp D117. No dbimp tag holds the driver yet, so the generator is
+provisional, as D32 was for ArangoDB and D36 is for three others.
+
+The URL is `databend://user:password@host:port/database?key=value`. The path
+names the database, and no path means `default`. The driver refuses a path of
+more than one segment. It has its own default port, 8000, for HTTP and for
+`tls=true` alike. Only `tls=true` chooses TLS, never the scheme. The keys are
+`tls`, `auth`, `cancel` and `timezone`, and the driver refuses any other key.
+
+`GenDatabend` now uses `genRewrite`. It writes the scheme `databend`
+whichever alias was parsed, because a dbimp driver refuses any scheme but its
+own name (dbimp D35). Before, it passed the URL through as it was typed, so
+`bend://` reached the driver with the scheme `bend`. The user information,
+the path and the query pass through. It adds no port, because the driver
+defaults to 8000 (D34).
+
+The default host is `localhost`. Before, `GenDatabend` returned
+`ErrMissingHost` for a URL with no host, because databend-go would dial
+`:443`. A dbimp driver refuses an empty host, so dburl supplies one under
+rule 7, as it does for every dbimp driver.
+
+`GoPackage` is `github.com/xo/dbimp/databend`, and `DriverURL` is
+`https://github.com/xo/dbimp`. The name `databend`, the aliases `dd` and
+`bend`, and the `Dialect` `databend` do not change.
+
+databend-go read keys such as `sslmode`, `tenant` and `warehouse`, and chose
+HTTPS unless `sslmode=disable`. The dbimp driver refuses those keys, and it
+speaks HTTP unless `tls=true`. dbimp offered two choices: drop those keys, or
+refuse a URL that holds them. `GenDatabend` does neither. It passes them
+through, and the driver refuses them, under D5, as D21 did for the old
+MaxCompute keys. A URL written for databend-go must be rewritten, and a
+release note says so.
+
+When a dbimp tag holds the driver, `GenDatabend` is run through its
+`ParseDSN`, and it changes where the two disagree. Until `usql` imports the
+dbimp driver, a release that carries D39 names a package that `usql` does
+not link.

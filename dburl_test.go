@@ -283,8 +283,6 @@ func TestBadParse(t *testing.T) {
 		{`tablestore+tcp://`, ErrInvalidTransportProtocol},
 		{`mc+tcp://id:key@host/api?project=p`, ErrInvalidTransportProtocol},
 		{`maxcompute+unix:/var/run/mc.sock`, ErrInvalidTransportProtocol},
-		{`bend://`, ErrMissingHost},
-		{`databend://`, ErrMissingHost},
 		{`prs://admin@host/catalogname`, ErrUnknownDatabaseScheme},
 		{`prestos://admin@host/catalogname`, ErrUnknownDatabaseScheme},
 		{`prestodbs://admin:pass@host:9998/catalogname`, ErrUnknownDatabaseScheme},
@@ -1368,6 +1366,18 @@ func TestParse(t *testing.T) {
 			``,
 		},
 		{
+			`databend://`,
+			`databend`,
+			`databend://localhost`,
+			``,
+		},
+		{
+			`dd://root:pw@127.0.0.1:9000/default`,
+			`databend`,
+			`databend://root:pw@127.0.0.1:9000/default`,
+			``,
+		},
+		{
 			`ca://`,
 			`cql`,
 			`cql://localhost`,
@@ -1460,7 +1470,7 @@ func TestParse(t *testing.T) {
 		{
 			`bend://user:pass@localhost/instance_name?sslmode=disabled&warehouse=wh`,
 			`databend`,
-			`bend://user:pass@localhost/instance_name?sslmode=disabled&warehouse=wh`,
+			`databend://user:pass@localhost/instance_name?sslmode=disabled&warehouse=wh`,
 			``,
 		},
 		{
