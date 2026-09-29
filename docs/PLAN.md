@@ -1771,6 +1771,16 @@ When a dbimp tag holds the driver, `GenDatabend` is run through its
 dbimp driver, a release that carries D39 names a package that `usql` does
 not link.
 
+dbimp `v0.6.0` was released on 2026-09-29 with the driver. `GenDatabend` was
+run through `databend.ParseDSN` at `v0.6.0` from `proxy.golang.org`. With no
+port the driver used 8000, and with no path it used `default`. `dd://` and
+`bend://` reached it as `databend://`, and a database holding `%2F`, `tls`,
+`cancel`, `timezone` and `auth=bearer` came back as intended. A path of two
+segments failed in the driver, and a URL that held `sslmode` and `warehouse`
+failed with `"sslmode": unknown key`, as the pass-through choice above
+intends. The generator needs no change, and the scheme is no longer
+provisional.
+
 ### D40. The nzgo scheme is removed. Replaces D11. Amends D34.
 
 Ken decided on 2026-09-29 to remove Netezza. He found no sign that the

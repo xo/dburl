@@ -14,25 +14,18 @@ decided on the way (D27).
 dbimp D73 sets the order of the drivers after Neo4j: InfluxDB, CrateDB,
 ArangoDB, Databend, TDengine, Apache Pinot, rqlite, then libSQL and Turso.
 InfluxDB is done (D29). CrateDB is done on pgx and gets no dbimp driver (D30
-and dbimp D88). ArangoDB is done, and checked against dbimp v0.5.0 (D32). TDengine, Pinot
-and rqlite are provisional (D36).
-D38 lets a release carry them before their drivers are tagged.
+and dbimp D88). ArangoDB is done, checked against dbimp v0.5.0 (D32), and
+Databend is done, checked against dbimp v0.6.0 (D39). TDengine, Pinot and
+rqlite are provisional (D36), and D38 lets a release carry them before their
+drivers are tagged.
 dbimp settles the name and the URL form of each one in its step 9, and the
 name is the database as one lower case word (dbimp D26, D28 and D30). Add
 each scheme when its driver has `ParseDSN` at a tag, under rule 3.
 
-Ken decided these names on 2026-09-28, in dbimp D76:
+Ken decided on 2026-09-28, in dbimp D76, that libSQL and Turso are one
+product with one driver, `libsql`, in the package
+`github.com/xo/dbimp/libsql`, and that `turso` is an alias here.
 
-- libSQL and Turso are one product with one driver, `libsql`, in the package
-  `github.com/xo/dbimp/libsql`. `turso` is an alias here.
-- Databend moves to `github.com/xo/dbimp/databend`, which registers
-  `databend` and replaces `github.com/datafuselabs/databend-go` here and in
-  `usql` (dbimp D24). The two are never linked together.
-
-The `databend` scheme moved to the dbimp driver under D39, with a provisional
-generator that writes the scheme `databend` and adds no port, as dbimp D117
-decides. When a dbimp tag holds the driver, run `GenDatabend` through its
-`ParseDSN`.
 
 ### Find a driver for gizmosql that keeps a session
 
