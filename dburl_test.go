@@ -156,6 +156,7 @@ func TestParseDialect(t *testing.T) {
 		{`qs://host/qdb`, "questdb", "pgx", "questdb"},
 		{`pinot://host`, "pinot", "pinot", "pinot"},
 		{`rqlite://host`, "rqlite", "rqlite", "rqlite"},
+		{`turso://host`, "libsql", "libsql", "libsql"},
 		{`moderncsqlite:file.db`, "moderncsqlite", "moderncsqlite", "sqlite3"},
 		{`godror://user:pass@host/sid`, "godror", "godror", "oracle"},
 		{`oracle://user:pass@host/sid`, "oracle", "oracle", "oracle"},
@@ -1342,7 +1343,7 @@ func TestParse(t *testing.T) {
 		{
 			`rqlite://user:pass@127.0.0.1`,
 			`rqlite`,
-			`rqlite://user:pass@127.0.0.1:4001`,
+			`rqlite://user:pass@127.0.0.1`,
 			``,
 		},
 		{
@@ -1355,6 +1356,24 @@ func TestParse(t *testing.T) {
 			`dd://root:pw@127.0.0.1:9000/default`,
 			`databend`,
 			`databend://root:pw@127.0.0.1:9000/default`,
+			``,
+		},
+		{
+			`libsql://`,
+			`libsql`,
+			`libsql://localhost`,
+			``,
+		},
+		{
+			`turso://user:tok@db-org.turso.io`,
+			`libsql`,
+			`libsql://user:tok@db-org.turso.io`,
+			``,
+		},
+		{
+			`ls://:tok@127.0.0.1:8080?tls=false`,
+			`libsql`,
+			`libsql://:tok@127.0.0.1:8080?tls=false`,
 			``,
 		},
 		{

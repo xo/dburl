@@ -539,6 +539,17 @@ func BaseSchemes() []Scheme {
 			Dialect:    "influxql",
 		},
 		{
+			Name:       "libsql",
+			Generator:  GenLibsql,
+			Aliases:    []string{"ls", "turso"},
+			Desc:       "libSQL",
+			Home:       "https://turso.tech",
+			GoPackage:  "github.com/xo/dbimp/libsql",
+			DriverURL:  "https://github.com/xo/dbimp",
+			Deployment: DeploymentServer | DeploymentHosted,
+			Dialect:    "libsql",
+		},
+		{
 			Name:       "maxcompute",
 			Generator:  GenMaxCompute,
 			Transport:  TransportAny,

@@ -185,14 +185,14 @@ func GenPinot(u *URL) (string, string, error) {
 
 // GenRqlite generates a rqlite DSN from the passed URL.
 //
-// Targets the driver planned in [xo/dbimp], with the default port 4001, which
-// is the port of the HTTP API of rqlite. The user information, the path and
-// the query pass through. The driver does not exist yet, so this generator is
-// provisional (D36).
+// Targets [xo/dbimp/rqlite], which reads a rqlite:// URL and refuses any
+// other scheme, and refuses a path. The user information, the path and the
+// query pass through as they were written. It adds no port, because the
+// driver defaults to 4001, the port of the HTTP API of rqlite (D34 and D44).
 //
-// [xo/dbimp]: https://github.com/xo/dbimp
+// [xo/dbimp/rqlite]: https://github.com/xo/dbimp
 func GenRqlite(u *URL) (string, string, error) {
-	return genRewrite(u, "rqlite", "4001", u.RawQuery), "", nil
+	return genRewrite(u, "rqlite", "", u.RawQuery), "", nil
 }
 
 // GenCassandra generates a cql DSN from the passed URL.
@@ -490,6 +490,20 @@ func GenInfluxQL(u *URL) (string, string, error) {
 		q += "sqlmode=disable"
 	}
 	return genRewrite(u, "influxdb", "", q), "influxdb", nil
+}
+
+// GenLibsql generates a libsql DSN from the passed URL.
+//
+// Targets [xo/dbimp/libsql], which serves libSQL and Turso, reads a libsql://
+// URL and refuses any other scheme, and refuses a path. The token is the
+// password of the URL. The user information and the query pass through as
+// they were written. It adds no port, because the driver defaults to 443 with
+// TLS, which is on by default, and needs an explicit port with tls=false
+// (D34 and D45).
+//
+// [xo/dbimp/libsql]: https://github.com/xo/dbimp
+func GenLibsql(u *URL) (string, string, error) {
+	return genRewrite(u, "libsql", "", u.RawQuery), "", nil
 }
 
 // GenMaxCompute generates a maxcompute DSN from the passed URL.

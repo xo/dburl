@@ -45,7 +45,7 @@ if D11 amends D4, then D4 says so too.
 | [D33](#d33-passfile-opens-the-go-driver-that-dburlopen-opens) | Amended by D37 |
 | [D34](#d34-a-default-port-is-added-only-where-the-driver-has-none) | Amended by D40 |
 | [D35](#d35-a-spanner-url-names-its-host-first) | Decided |
-| [D36](#d36-gizmosql-questdb-and-three-provisional-schemes) | Amended by D38, D41 and D43 |
+| [D36](#d36-gizmosql-questdb-and-three-provisional-schemes) | Amended by D38, D41, D43 and D44 |
 | [D37](#d37-a-scheme-names-its-driver-and-override-is-gone) | Decided |
 | [D38](#d38-a-missing-required-field-is-an-error-and-provisional-schemes-can-ship) | Amended by D41 and D43 |
 | [D39](#d39-databend-moves-to-the-dbimp-driver) | Decided |
@@ -53,6 +53,8 @@ if D11 amends D4, then D4 says so too.
 | [D41](#d41-the-tdengine-scheme-is-removed) | Decided |
 | [D42](#d42-the-ql-scheme-is-removed) | Decided |
 | [D43](#d43-pinot-is-checked-against-dbimp-v070) | Decided |
+| [D44](#d44-rqlite-is-checked-against-dbimp-v080) | Decided |
+| [D45](#d45-libsql-opens-xodbimplibsql) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -1549,7 +1551,10 @@ The output was run through `ExtractConnectorConfig` at v1.26.0. The host, the
 project, the instance, the database and `usePlainText` came back as intended,
 with a host and without one.
 
-### D36. gizmosql, questdb, and three provisional schemes. Amended by D38, D41 and D43.
+### D36. gizmosql, questdb, and three provisional schemes. Amended by D38, D41, D43 and D44.
+
+Amended by D44: `rqlite` is checked against dbimp `v0.8.0`, and adds no
+port.
 
 Amended by D43: `pinot` is checked against dbimp `v0.7.0`, and adds no port.
 
@@ -1862,3 +1867,53 @@ all-in-one container. Now the driver has a default of its own, so under D34
 password holding `@` and a space, `tls`, `cancel`, `engine` and `auth=bearer`
 came back as intended. A path and an unknown key failed in the driver, under
 D5. The scheme is no longer provisional.
+
+### D44. rqlite is checked against dbimp v0.8.0. Amends D36.
+
+dbimp `v0.8.0` was released on 2026-10-01 with the rqlite driver,
+`github.com/xo/dbimp/rqlite`, and dbimp D141 settles its URL:
+`rqlite://user:password@host:port`, with no path, because rqlite has one
+database. The driver refuses a path, and refuses an `http` or `https` scheme.
+It takes the keys `tls`, `level` and `freshness`, and a URL with no user
+sends no credentials.
+
+With no port, the driver uses 4001, the port of the HTTP API of rqlite. D36
+had the provisional scheme add 4001 itself. Now the driver has that default
+of its own, so under D34 `GenRqlite` adds no port.
+
+`GenRqlite` was run through `rqlite.ParseDSN` at `v0.8.0` from
+`proxy.golang.org`. With no port the driver used 4001, and an explicit port,
+a password holding `@` and a space, `tls`, `level=strong` and
+`freshness=5s` came back as intended. A path, an unknown key and an invalid
+`level` failed in the driver, under D5. `GoPackage` was already the dbimp
+package, and the scheme is no longer provisional.
+
+### D45. libsql opens xo/dbimp/libsql. Decided.
+
+dbimp `v0.9.0` was released on 2026-10-01 with one driver for libSQL and
+Turso, `github.com/xo/dbimp/libsql`. Ken decided in dbimp D76 that the two are
+one product with one driver, `libsql`, and that `turso` is an alias that dburl
+owns. dbimp D148 settles the URL: `libsql://user:token@host:port`, with no
+path. The driver refuses a path.
+
+The scheme is `libsql`, with the aliases `ls` and `turso`. Ken chose `ls` as
+the two letter alias, so the automatic `li` is not registered. `Driver` and `Dialect` are both `libsql`. It needs no cgo. Its
+`Deployment` is `DeploymentServer|DeploymentHosted`, because the libSQL
+server `sqld` runs anywhere, and Turso is a hosted service.
+
+`GenLibsql` writes the scheme `libsql` whichever alias was parsed, and passes
+the user information and the query through. The token is the password of the
+URL, and the driver sends it as a bearer token, so the user name is only a
+label. `auth=basic` sends basic authentication instead. The driver takes the
+keys `tls`, `auth` and `namespace`, and refuses any other, such as the
+`authToken` of the old Go client, under D5.
+
+TLS is on by default. With TLS and no port, the driver uses 443, and with
+`tls=false` it needs an explicit port and refuses a URL without one. So under
+D34 `GenLibsql` adds no port, and a URL with `tls=false` must name one.
+
+`GenLibsql` was run through `libsql.ParseDSN` at `v0.9.0` from
+`proxy.golang.org`. With no port the driver used 443, `tls=false` with a port
+turned TLS off, and the token, `auth=basic`, `namespace` and a password
+holding `@` and a space came back as intended. `tls=false` with no port, a
+path and `authToken` failed in the driver.
