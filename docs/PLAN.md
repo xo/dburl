@@ -26,7 +26,7 @@ if D11 amends D4, then D4 says so too.
 | [D14](#d14-an-alias-that-cannot-work-is-removed-not-left-failing) | Decided |
 | [D15](#d15-dburl-does-not-validate-driver-option-values) | Decided |
 | [D16](#d16-a-required-option-with-no-valid-empty-value-gets-a-default) | Decided |
-| [D17](#d17-a-scheme-describes-its-own-database-and-driver) | Amended by D22, D30 and D37 |
+| [D17](#d17-a-scheme-describes-its-own-database-and-driver) | Amended by D22, D30, D37 and D46 |
 | [D18](#d18-a-scheme-records-how-the-database-is-deployed) | Decided |
 | [D19](#d19-a-scheme-names-the-dialect-of-its-product) | Amended by D22, D30 and D37 |
 | [D20](#d20-the-schemes-of-four-removed-drivers-leave-in-one-release) | Decided |
@@ -55,6 +55,7 @@ if D11 amends D4, then D4 says so too.
 | [D43](#d43-pinot-is-checked-against-dbimp-v070) | Decided |
 | [D44](#d44-rqlite-is-checked-against-dbimp-v080) | Decided |
 | [D45](#d45-libsql-opens-xodbimplibsql) | Decided |
+| [D46](#d46-dbmetas-tests-choose-their-driver-from-gopackage) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -416,7 +417,10 @@ library does.
 The general test, for the next option that looks like this one: ask what the
 driver does with nothing, not only what it does with something wrong.
 
-### D17. A scheme describes its own database and driver. Amends D10 and D13. Amended by D22, D30 and D37.
+### D17. A scheme describes its own database and driver. Amends D10 and D13. Amended by D22, D30, D37 and D46.
+
+Amended by D46: dbmeta's tests also read `GoPackage`, to choose the driver
+they import.
 
 Amended by D37: `Override` is gone. Every scheme except `file` documents its
 own `GoPackage` and `DriverURL`, and `Scheme.Driver` is now `Scheme.Name`.
@@ -1917,3 +1921,28 @@ D34 `GenLibsql` adds no port, and a URL with `tls=false` must name one.
 turned TLS off, and the token, `auth=basic`, `namespace` and a password
 holding `@` and a space came back as intended. `tls=false` with no port, a
 path and `authToken` failed in the driver.
+
+### D46. dbmeta's tests choose their driver from GoPackage. Amends D17.
+
+Ken approved dbmeta D154 on 2026-10-01. dbmeta's tests now import the driver
+that `Scheme.GoPackage` names, in place of the one that `usql` imports.
+dbmeta chose this because dburl is upstream of both `usql` and dbmeta, so the
+registry is the one place that names each driver.
+
+D17 added `GoPackage` so that `usql` could build its README table from the
+registry. Now the field has a second reader, and that reader runs code. A
+change to `GoPackage` changes which driver dbmeta tests against, with no
+change in the dbmeta repository. The Databend move of D39 and the Pinot and
+rqlite settlements of D43 and D44 would each have reached dbmeta this way.
+
+dbmeta takes only the import path from `GoPackage`, with its major version,
+such as `/v2` or `/v3`, and pins its own minor and patch release in its test
+module. So `GoPackage` must name the import path that registers the driver,
+with the major version that `usql` pins, which D17 already required. dbmeta
+does not follow the rest of `usql`'s pin. Oracle is the one exception:
+`GoPackage` names `go-ora/v3`, and dbmeta tests both v2 and v3 at a fixed
+commit (dbmeta D59 and D136).
+
+A change to `GoPackage` is reported to the dbmeta session, as a change to a
+scheme or an alias is reported to `usql` under D13. Step 6 of SCHEME.md says
+so.

@@ -185,6 +185,13 @@ that shares its driver with another. Set `RequiresCGO` when the driver needs
 cgo. Leave `Home` blank unless you have the database provider's page.
 `TestSchemeMetadata` checks all of this.
 
+`GoPackage` is read outside this repository. `usql` builds its README table
+from it, and dbmeta's tests import the driver that it names, so a change to
+`GoPackage` changes which driver dbmeta tests against. Name the import path
+that registers the driver, with the major version that `usql` pins, such as
+`/v2` or `/v3`. dbmeta pins its own minor and patch release. Tell the dbmeta
+session when you change it. That is D46.
+
 Set `Deployment` to how the database is deployed, which is D18. Set `Dialect`
 to the `Name` of the scheme that is canonical for the product, which is the
 scheme's own `Name` unless you are adding a second Go driver for a product
