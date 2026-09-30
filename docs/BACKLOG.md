@@ -16,9 +16,9 @@ ArangoDB, Databend, TDengine, Apache Pinot, rqlite, then libSQL and Turso.
 InfluxDB is done (D29). CrateDB is done on pgx and gets no dbimp driver (D30
 and dbimp D88). ArangoDB is done, checked against dbimp v0.5.0 (D32), and
 Databend is done, checked against dbimp v0.6.0 (D39). TDengine gets no dbimp
-driver (dbimp D127), so its scheme is removed (D41). Pinot and rqlite are
-provisional (D36), and D38 lets a release carry them before their drivers are
-tagged.
+driver (dbimp D127), so its scheme is removed (D41). Pinot is done, checked
+against dbimp v0.7.0 (D43). rqlite is provisional (D36), and D38 lets a
+release carry it before its driver is tagged.
 dbimp settles the name and the URL form of each one in its step 9, and the
 name is the database as one lower case word (dbimp D26, D28 and D30). Add
 each scheme when its driver has `ParseDSN` at a tag, under rule 3.

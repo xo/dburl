@@ -45,13 +45,14 @@ if D11 amends D4, then D4 says so too.
 | [D33](#d33-passfile-opens-the-go-driver-that-dburlopen-opens) | Amended by D37 |
 | [D34](#d34-a-default-port-is-added-only-where-the-driver-has-none) | Amended by D40 |
 | [D35](#d35-a-spanner-url-names-its-host-first) | Decided |
-| [D36](#d36-gizmosql-questdb-and-three-provisional-schemes) | Amended by D38 and D41 |
+| [D36](#d36-gizmosql-questdb-and-three-provisional-schemes) | Amended by D38, D41 and D43 |
 | [D37](#d37-a-scheme-names-its-driver-and-override-is-gone) | Decided |
-| [D38](#d38-a-missing-required-field-is-an-error-and-provisional-schemes-can-ship) | Amended by D41 |
+| [D38](#d38-a-missing-required-field-is-an-error-and-provisional-schemes-can-ship) | Amended by D41 and D43 |
 | [D39](#d39-databend-moves-to-the-dbimp-driver) | Decided |
 | [D40](#d40-the-nzgo-scheme-is-removed) | Decided |
 | [D41](#d41-the-tdengine-scheme-is-removed) | Decided |
 | [D42](#d42-the-ql-scheme-is-removed) | Decided |
+| [D43](#d43-pinot-is-checked-against-dbimp-v070) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -1548,7 +1549,9 @@ The output was run through `ExtractConnectorConfig` at v1.26.0. The host, the
 project, the instance, the database and `usePlainText` came back as intended,
 with a host and without one.
 
-### D36. gizmosql, questdb, and three provisional schemes. Amended by D38 and D41.
+### D36. gizmosql, questdb, and three provisional schemes. Amended by D38, D41 and D43.
+
+Amended by D43: `pinot` is checked against dbimp `v0.7.0`, and adds no port.
 
 Amended by D41: the `tdengine` scheme is removed, because dbimp writes no
 TDengine driver.
@@ -1682,7 +1685,10 @@ WHAT CHANGES FOR A CALLER
 `file` must document its package. `TestParseDialect` checks `SchemeName`,
 `Driver` and `Dialect` for every kind of scheme.
 
-### D38. A missing required field is an error, and provisional schemes can ship. Amends D32 and D36. Amended by D41.
+### D38. A missing required field is an error, and provisional schemes can ship. Amends D32 and D36. Amended by D41 and D43.
+
+Amended by D43: Pinot no longer keeps port 8000, because its driver
+defaults to 8099.
 
 Amended by D41: the alias `td` goes with the `tdengine` scheme.
 
@@ -1837,3 +1843,22 @@ its aliases `cznic` and `cznicql` are removed, and each name now returns
 `ErrUnknownDatabaseScheme`. `TestBadParse` has a case for each, as D20 set.
 The scheme was opaque and used `GenOpaque`, which stays, because every other
 database held in a file uses it.
+
+### D43. pinot is checked against dbimp v0.7.0. Amends D36 and D38.
+
+dbimp `v0.7.0` was released on 2026-09-30 with the Pinot driver,
+`github.com/xo/dbimp/pinot`, and dbimp D129 settles its URL:
+`pinot://user:password@host:port`, with no path, because Pinot has no
+databases. The driver refuses a path, and takes the keys `tls`, `auth`,
+`cancel` and `engine`.
+
+With no port, the driver uses 8099, the port of a Pinot broker. D38 kept port
+8000 for the provisional scheme, which was the port of the broker in dbmeta's
+all-in-one container. Now the driver has a default of its own, so under D34
+`GenPinot` adds no port, and 8099 applies.
+
+`GenPinot` was run through `pinot.ParseDSN` at `v0.7.0` from
+`proxy.golang.org`. With no port the driver used 8099, and an explicit port, a
+password holding `@` and a space, `tls`, `cancel`, `engine` and `auth=bearer`
+came back as intended. A path and an unknown key failed in the driver, under
+D5. The scheme is no longer provisional.

@@ -173,14 +173,14 @@ func GenGizmoSQL(u *URL) (string, string, error) {
 
 // GenPinot generates a pinot DSN from the passed URL.
 //
-// Targets the driver planned in [xo/dbimp], with the default port 8000, which
-// is the port of the broker in the container dbmeta starts. The user
-// information, the path and the query pass through. The driver does not exist
-// yet, so this generator is provisional (D36).
+// Targets [xo/dbimp/pinot], which reads a pinot:// URL and refuses any other
+// scheme, and refuses a path. The user information, the path and the query
+// pass through as they were written. It adds no port, because the driver
+// defaults to 8099, the port of a Pinot broker (D34 and D43).
 //
-// [xo/dbimp]: https://github.com/xo/dbimp
+// [xo/dbimp/pinot]: https://github.com/xo/dbimp
 func GenPinot(u *URL) (string, string, error) {
-	return genRewrite(u, "pinot", "8000", u.RawQuery), "", nil
+	return genRewrite(u, "pinot", "", u.RawQuery), "", nil
 }
 
 // GenRqlite generates a rqlite DSN from the passed URL.

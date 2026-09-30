@@ -1336,7 +1336,7 @@ func TestParse(t *testing.T) {
 		{
 			`pinot://127.0.0.1`,
 			`pinot`,
-			`pinot://127.0.0.1:8000`,
+			`pinot://127.0.0.1`,
 			``,
 		},
 		{
