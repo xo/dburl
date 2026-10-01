@@ -340,6 +340,20 @@ func init() {
 - [dbtpl][dbtpl] - a command-line tool to generate code for SQL databases
 - [dbmeta][dbmeta] - a Go package that reads metadata from SQL databases
 
+<br/>
+
+<div align="center">
+  <a href="https://github.com/xo/usql" title="A command line client for many databases">usql</a> |
+  <a href="https://github.com/xo/dburl" title="Database connection URLs, this project">dburl</a> |
+  <a href="https://github.com/xo/dbmeta" title="Database metadata">dbmeta</a> |
+  <a href="https://github.com/xo/dbimp" title="Database drivers in pure Go">dbimp</a> |
+  <a href="https://github.com/xo/cql" title="A database/sql driver for Cassandra">cql</a> |
+  <a href="https://github.com/xo/dbtpl" title="Go code generated from a database">dbtpl</a> |
+  <a href="https://github.com/xo/tblfmt" title="Tables of database results">tblfmt</a> |
+  <a href="https://github.com/xo/rline" title="The line editor of usql">rline</a> |
+  <a href="https://github.com/xo/transit" title="tree-sitter in pure Go">transit</a>
+</div>
+
 [go-project]: https://go.dev/project
 [goref-open]: https://pkg.go.dev/github.com/xo/dburl#Open
 [goref-variables]: https://pkg.go.dev/github.com/xo/dburl#pkg-variables
