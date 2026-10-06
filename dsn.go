@@ -148,6 +148,19 @@ func GenOpaque(u *URL) (string, string, error) {
 	return u.Opaque + genQueryOptions(u.Query()), "", nil
 }
 
+// GenAvatica generates an avatica DSN from the passed URL.
+//
+// Targets [xo/dbimp/avatica], which reads an avatica:// URL and refuses any
+// other scheme, and refuses a path. The user information and the query pass
+// through as they were written. It adds no port, because the driver defaults
+// to 8765, the port of an Avatica server (D34 and D47). The alias phoenix
+// reaches the same driver.
+//
+// [xo/dbimp/avatica]: https://github.com/xo/dbimp
+func GenAvatica(u *URL) (string, string, error) {
+	return genRewrite(u, "avatica", "", u.RawQuery), "", nil
+}
+
 // GenArangoDB generates an arangodb DSN from the passed URL.
 //
 // Targets the driver planned in [xo/dbimp/arangodb], which is to read an

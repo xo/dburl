@@ -56,6 +56,7 @@ if D11 amends D4, then D4 says so too.
 | [D44](#d44-rqlite-is-checked-against-dbimp-v080) | Decided |
 | [D45](#d45-libsql-opens-xodbimplibsql) | Decided |
 | [D46](#d46-dbmetas-tests-choose-their-driver-from-gopackage) | Decided |
+| [D47](#d47-avatica-opens-xodbimpavatica) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -1946,3 +1947,35 @@ commit (dbmeta D59 and D136).
 A change to `GoPackage` is reported to the dbmeta session, as a change to a
 scheme or an alias is reported to `usql` under D13. Step 6 of SCHEME.md says
 so.
+
+### D47. avatica opens xo/dbimp/avatica. Decided.
+
+dbimp `v0.10.0` was released on 2026-10-01 with the Avatica driver,
+`github.com/xo/dbimp/avatica`, and dbimp D156 settles its URL:
+`avatica://user:password@host:port`, with no path. The driver refuses a path,
+and takes the keys `tls` (false by default) and `auth` (`none` or `basic`),
+and refuses any other key. It serves the standalone Avatica server and the
+Phoenix Query Server, over JSON only (dbimp D153).
+
+The `avatica` scheme moves from `github.com/apache/calcite-avatica-go/v5` to
+`github.com/xo/dbimp/avatica`. `GenAvatica` replaces the template
+`GenFromURL("http://localhost:8765/")`. It writes the scheme `avatica`
+whichever alias was parsed, and passes the user information and the query
+through. It adds no port, because the driver defaults to 8765, the port of an
+Avatica server (D34). The old DSN was an `http://` URL, which the new driver
+refuses.
+
+The driver registers one name, `avatica`, so the alias `phoenix` stays in
+dburl and reaches the same driver, as dbimp asked. `phoenix` does not become a
+scheme of its own, and the `Dialect` stays `avatica`. The backlog held that
+question for Ken. A scheme of its own can be added if a Phoenix dialect is
+ever needed, under dbimp D98.
+
+`GenAvatica` was run through `avatica.ParseDSN` at `v0.10.1`, the newest tag,
+from `proxy.golang.org`. With no port the driver used 8765, `phoenix://` and
+`av://` reached it as `avatica://`, and an explicit port, a password holding
+`@` and a space, `tls=true`, `auth=basic` and an IPv6 host came back as
+intended. A path, an unknown key and an invalid `auth` failed in the driver.
+
+`GoPackage` changed, so under D46 the dbmeta session is told, because its
+tests import the package that `GoPackage` names.

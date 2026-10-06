@@ -9,25 +9,17 @@ decided on the way (D27).
 
 ## Schemes
 
-### Add the schemes for Avatica and Druid
+### Add the Druid scheme
 
-dbimp D73 set the order of the drivers after Neo4j, and each of them is done:
-InfluxDB (D29), CrateDB on pgx (D30), ArangoDB (D32), Databend (D39), Pinot
-(D43), rqlite (D44), and libSQL with Turso (D45). TDengine got no driver, and
-its scheme is removed (D41). No scheme here is provisional.
+dbimp D73 set the order of the drivers after Neo4j, and each of them is done
+except one. InfluxDB (D29), CrateDB on pgx (D30), ArangoDB (D32), Databend
+(D39), Pinot (D43), rqlite (D44), libSQL with Turso (D45) and Avatica (D47)
+are done. TDengine got no driver, and its scheme is removed (D41). No scheme
+here is provisional.
 
-dbimp D74 puts Avatica next. Its driver serves the standalone Avatica server
-and the Phoenix Query Server, over JSON only (dbimp D153), and dbimp started
-it on 2026-10-01. Each flavor has SQL of its own, so a flavor that needs its
-own `Dialect` is a scheme of its own that names the one Avatica driver, as
-dbimp D98 says. The `avatica` scheme exists today, with the alias `phoenix`,
-on `github.com/apache/calcite-avatica-go`. Do not change `avatica` or
-`phoenix` until dbimp step 9 settles the URL. Then read its `ParseDSN`, and
-decide with Ken whether `phoenix` becomes a scheme of its own.
-
-Druid gets a driver of its own on its SQL API, with the scheme `druid`, later
-in dbimp's order, and is not a flavor of Avatica (dbimp D154, which amends
-D74). Add the scheme when that driver has `ParseDSN` at a tag.
+Druid gets a driver of its own on its SQL API, with the scheme `druid`, and is
+not a flavor of Avatica (dbimp D154, which amends D74). Add the scheme when
+that driver has `ParseDSN` at a tag.
 
 ### Find a driver for gizmosql that keeps a session
 

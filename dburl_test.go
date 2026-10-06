@@ -157,6 +157,7 @@ func TestParseDialect(t *testing.T) {
 		{`pinot://host`, "pinot", "pinot", "pinot"},
 		{`rqlite://host`, "rqlite", "rqlite", "rqlite"},
 		{`turso://host`, "libsql", "libsql", "libsql"},
+		{`phoenix://host`, "avatica", "avatica", "avatica"},
 		{`moderncsqlite:file.db`, "moderncsqlite", "moderncsqlite", "sqlite3"},
 		{`godror://user:pass@host/sid`, "godror", "godror", "oracle"},
 		{`oracle://user:pass@host/sid`, "oracle", "oracle", "oracle"},
@@ -1374,6 +1375,30 @@ func TestParse(t *testing.T) {
 			`ls://:tok@127.0.0.1:8080?tls=false`,
 			`libsql`,
 			`libsql://:tok@127.0.0.1:8080?tls=false`,
+			``,
+		},
+		{
+			`avatica://`,
+			`avatica`,
+			`avatica://localhost`,
+			``,
+		},
+		{
+			`av://user:pw@127.0.0.1`,
+			`avatica`,
+			`avatica://user:pw@127.0.0.1`,
+			``,
+		},
+		{
+			`phoenix://admin:p%40s%20s@host:8766?tls=true&auth=basic`,
+			`avatica`,
+			`avatica://admin:p%40s%20s@host:8766?tls=true&auth=basic`,
+			``,
+		},
+		{
+			`avatica://[::1]`,
+			`avatica`,
+			`avatica://[::1]`,
 			``,
 		},
 		{
