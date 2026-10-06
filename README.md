@@ -156,10 +156,10 @@ to `sql.Open`:
 | libSQL               | `libsql`        | `ls`, `turso`                                  | [github.com/xo/dbimp/libsql][d-libsql]                                                      |
 | ModernC SQLite3      | `moderncsqlite` | `mq`, `modernsqlite`                           | [modernc.org/sqlite][d-moderncsqlite] <sup>[§][f-embedded]</sup>                            |
 | Neo4j                | `neo4j`         | `nj`, `neo`, `n4j`                             | [github.com/xo/dbimp/neo4j][d-neo4j]                                                        |
-| ODBC                 | `odbc`          | `od`                                           | [github.com/alexbrainman/odbc][d-odbc] <sup>[†][f-cgo]</sup>                                |
+| ODBC                 | `odbc`          | `od`                                           | [github.com/xo/odbc][d-odbc]                                                                |
 | PostgreSQL lib/pq    | `pq`            | `libpq`                                        | [github.com/lib/pq][d-pq]                                                                   |
 | PostgreSQL PGX       | `pgx`           | `px`                                           | [github.com/jackc/pgx/v5/stdlib][d-pgx]                                                     |
-| Presto               | `presto`        | `pr`, `prestodb`                               | [github.com/prestodb/presto-go-client/v2][d-presto]                                         |
+| Presto               | `presto`        | `pr`, `prestodb`                               | [github.com/xo/dbimp/trino][d-presto]                                                       |
 | QuestDB              | `questdb`       | `qs`                                           | [github.com/jackc/pgx/v5/stdlib][d-questdb]                                                 |
 | rqlite               | `rqlite`        | `rq`                                           | [github.com/xo/dbimp/rqlite][d-rqlite]                                                      |
 | SAP HANA             | `hdb`           | `sa`, `sap`, `hana`, `saphana`                 | [github.com/SAP/go-hdb/driver][d-hdb]                                                       |
@@ -167,11 +167,11 @@ to `sql.Open`:
 | Snowflake            | `snowflake`     | `sf`                                           | [github.com/snowflakedb/gosnowflake/v2][d-snowflake] <sup>[¶][f-hosted]</sup>               |
 | SurrealDB            | `surrealdb`     | `sr`, `sur`, `surreal`                         | [github.com/xo/dbimp/surrealdb][d-surrealdb]                                                |
 | TiDB                 | `tidb`          | `ti`                                           | [github.com/go-sql-driver/mysql][d-tidb]                                                    |
-| Trino                | `trino`         | `tr`, `trs`, `trinos`                          | [github.com/trinodb/trino-go-client/trino][d-trino]                                         |
+| Trino                | `trino`         | `tr`                                           | [github.com/xo/dbimp/trino][d-trino]                                                        |
 | Vertica              | `vertica`       | `ve`                                           | [github.com/vertica/vertica-sql-go][d-vertica]                                              |
 | Vitess Database      | `vitess`        | `vt`                                           | [github.com/go-sql-driver/mysql][d-vitess]                                                  |
 | VoltDB               | `voltdb`        | `vo`, `vdb`, `volt`                            | [github.com/VoltDB/voltdb-client-go/voltdbclient][d-voltdb]                                 |
-| YDB                  | `ydb`           | `yd`, `yds`, `ydbs`                            | [github.com/ydb-platform/ydb-go-sdk/v3][d-ydb]                                              |
+| YDB                  | `ydb`           | `yd`                                           | [github.com/ydb-platform/ydb-go-sdk/v3][d-ydb]                                              |
 
 [d-arangodb]: https://github.com/xo/dbimp
 [d-avatica]: https://github.com/xo/dbimp
@@ -207,14 +207,14 @@ to `sql.Open`:
 [d-moderncsqlite]: https://gitlab.com/cznic/sqlite
 [d-mysql]: https://github.com/go-sql-driver/mysql
 [d-neo4j]: https://github.com/xo/dbimp
-[d-odbc]: https://github.com/alexbrainman/odbc
+[d-odbc]: https://github.com/xo/odbc
 [d-oracle]: https://github.com/sijms/go-ora
 [d-ots]: https://github.com/aliyun/aliyun-tablestore-go-sql-driver
 [d-pgx]: https://github.com/jackc/pgx
 [d-pinot]: https://github.com/xo/dbimp
 [d-postgres]: https://github.com/jackc/pgx
 [d-pq]: https://github.com/lib/pq
-[d-presto]: https://github.com/prestodb/presto-go-client
+[d-presto]: https://github.com/xo/dbimp
 [d-questdb]: https://github.com/jackc/pgx
 [d-redshift]: https://github.com/jackc/pgx
 [d-rqlite]: https://github.com/xo/dbimp
@@ -224,7 +224,7 @@ to `sql.Open`:
 [d-sqlserver]: https://github.com/microsoft/go-mssqldb
 [d-surrealdb]: https://github.com/xo/dbimp
 [d-tidb]: https://github.com/go-sql-driver/mysql
-[d-trino]: https://github.com/trinodb/trino-go-client
+[d-trino]: https://github.com/xo/dbimp
 [d-vertica]: https://github.com/vertica/vertica-sql-go
 [d-vitess]: https://github.com/go-sql-driver/mysql
 [d-voltdb]: https://github.com/VoltDB/voltdb-client-go

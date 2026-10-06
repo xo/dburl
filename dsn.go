@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"path"
 	"sort"
+	"strconv"
 	"strings"
 	"unicode"
 )
@@ -322,8 +323,6 @@ func GenCosmos(u *URL) (string, string, error) {
 // adds no port, because the driver defaults to 8888, the port of the Druid
 // Router (D34 and D48).
 //
-// The driver has no tag yet, so this generator is provisional (D48).
-//
 // [xo/dbimp/druid]: https://github.com/xo/dbimp
 func GenDruid(u *URL) (string, string, error) {
 	return genRewrite(u, "druid", "", u.RawQuery), "", nil
@@ -533,29 +532,6 @@ func GenInfluxQL(u *URL) (string, string, error) {
 func GenLibsql(u *URL) (string, string, error) {
 	return genRewrite(u, "libsql", "", u.RawQuery), "", nil
 }
-
-// GenMaxCompute generates a maxcompute DSN from the passed URL.
-//
-// Targets [aliyun/aliyun-odps-go-sdk/sqldriver], which takes an http or https
-// URL as the endpoint and reads the project from the project query option.
-// The endpoint is https unless the scheme carries +http.
-//
-// [aliyun/aliyun-odps-go-sdk/sqldriver]: https://github.com/aliyun/aliyun-odps-go-sdk
-func GenMaxCompute(u *URL) (string, string, error) {
-	switch {
-	case !strings.Contains(u.OriginalScheme, "+"), strings.EqualFold(u.Transport, "https"):
-		return maxcomputeHTTPS(u)
-	case strings.EqualFold(u.Transport, "http"):
-		return maxcomputeHTTP(u)
-	}
-	return "", "", ErrInvalidTransportProtocol
-}
-
-// maxcompute generators.
-var (
-	maxcomputeHTTP  = GenFromURL("http://localhost/")
-	maxcomputeHTTPS = GenFromURL("https://localhost/")
-)
 
 // GenMysql generates a mysql DSN from the passed URL.
 //
@@ -832,68 +808,6 @@ func GenPostgres(u *URL) (string, string, error) {
 	return genOptions(q, "", "=", " ", ",", true, nil, nil), "", nil
 }
 
-// GenPresto generates a presto DSN from the passed URL.
-//
-// Targets [prestodb/presto-go-client/v2], which accepts only the presto and
-// trino schemes, and reads the catalog and the schema from the path.
-//
-// The driver sends any query option it does not recognize to the server as a
-// session property. The catalog and the schema cannot go there.
-//
-// The driver selects TLS from the ssl_ca, ssl_cert, ssl_key and
-// ssl_skip_verify options, and not from the scheme, so presto has no "s"
-// suffixed alias. Setting any of those options also moves the default port
-// to 8443.
-//
-// See [GenTrino], which Trino uses instead. The two drivers want different
-// DSNs.
-//
-// [prestodb/presto-go-client/v2]: https://github.com/prestodb/presto-go-client
-func GenPresto(u *URL) (string, string, error) {
-	z := &url.URL{
-		Scheme:   "presto",
-		User:     u.User,
-		Host:     u.Host,
-		RawQuery: u.RawQuery,
-		Fragment: u.Fragment,
-	}
-	// force user
-	if z.User == nil {
-		z.User = url.User("user")
-	}
-	// force host
-	if z.Host == "" {
-		z.Host = "localhost"
-	}
-	// determine TLS the same way the driver does. presto has no "s" suffixed
-	// alias, because the driver reads TLS from these options and never from
-	// the scheme. See D14.
-	q := z.Query()
-	secure := q.Get("ssl_ca") != "" || q.Get("ssl_cert") != "" || q.Get("ssl_key") != ""
-	if v := q.Get("ssl_skip_verify"); v == "true" || v == "1" {
-		secure = true
-	}
-	// force port
-	if z.Port() == "" {
-		switch {
-		case secure:
-			z.Host += ":8443"
-		default:
-			z.Host += ":8080"
-		}
-	}
-	// catalog and schema are path components, split as the driver splits them
-	catalog, schema, _ := strings.Cut(strings.TrimPrefix(u.Path, "/"), "/")
-	if catalog == "" {
-		catalog = "default"
-	}
-	z.Path = "/" + catalog
-	if schema != "" {
-		z.Path += "/" + schema
-	}
-	return z.String(), "", nil
-}
-
 // GenSnowflake generates a snowflake DSN from the passed URL.
 func GenSnowflake(u *URL) (string, string, error) {
 	host, port, dbname := u.Hostname(), u.Port(), strings.TrimPrefix(u.Path, "/")
@@ -997,86 +911,34 @@ func GenSurrealDB(u *URL) (string, string, error) {
 	return genRewrite(u, "surrealdb", "", u.RawQuery), "", nil
 }
 
-// GenTableStore generates a tablestore DSN from the passed URL.
-func GenTableStore(u *URL) (string, string, error) {
-	var transport string
-	splits := strings.Split(u.OriginalScheme, "+")
-	switch {
-	case len(splits) == 0:
-		return "", "", ErrInvalidDatabaseScheme
-	case len(splits) == 1, splits[1] == "https":
-		transport = "https"
-	case splits[1] == "http":
-		transport = "http"
-	default:
-		return "", "", ErrInvalidTransportProtocol
-	}
-	z := &url.URL{
-		Scheme:   transport,
-		Opaque:   u.Opaque,
-		User:     u.User,
-		Host:     u.Host,
-		Path:     u.Path,
-		RawPath:  u.RawPath,
-		RawQuery: u.RawQuery,
-		Fragment: u.Fragment,
-	}
-	return z.String(), "", nil
-}
-
 // GenTrino generates a trino DSN from the passed URL.
 //
-// Targets [trinodb/trino-go-client], which takes an http or https URL and
-// reads the catalog and schema from the query.
+// Targets the driver planned in [xo/dbimp/trino], which serves Trino and
+// Presto, registers the name trino, reads a trino:// URL and refuses any other
+// scheme. The user information, the path and the query pass through as they
+// were written. It adds no port, no user and no catalog (D50). The path names
+// the catalog and the schema, as the clients of Trino and Presto read them.
 //
-// See [GenPresto]. Trino and Presto share a wire protocol, but their drivers
-// disagree about the scheme and about where the catalog and schema belong.
+// The driver reads TLS from the tls key and never from the scheme, as every
+// dbimp driver does, so no alias of the scheme means HTTPS (D50).
 //
-// [trinodb/trino-go-client]: https://github.com/trinodb/trino-go-client
+// The driver does not exist yet, so this generator is provisional (D50).
+//
+// [xo/dbimp/trino]: https://github.com/xo/dbimp
 func GenTrino(u *URL) (string, string, error) {
-	z := &url.URL{
-		Scheme:   "http",
-		Opaque:   u.Opaque,
-		User:     u.User,
-		Host:     u.Host,
-		RawQuery: u.RawQuery,
-		Fragment: u.Fragment,
-	}
-	// change to https
-	if strings.HasSuffix(u.OriginalScheme, "s") {
-		z.Scheme = "https"
-	}
-	// force user
-	if z.User == nil {
-		z.User = url.User("user")
-	}
-	// force host
-	if z.Host == "" {
-		z.Host = "localhost"
-	}
-	// force port
-	if z.Port() == "" {
-		switch z.Scheme {
-		case "http":
-			z.Host += ":8080"
-		case "https":
-			z.Host += ":8443"
-		}
-	}
-	// add parameters
-	q := z.Query()
-	dbname, schema := strings.TrimPrefix(u.Path, "/"), ""
-	if dbname == "" {
-		dbname = "default"
-	} else if i := strings.Index(dbname, "/"); i != -1 {
-		schema, dbname = dbname[i+1:], dbname[:i]
-	}
-	q.Set("catalog", dbname)
-	if schema != "" {
-		q.Set("schema", schema)
-	}
-	z.RawQuery = q.Encode()
-	return z.String(), "", nil
+	return genRewrite(u, "trino", "", u.RawQuery), "", nil
+}
+
+// GenPresto generates a trino DSN for Presto from the passed URL.
+//
+// Presto is a flavor of the driver that [GenTrino] targets, which tells the
+// flavors apart from what the server answers and never from the DSN. So the
+// DSN is the one GenTrino writes, and the Dialect is the only difference. It
+// returns trino as the name of the driver, because the driver registers one
+// name (D50).
+func GenPresto(u *URL) (string, string, error) {
+	dsn, _, err := GenTrino(u)
+	return dsn, "trino", err
 }
 
 // GenVoltdb generates a voltdb DSN from the passed URL.
@@ -1091,10 +953,100 @@ func GenVoltdb(u *URL) (string, string, error) {
 	return host + ":" + port, "", nil
 }
 
+// tlsOption reads the tls option of u, with def as the value when it is not
+// named, and returns it with the raw query that has no tls key. The drivers
+// that [GenMaxCompute], [GenTableStore] and [GenYDB] target do not know the
+// key, and MaxCompute would send it to the server as a hint, so it is removed.
+// A value that strconv.ParseBool refuses, and a key given twice, return
+// [ErrInvalidQuery]. The dbimp drivers read tls in the same way (D51).
+func tlsOption(u *URL, def bool) (bool, string, error) {
+	q := u.Query()
+	vals, ok := q["tls"]
+	if !ok {
+		return def, u.RawQuery, nil
+	}
+	if len(vals) != 1 {
+		return false, "", fmt.Errorf("%w: tls is given %d times", ErrInvalidQuery, len(vals))
+	}
+	tls, err := strconv.ParseBool(vals[0])
+	if err != nil {
+		return false, "", fmt.Errorf("%w: tls %q", ErrInvalidQuery, vals[0])
+	}
+	q.Del("tls")
+	return tls, q.Encode(), nil
+}
+
+// genHTTP writes a URL for a driver that reads an http or https endpoint. The
+// scheme is https when the tls option is true, and the option defaults to defTLS.
+// The host defaults to localhost, and the path to defPath. The user information
+// and the path pass through (D51).
+func genHTTP(u *URL, defTLS bool, defPath string) (string, string, error) {
+	tls, rawQuery, err := tlsOption(u, defTLS)
+	if err != nil {
+		return "", "", err
+	}
+	scheme := "http"
+	if tls {
+		scheme = "https"
+	}
+	host := u.Host
+	if host == "" {
+		host = "localhost"
+	}
+	path, rawPath := u.Path, u.RawPath
+	if path == "" {
+		path = defPath
+	}
+	z := &url.URL{
+		Scheme:   scheme,
+		User:     u.User,
+		Host:     host,
+		Path:     path,
+		RawPath:  rawPath,
+		RawQuery: rawQuery,
+	}
+	return z.String(), "", nil
+}
+
+// GenMaxCompute generates a maxcompute DSN from the passed URL.
+//
+// Targets [aliyun/aliyun-odps-go-sdk/sqldriver], which takes an http or https
+// URL as the endpoint and reads the project from the project query option. The
+// endpoint is https, because MaxCompute is a hosted service, and tls=false
+// makes it http. The scheme has no +http or +https transport (D51).
+//
+// [aliyun/aliyun-odps-go-sdk/sqldriver]: https://github.com/aliyun/aliyun-odps-go-sdk
+func GenMaxCompute(u *URL) (string, string, error) {
+	return genHTTP(u, true, "/")
+}
+
+// GenTableStore generates a tablestore DSN from the passed URL.
+//
+// Targets [aliyun/aliyun-tablestore-go-sql-driver], which reads its endpoint
+// from the scheme and the host. The endpoint is https, because Tablestore is a
+// hosted service, and tls=false makes it http. The scheme has no +http or
+// +https transport (D51).
+//
+// [aliyun/aliyun-tablestore-go-sql-driver]: https://github.com/aliyun/aliyun-tablestore-go-sql-driver
+func GenTableStore(u *URL) (string, string, error) {
+	return genHTTP(u, true, "")
+}
+
 // GenYDB generates a ydb dsn from the passed URL.
+//
+// Targets [ydb-platform/ydb-go-sdk/v3], which reads TLS from the scheme: grpcs
+// is secure and grpc is not. The tls option chooses it, and is false by
+// default. With tls=true the scheme is grpcs and the default port is 2135, and
+// otherwise they are grpc and 2136. The aliases yds and ydbs are gone (D51).
+//
+// [ydb-platform/ydb-go-sdk/v3]: https://github.com/ydb-platform/ydb-go-sdk
 func GenYDB(u *URL) (string, string, error) {
+	tls, rawQuery, err := tlsOption(u, false)
+	if err != nil {
+		return "", "", err
+	}
 	scheme, host, port := "grpc", "localhost", "2136"
-	if strings.HasSuffix(strings.ToLower(u.OriginalScheme), "s") {
+	if tls {
 		scheme, port = "grpcs", "2135"
 	}
 	if h := u.Hostname(); h != "" {
@@ -1107,8 +1059,9 @@ func GenYDB(u *URL) (string, string, error) {
 	if u.User != nil {
 		userpass = u.User.String() + "@"
 	}
+	q, _ := url.ParseQuery(rawQuery)
 	s := scheme + "://" + userpass + host + ":" + port + "/" + strings.TrimPrefix(u.Path, "/")
-	return s + genOptions(u.Query(), "?", "=", "&", ",", true, nil, nil), "", nil
+	return s + genOptions(q, "?", "=", "&", ",", true, nil, nil), "", nil
 }
 
 // GenDuckDB generates a duckdb dsn from the passed URL.
