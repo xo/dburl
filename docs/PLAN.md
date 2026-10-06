@@ -57,6 +57,7 @@ if D11 amends D4, then D4 says so too.
 | [D45](#d45-libsql-opens-xodbimplibsql) | Decided |
 | [D46](#d46-dbmetas-tests-choose-their-driver-from-gopackage) | Decided |
 | [D47](#d47-avatica-opens-xodbimpavatica) | Decided |
+| [D48](#d48-druid-is-a-provisional-scheme-for-the-dbimp-driver) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -1979,3 +1980,38 @@ intended. A path, an unknown key and an invalid `auth` failed in the driver.
 
 `GoPackage` changed, so under D46 the dbmeta session is told, because its
 tests import the package that `GoPackage` names.
+
+### D48. druid is a provisional scheme for the dbimp driver. Decided.
+
+dbimp D154 decides that Druid gets a driver of its own on its SQL API, and not
+a flavor of Avatica, and dbimp D164 names the driver `github.com/xo/dbimp/druid`,
+which registers `druid`. Ken asked on 2026-10-07, through the dbmeta session,
+for a `druid` scheme now. dbmeta needs it so that its `druid` dialect can name
+a package that dburl names (D46). It does not need a release, because it
+builds against the driver directly. Ken decided to add the scheme before the
+driver is tagged, as D32 did for ArangoDB, and to give it no alias.
+
+The scheme is `druid`, with the automatic two letter alias `dr`. `Driver` and
+`Dialect` are both `druid`. `GoPackage` is `github.com/xo/dbimp/druid`, and the
+driver needs no cgo. `GenDruid` writes the scheme `druid` whichever alias was
+parsed, and passes the user information and the query through. It adds no
+port, because the driver defaults to 8888, the port of the Druid Router
+(D34).
+
+THE PROVISIONAL PARTS
+
+No dbimp tag holds the driver. The newest tag, `v0.10.2`, has no `druid`
+folder, and the driver is in dbimp's working tree. So rule 3 had no evidence at
+a tag. The generator was written against `druid.ParseDSN` in that working tree,
+and run through it by a replace in a scratch module outside this repository.
+The URL is `druid://user:key@host:port`, with no path, because Druid has no
+database to choose. The driver takes the keys `tls`, `timezone` and
+`timeout`, and refuses any other. With no port the driver used 8888, and an
+explicit port, a password holding `@` and a space, `tls`, `timezone`,
+`timeout` and an IPv6 host came back as intended. A path and an unknown key
+failed in the driver.
+
+A release of this library that carries D48 may ship before the driver is
+tagged, under D38. When dbimp tags a release that holds the driver,
+`GenDruid` is run through its `ParseDSN` again, and it changes where the two
+disagree. Until then the generator rests on a working tree that can change.

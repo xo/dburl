@@ -128,6 +128,7 @@ to `sql.Open`:
 | Alibaba Tablestore   | `ots`           | `ot`, `tablestore`                             | [github.com/aliyun/aliyun-tablestore-go-sql-driver][d-ots] <sup>[¶][f-hosted]</sup>         |
 | Amazon Redshift      | `redshift`      | `rs`                                           | [github.com/jackc/pgx/v5/stdlib][d-redshift] <sup>[¶][f-hosted]</sup>                       |
 | Apache Avatica       | `avatica`       | `av`, `phoenix`                                | [github.com/xo/dbimp/avatica][d-avatica]                                                    |
+| Apache Druid         | `druid`         | `dr`                                           | [github.com/xo/dbimp/druid][d-druid]                                                        |
 | Apache H2            | `h2`            |                                                | [github.com/jmrobles/h2go][d-h2]                                                            |
 | Apache Hive          | `hive`          | `hi`, `hive2`                                  | [github.com/beltran/gohive/v2][d-hive]                                                      |
 | Apache Impala        | `impala`        | `im`                                           | [github.com/sclgo/impala-go][d-impala]                                                      |
@@ -186,6 +187,7 @@ to `sql.Open`:
 [d-csvq]: https://github.com/mithrandie/csvq-driver
 [d-databend]: https://github.com/xo/dbimp
 [d-databricks]: https://github.com/databricks/databricks-sql-go
+[d-druid]: https://github.com/xo/dbimp
 [d-duckdb]: https://github.com/duckdb/duckdb-go
 [d-exasol]: https://github.com/exasol/exasol-driver-go
 [d-firebirdsql]: https://github.com/nakagami/firebirdsql

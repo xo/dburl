@@ -314,6 +314,21 @@ func GenCosmos(u *URL) (string, string, error) {
 	return genOptionsOdbc(q, true, nil, nil), "gocosmos", nil
 }
 
+// GenDruid generates a druid DSN from the passed URL.
+//
+// Targets the driver [xo/dbimp/druid], which reads a druid:// URL, refuses any
+// other scheme, and refuses a path, because Druid has no database to choose.
+// The user information and the query pass through as they were written. It
+// adds no port, because the driver defaults to 8888, the port of the Druid
+// Router (D34 and D48).
+//
+// The driver has no tag yet, so this generator is provisional (D48).
+//
+// [xo/dbimp/druid]: https://github.com/xo/dbimp
+func GenDruid(u *URL) (string, string, error) {
+	return genRewrite(u, "druid", "", u.RawQuery), "", nil
+}
+
 // GenDatabend generates a databend DSN from the passed URL.
 //
 // Targets the driver planned in [xo/dbimp/databend], which replaces

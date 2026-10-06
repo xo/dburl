@@ -430,6 +430,16 @@ func BaseSchemes() []Scheme {
 			Dialect:    "godynamo",
 		},
 		{
+			Name:       "druid",
+			Generator:  GenDruid,
+			Desc:       "Apache Druid",
+			Home:       "https://druid.apache.org",
+			GoPackage:  "github.com/xo/dbimp/druid",
+			DriverURL:  "https://github.com/xo/dbimp",
+			Deployment: DeploymentServer,
+			Dialect:    "druid",
+		},
+		{
 			Name:       "exasol",
 			Generator:  GenExasol,
 			Aliases:    []string{"ex", "exa"},

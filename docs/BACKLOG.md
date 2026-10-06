@@ -9,17 +9,18 @@ decided on the way (D27).
 
 ## Schemes
 
-### Add the Druid scheme
+### Check the druid scheme against a tagged driver
 
-dbimp D73 set the order of the drivers after Neo4j, and each of them is done
-except one. InfluxDB (D29), CrateDB on pgx (D30), ArangoDB (D32), Databend
-(D39), Pinot (D43), rqlite (D44), libSQL with Turso (D45) and Avatica (D47)
-are done. TDengine got no driver, and its scheme is removed (D41). No scheme
-here is provisional.
+The `druid` scheme is provisional (D48). It was written against the Druid
+driver in dbimp's working tree, because no dbimp tag holds the driver yet.
+When dbimp tags a release that holds `github.com/xo/dbimp/druid`, run
+`GenDruid` through its `ParseDSN`, fix each place where the two disagree, and
+record the check in D48.
 
-Druid gets a driver of its own on its SQL API, with the scheme `druid`, and is
-not a flavor of Avatica (dbimp D154, which amends D74). Add the scheme when
-that driver has `ParseDSN` at a tag.
+The order of the drivers after Neo4j (dbimp D73) is otherwise done. InfluxDB
+(D29), CrateDB on pgx (D30), ArangoDB (D32), Databend (D39), Pinot (D43),
+rqlite (D44), libSQL with Turso (D45) and Avatica (D47) are done. TDengine got
+no driver, and its scheme is removed (D41).
 
 ### Find a driver for gizmosql that keeps a session
 

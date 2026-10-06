@@ -158,6 +158,7 @@ func TestParseDialect(t *testing.T) {
 		{`rqlite://host`, "rqlite", "rqlite", "rqlite"},
 		{`turso://host`, "libsql", "libsql", "libsql"},
 		{`phoenix://host`, "avatica", "avatica", "avatica"},
+		{`dr://host`, "druid", "druid", "druid"},
 		{`moderncsqlite:file.db`, "moderncsqlite", "moderncsqlite", "sqlite3"},
 		{`godror://user:pass@host/sid`, "godror", "godror", "oracle"},
 		{`oracle://user:pass@host/sid`, "oracle", "oracle", "oracle"},
@@ -1399,6 +1400,30 @@ func TestParse(t *testing.T) {
 			`avatica://[::1]`,
 			`avatica`,
 			`avatica://[::1]`,
+			``,
+		},
+		{
+			`druid://`,
+			`druid`,
+			`druid://localhost`,
+			``,
+		},
+		{
+			`dr://admin:key@127.0.0.1`,
+			`druid`,
+			`druid://admin:key@127.0.0.1`,
+			``,
+		},
+		{
+			`druid://admin:p%40s%20s@host:8082?tls=true&timezone=UTC&timeout=30s`,
+			`druid`,
+			`druid://admin:p%40s%20s@host:8082?tls=true&timezone=UTC&timeout=30s`,
+			``,
+		},
+		{
+			`druid://[::1]`,
+			`druid`,
+			`druid://[::1]`,
 			``,
 		},
 		{
