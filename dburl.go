@@ -379,6 +379,8 @@ const (
 	ErrMissingPath Error = "missing path"
 	// ErrMissingUser is the missing user error.
 	ErrMissingUser Error = "missing user"
+	// ErrMissingDriver is the missing ODBC driver error.
+	ErrMissingDriver Error = "missing driver"
 	// ErrInvalidQuery is the invalid query error.
 	ErrInvalidQuery Error = "invalid query"
 )

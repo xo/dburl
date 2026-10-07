@@ -224,24 +224,18 @@ func GenCassandra(u *URL) (string, string, error) {
 }
 
 // GenClickhouse generates a clickhouse DSN from the passed URL.
+//
+// Targets [xo/dbimp/clickhouse], which reads a clickhouse:// URL with net/url
+// and speaks HTTP only. The user information, the path, which is the database,
+// and the query pass through as they were written. The driver reads the tls
+// key and refuses any other key. It adds no port, because the driver defaults
+// to 8123, or 8443 with tls (D34). The transports +http and +https are gone,
+// and so is the native protocol on 9000 (D53).
+//
+// [xo/dbimp/clickhouse]: https://github.com/xo/dbimp
 func GenClickhouse(u *URL) (string, string, error) {
-	switch strings.ToLower(u.Transport) {
-	case "", "tcp":
-		return clickhouseTCP(u)
-	case "http":
-		return clickhouseHTTP(u)
-	case "https":
-		return clickhouseHTTPS(u)
-	}
-	return "", "", ErrInvalidTransportProtocol
+	return genRewrite(u, "clickhouse", "", u.RawQuery), "", nil
 }
-
-// clickhouse generators.
-var (
-	clickhouseTCP   = GenFromURL("clickhouse://localhost:9000/")
-	clickhouseHTTP  = GenFromURL("http://localhost:8123/")
-	clickhouseHTTPS = GenFromURL("https://localhost:8443/")
-)
 
 // GenCouchbase generates a couchbase DSN from the passed URL.
 //
@@ -606,40 +600,38 @@ func GenNeo4j(u *URL) (string, string, error) {
 	return genRewrite(u, "neo4j", "", u.RawQuery), "", nil
 }
 
-// GenOdbc generates a odbc DSN from the passed URL.
+// GenOdbc generates an odbc DSN from the passed URL.
+//
+// Targets [xo/odbc], which reads an odbc+<driver>:// URL, so the URL passes
+// through with its user information, host, port, path and query. The driver
+// writes the connection string from it, and quotes a value that holds a ; or
+// a brace (D52). GenOdbc adds no host, no port and no option, because the ODBC
+// driver that the user installed owns each default (D34).
+//
+// A query key that starts with a prefix in [OdbcIgnoreQueryPrefixes] is
+// dropped, so a client can keep its own options out of the DSN. A URL with no
+// driver, such as odbc://host/db, returns [ErrMissingDriver].
+//
+// [xo/odbc]: https://github.com/xo/odbc
 func GenOdbc(u *URL) (string, string, error) {
-	// save host, port, dbname
-	host, port, dbname := u.Hostname(), u.Port(), strings.TrimPrefix(u.Path, "/")
-	if u.hostPortDB == nil {
-		u.hostPortDB = []string{host, port, dbname}
+	if u.Transport == "" || u.Transport == "tcp" || u.Transport == "unix" {
+		return "", "", ErrMissingDriver
 	}
-	// build q
 	q := u.Query()
-	q.Set("Driver", "{"+strings.ReplaceAll(u.Transport, "+", " ")+"}")
-	q.Set("Server", host)
-	if port == "" {
-		proto := strings.ToLower(u.Transport)
-		switch {
-		case strings.Contains(proto, "mysql"):
-			q.Set("Port", "3306")
-		case strings.Contains(proto, "postgres"):
-			q.Set("Port", "5432")
-		case strings.Contains(proto, "db2") || strings.Contains(proto, "ibm"):
-			q.Set("ServiceName", "50000")
-		default:
-			q.Set("Port", "1433")
+	for k := range q {
+		if hasPrefix(strings.ToLower(k), OdbcIgnoreQueryPrefixes) {
+			delete(q, k)
 		}
-	} else {
-		q.Set("Port", port)
 	}
-	q.Set("Database", dbname)
-	// add user/pass
-	if u.User != nil {
-		q.Set("UID", u.User.Username())
-		p, _ := u.User.Password()
-		q.Set("PWD", p)
+	z := &url.URL{
+		Scheme:   "odbc+" + u.Transport,
+		User:     u.User,
+		Host:     u.Host,
+		Path:     u.Path,
+		RawPath:  u.RawPath,
+		RawQuery: q.Encode(),
 	}
-	return genOptionsOdbc(q, true, nil, OdbcIgnoreQueryPrefixes), "", nil
+	return z.String(), "", nil
 }
 
 // GenPgx generates a pgx DSN from the passed URL.
@@ -913,32 +905,55 @@ func GenSurrealDB(u *URL) (string, string, error) {
 
 // GenTrino generates a trino DSN from the passed URL.
 //
-// Targets the driver planned in [xo/dbimp/trino], which serves Trino and
-// Presto, registers the name trino, reads a trino:// URL and refuses any other
-// scheme. The user information, the path and the query pass through as they
-// were written. It adds no port, no user and no catalog (D50). The path names
-// the catalog and the schema, as the clients of Trino and Presto read them.
+// Targets [xo/dbimp/trino], which serves Trino and Presto, registers the name
+// trino, reads a trino:// URL and refuses any other scheme. The path names the
+// catalog and the schema, and each is optional. The path and the query pass
+// through as they were written. It adds no port, because the driver defaults
+// to 8080, and to 8443 with tls (D34).
+//
+// Two things are written for the scheme (D50):
+//
+//   - The driver requires a user, and a server that does no authentication
+//     accepts any name, so a URL with no user gets the user "user", as it
+//     always did. This is an exception to rule 10.
+//   - The scheme chooses the flavor: the key flavor is trino unless the URL
+//     names it, so the driver does not ask the server, and presto:// against a
+//     Trino server fails and does not act as Trino. This is an exception to
+//     rule 7, as sqlmode=disable is for influxql (D29).
 //
 // The driver reads TLS from the tls key and never from the scheme, as every
-// dbimp driver does, so no alias of the scheme means HTTPS (D50).
-//
-// The driver does not exist yet, so this generator is provisional (D50).
+// dbimp driver does, so no alias of the scheme means HTTPS.
 //
 // [xo/dbimp/trino]: https://github.com/xo/dbimp
 func GenTrino(u *URL) (string, string, error) {
-	return genRewrite(u, "trino", "", u.RawQuery), "", nil
+	return genTrino(u, "trino")
 }
 
 // GenPresto generates a trino DSN for Presto from the passed URL.
 //
-// Presto is a flavor of the driver that [GenTrino] targets, which tells the
-// flavors apart from what the server answers and never from the DSN. So the
-// DSN is the one GenTrino writes, and the Dialect is the only difference. It
-// returns trino as the name of the driver, because the driver registers one
-// name (D50).
+// Presto is a flavor of the driver that [GenTrino] targets. The DSN is the one
+// GenTrino writes, with the key flavor set to presto, and the Dialect is
+// presto. It returns trino as the name of the driver, because the driver
+// registers one name (D50).
 func GenPresto(u *URL) (string, string, error) {
-	dsn, _, err := GenTrino(u)
+	dsn, _, err := genTrino(u, "presto")
 	return dsn, "trino", err
+}
+
+// genTrino writes the DSN for the flavor of the scheme. See [GenTrino].
+func genTrino(u *URL, flavor string) (string, string, error) {
+	z := *u
+	if z.User == nil {
+		z.User = url.User("user")
+	}
+	rawQuery := u.RawQuery
+	if !u.Query().Has("flavor") {
+		if rawQuery != "" {
+			rawQuery += "&"
+		}
+		rawQuery += "flavor=" + flavor
+	}
+	return genRewrite(&z, "trino", "", rawQuery), "", nil
 }
 
 // GenVoltdb generates a voltdb DSN from the passed URL.

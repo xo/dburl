@@ -117,9 +117,10 @@ Two narrow exceptions exist. Set an option when it forces the driver or the
 database into a standards compliant mode that a using package needs. Turning
 on UTF-8 and enabling connection retries are the kind of thing that qualifies.
 The codebase holds three: `sslmode=disable` in the CockroachDB template,
-`ServiceName` in the DB2 path of `GenOdbc`, and `sqlmode=disable` in
-`GenInfluxQL`, which selects the query language of the scheme (D29). If you
-are writing a fourth, say why in [PLAN.md](PLAN.md). This is D7.
+`sqlmode=disable` in `GenInfluxQL`, which selects the query language of the
+scheme (D29), and `flavor` in `GenTrino` and `GenPresto`, which selects the
+product (D50). If you are writing
+a fourth, say why in [PLAN.md](PLAN.md). This is D7.
 
 Set one also when the driver cannot start without it and has no valid empty
 value for it. `hive` carries `auth=NONE` for that reason, because the driver

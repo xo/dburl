@@ -16,7 +16,7 @@ if D11 amends D4, then D4 says so too.
 | [D4](#d4-a-generator-is-written-against-the-driver-version-pinned-in-usql) | Decided |
 | [D5](#d5-dburl-does-not-compensate-for-a-broken-driver-parser) | Decided |
 | [D6](#d6-a-generator-is-written-for-a-dsn-format-not-for-a-database) | Decided |
-| [D7](#d7-defaults-cover-the-host-and-the-port-and-not-driver-options) | Amended by D16, D29 and D34 |
+| [D7](#d7-defaults-cover-the-host-and-the-port-and-not-driver-options) | Amended by D16, D29, D34, D50 and D52 |
 | [D8](#d8-a-scheme-is-added-only-when-the-driver-is-expected-in-usql) | Decided |
 | [D9](#d9-golangci-lint-runs-in-ci-at-a-pinned-version) | Decided |
 | [D10](#d10-a-rule-that-has-no-test-is-not-a-rule) | Amended by D17 |
@@ -43,7 +43,7 @@ if D11 amends D4, then D4 says so too.
 | [D31](#d31-a-password-file-entry-matches-the-database-and-the-user) | Decided |
 | [D32](#d32-arangodb-is-a-provisional-scheme-for-the-dbimp-driver) | Amended by D34 and D38 |
 | [D33](#d33-passfile-opens-the-go-driver-that-dburlopen-opens) | Amended by D37 |
-| [D34](#d34-a-default-port-is-added-only-where-the-driver-has-none) | Amended by D40 and D50 |
+| [D34](#d34-a-default-port-is-added-only-where-the-driver-has-none) | Amended by D40, D50 and D53 |
 | [D35](#d35-a-spanner-url-names-its-host-first) | Decided |
 | [D36](#d36-gizmosql-questdb-and-three-provisional-schemes) | Amended by D38, D41, D43 and D44 |
 | [D37](#d37-a-scheme-names-its-driver-and-override-is-gone) | Decided |
@@ -58,9 +58,11 @@ if D11 amends D4, then D4 says so too.
 | [D46](#d46-dbmetas-tests-choose-their-driver-from-gopackage) | Decided |
 | [D47](#d47-avatica-opens-xodbimpavatica) | Decided |
 | [D48](#d48-druid-is-a-scheme-for-the-dbimp-driver) | Decided |
-| [D49](#d49-odbc-opens-xoodbc) | Decided |
+| [D49](#d49-odbc-opens-xoodbc) | Amended by D52 |
 | [D50](#d50-trino-and-presto-move-to-one-dbimp-driver) | Decided |
-| [D51](#d51-maxcompute-tablestore-and-ydb-choose-tls-by-the-tls-option) | Decided |
+| [D51](#d51-maxcompute-tablestore-and-ydb-choose-tls-by-the-tls-option) | Amended by D53 |
+| [D52](#d52-odbc-sends-the-url-to-xoodbc) | Decided |
+| [D53](#d53-clickhouse-opens-the-dbimp-driver) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -141,7 +143,10 @@ Presto. It was split in v0.27.0.
 Sharing was not the defect. Nobody rereading the drivers was. Split a
 generator when the drivers behind it stop agreeing, and not before.
 
-### D7. Defaults cover the host and the port, and not driver options. Amended by D16, D29 and D34.
+### D7. Defaults cover the host and the port, and not driver options. Amended by D16, D29, D34 and D50.
+
+Amended by D50: `flavor` in `GenTrino` and `GenPresto` is a fourth exception to
+this rule.
 
 Amended by D34: a default port is added only when the driver has no
 default port of its own, or the wrong one for the product.
@@ -1460,7 +1465,7 @@ opens a `cockroachdb://` URL, and it failed with `unknown driver
 "cockroachdb"` on the old code. `Example_parse`, which calls `sql.Open`
 itself, now shows how to choose between `GoDriver` and `Driver`.
 
-### D34. A default port is added only where the driver has none. Amends D7, D25, D26, D28, D29, D30 and D32. Amended by D40 and D50.
+### D34. A default port is added only where the driver has none. Amends D7, D25, D26, D28, D29, D30 and D32. Amended by D40, D50 and D53.
 
 Amended by D50: `presto` and `trino` no longer add the ports 8080 and 8443,
 because they move to a dbimp driver.
@@ -2041,7 +2046,11 @@ dbimp's CI jobs for Druid had not finished when it tagged, so the driver is
 backed by the author's local runs against Druid 36.0.0 and 37.0.0, and not yet
 by CI. That is a fact about the driver and not about this generator.
 
-### D49. odbc opens xo/odbc. Decided.
+### D49. odbc opens xo/odbc. Amended by D52.
+
+Amended by D52: `GenOdbc` writes the `odbc+<driver>://` URL and no longer
+builds a connection string, so the `;` defect and the default port below are
+gone.
 
 Ken decided on 2026-10-07 that the `odbc` scheme moves from
 `github.com/alexbrainman/odbc` to `github.com/xo/odbc`. The new driver is
@@ -2063,14 +2072,19 @@ does not write. `GenOdbc` was run through `odbc.ParseDSN` from the working
 tree, for PostgreSQL, SQL Server with an instance, and SQLite, and each string
 came back as the same connection string.
 
-THE PROVISIONAL PARTS
+THE CHECK
 
-The driver is not committed. Its repository has no commit and no tag, and the
-module proxy lists no version, so the generator was checked against the working
-tree, as D48 was before dbimp tagged Druid. The check against a tag comes when
-`github.com/xo/odbc` is tagged. Until then, `GoPackage` names a module that
-cannot be installed. Under D46 the dbmeta tests import the package that
-`GoPackage` names, so the dbmeta session is told.
+`github.com/xo/odbc` was tagged `v0.1.0` on 2026-10-07. `GenOdbc` was run
+through `odbc.ParseDSN` at `v0.1.0` from `proxy.golang.org`, for PostgreSQL,
+SQL Server with an instance, SQLite and MySQL, and each connection string came
+back identical. The driver registers `odbc`, and needs only `purego`. So
+`GoPackage` names a module that can be installed. Before the tag, the
+generator was checked against the working tree.
+
+The check found a defect that was already there: a password or any value that
+holds `;` is written without a quote, so `PWD=p;w;` ends the password at the
+semicolon. The new driver quotes a value in its own `odbc+<driver>://` form,
+but it passes a connection string on as it is. The backlog holds it.
 
 `GenOdbc` adds a default `Port`, 1433 for a driver it does not know. The
 driver adds none, because it passes the connection string on, so any default
@@ -2095,43 +2109,62 @@ returns `trino`, so `presto://` opens the same driver with the `Dialect`
 and `prestodb/presto-go-client`, disagreed about the scheme and about where
 the catalog and the schema go (D6). The one driver ends that split.
 
-THE PROVISIONAL PARTS
+THE DSN
 
-The dbimp driver is not written. It has no folder and no tag, and the section
-of its `TRINO.md` that describes the DSN says "Not written yet". Ken asked for
-the schemes now, as for D32 and D48. So this is a guess, made from the
-convention of the other dbimp drivers and from the form that dburl users
-already write, and it can change when dbimp decides the DSN:
+dbimp `v0.12.0` was tagged on 2026-10-07 with the driver, and dbimp D175 settles
+its DSN: `trino://user@host:port/catalog/schema?key=value`. The path names the
+catalog and the schema, and each is optional. The driver defaults to port 8080,
+and to 8443 with `tls=true`. It takes the keys `tls`, `source`, `timezone`,
+`timeout`, `session.<name>` and `flavor`, and refuses any other. It requires a
+user, and refuses a URL without one.
 
-- The URL is `trino://user:password@host:port/catalog/schema?key=value`. The
-  path is the catalog and the schema, because dburl users write them there,
-  and both old generators read them there.
-- The generators add no port, no user and no catalog. The old ones added the
-  ports 8080 and 8443, the user `user` and the catalog `default`. A dbimp
-  driver defaults its own port, and rule 10 forbids filling a field, so the
-  query now reaches the driver as the URL wrote it.
+So the guesses that D50 first made held for the path and the ports, and
+changed for two things:
+
+- The generators add no port, no catalog and no TLS, and pass the path and the
+  query through. The old `ssl_*` keys of the Presto client are refused.
+- A URL with no user gets the user `user`, as `v0.42.0` did. The driver
+  requires a user and refuses a URL without one, and a server that does no
+  authentication accepts any name. Rule 10 says a generator returns
+  `ErrMissingUser` and does not fill the field, and Ken decided on 2026-10-07
+  that Trino and Presto are the exception, because `usql trino://host` worked
+  before. The `usql` session found that this mattered. dbimp keeps its driver
+  strict, and changes nothing.
+- The scheme chooses the flavor. The driver takes `flavor=trino` or
+  `flavor=presto`, and otherwise asks the server with `GET /v1/info`. Without
+  the key, `presto://` against a Trino server would act as Trino while the
+  `Dialect` says `presto`. So `GenTrino` writes `flavor=trino` and `GenPresto`
+  writes `flavor=presto`, unless the URL names `flavor` itself. Ken decided this
+  on 2026-10-07. It is a fourth exception to rule 7, as `sqlmode=disable` is
+  for `influxql` (D29).
 - TLS is the `tls` key, and never the scheme, as in every dbimp driver. The
   aliases `trs` and `trinos` meant HTTPS, and no alias can mean that now. `trs`
   or `trinos` with no TLS would be a quiet downgrade, and a `tls=true` added by
   the alias would be a rule 7 exception that no other dbimp scheme has. Ken
   decided on 2026-10-07 to drop both aliases, under D14, because they are not
-  congruent with the other schemes. `trs://` and `trinos://` now return
+  congruent with the other schemes. `trs://` and `trinos://` return
   `ErrUnknownDatabaseScheme`, and `TestBadParse` has a case for each. The
   scheme keeps the automatic alias `tr`.
-- The old `ssl_ca`, `ssl_cert`, `ssl_key` and `ssl_skip_verify` keys of the
-  Presto client pass through, and a dbimp driver refuses any key it does not
-  know.
 
-A release that carries D50 may ship before the driver is tagged, under D38.
-When dbimp tags the driver, the generators are run through its `ParseDSN`, and
-they change where the two disagree. This also settles the ports, the `tls`
-key and the catalog default that D34 and D38 left for the dbimp drivers.
+Both generators were run through `trino.ParseDSN` at `v0.12.0` from
+`proxy.golang.org`. With no port the driver used 8080, with `tls=true` it used
+8443, and an escaped catalog, a schema, `source`, `timezone`, `timeout`,
+`session.query_max_run_time` and an IPv6 host came back as intended. `presto://`
+reached the driver with the flavor `presto`, and `trino://host` parsed with the
+default user. A path of three segments, `ssl_ca` and an unknown key failed in
+the driver, under D5. Both schemes are no longer provisional.
+
+This also settles the default catalog of D38. The old generators made the
+catalog `default`, and now neither generator fills it.
 
 `GoPackage` changed for both schemes, and under D46 the dbmeta tests import the
 package that it names, so the dbmeta session is told. The `usql` drivers for
 the two old clients move in the same change that takes the release.
 
-### D51. maxcompute, tablestore and ydb choose TLS by the tls option. Amends D21.
+### D51. maxcompute, tablestore and ydb choose TLS by the tls option. Amends D21. Amended by D53.
+
+Amended by D53: `clickhouse` also chooses TLS by `tls`, and no scheme keeps
+`+http` or `+https`.
 
 Ken decided on 2026-10-07 that no scheme chooses TLS by its scheme or its
 transport, because the dbimp drivers read the `tls` key and never the scheme
@@ -2189,3 +2222,72 @@ endpoint and the project came back as intended, with `https` by default and
 `http` for `tls=false`, and the hints stayed empty, so `tls` did not reach the
 server. `TestParse` covers each scheme and each value, and `TestBadParse` covers
 the removed forms and the invalid values.
+
+### D52. odbc sends the URL to xo/odbc. Amends D7 and D49.
+
+Ken decided on 2026-10-07 that `GenOdbc` sends the URL to `github.com/xo/odbc`
+as the DSN, because `odbc.ParseDSN` reads a URL of the form
+`odbc+<driver>://user:pass@host:port/path?key=value`. dburl no longer builds an
+ODBC connection string.
+
+`GenOdbc` writes the URL back with the same user information, host, port, path
+and query. It drops a query key that starts with a prefix in
+`OdbcIgnoreQueryPrefixes`, which `usql` sets to `usql_`, and compares the
+lower case key. It adds nothing else.
+
+WHAT THIS REMOVES
+
+- The default `Port`. The driver adds none, so the ODBC driver that the user
+  installed owns it. This answers the question that D49 left open.
+- `ServiceName=50000` for DB2. It was an exception to D7, and now the
+  exceptions are `sslmode=disable`, `sqlmode=disable` and `flavor`.
+- The defect in D49. The driver braces a value that holds `;`, `{`, `}`, `=` or
+  a space, and doubles a `}`, so a password `p;w` comes through as `PWD={p;w}`.
+- The default host. `GenOdbc` adds no host, because a driver or a DSN on the
+  machine may need none, and the driver omits an empty `Server`.
+
+WHAT CHANGES FOR THE CALLER
+
+The DSN is a URL and not a connection string. `usql` and any other caller must
+pass it to `sql.Open("odbc", dsn)`, which is what they did. A caller that
+read the string for `Driver=` must stop.
+
+`odbc://host/db`, with no driver, returns `ErrMissingDriver`. It wrote
+`Driver={tcp}` before, which no ODBC driver has. Rule 10 asks for an error when
+a required field is missing, and the driver name is one.
+
+`GenOdbc` was run through `odbc.ParseDSN` at `v0.1.0`. `PWD` came back as
+`{p;w}`, and SQL Server with an instance and a port came back as
+`Server=host\inst,1433`. `TestParse` covers both, and `TestBadParse` covers the
+missing driver.
+
+### D53. clickhouse opens the dbimp driver. Amends D34 and D51.
+
+Ken decided on 2026-10-07 that `clickhouse` moves to `github.com/xo/dbimp/clickhouse`
+and that `github.com/ClickHouse/clickhouse-go` is dropped. The dbimp driver
+registers the name `clickhouse`, as clickhouse-go does, so a program can link
+only one of them, and dburl names the dbimp one.
+
+`GenClickhouse` writes the URL back as `clickhouse://`, with the user
+information, the path and the query as they were written. The driver reads
+`tls` and refuses any other key. It speaks HTTP only, and its default port is
+8123, or 8443 with `tls=true`, so `GenClickhouse` adds no port, as D34 asks.
+The host defaults to `localhost`.
+
+WHAT IS REMOVED
+
+- The transports `+http` and `+https`. `clickhouse+https://host/db` returns
+  `ErrInvalidTransportProtocol`. Write `clickhouse://host/db?tls=true`.
+- The native protocol and its port 9000. The driver cannot speak it. A URL that
+  names port 9000 still passes through, and the driver sends HTTP to it.
+- Every clickhouse-go option, such as `secure=true`, which the driver refuses
+  as an unknown key. This closes the two backlog items about clickhouse.
+
+`GoPackage` is `github.com/xo/dbimp/clickhouse`, and the transport is none. The
+alias `ch` stays. dbmeta reads `GoPackage`, so it must be told (D46).
+
+`GenClickhouse` was run through `clickhouse.ParseDSN` at dbimp v0.13.0, and the
+host, port, tls, user, password and database came back as written. A password
+with `@` came back whole, `clickhouse://` with no host came back as
+`localhost:8123`, and `secure=true` came back as `unknown key`. `TestParse`
+covers each form, and `TestBadParse` covers the removed transports.

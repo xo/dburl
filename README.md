@@ -121,7 +121,7 @@ to `sql.Open`:
 | Oracle Database      | `oracle`        | `or`, `ora`, `oci`, `oci8`, `odpi`, `odpi-c`   | [github.com/sijms/go-ora/v3][d-oracle]                                                      |
 | SQLite3              | `sqlite3`       | `sq`, `sqlite`, `file`                         | [github.com/mattn/go-sqlite3][d-sqlite3] <sup>[†][f-cgo]</sup> <sup>[§][f-embedded]</sup>   |
 | DuckDB               | `duckdb`        | `dk`, `ddb`, `duck`, `file`                    | [github.com/duckdb/duckdb-go/v2][d-duckdb] <sup>[†][f-cgo]</sup> <sup>[§][f-embedded]</sup> |
-| ClickHouse           | `clickhouse`    | `ch`                                           | [github.com/ClickHouse/clickhouse-go/v2][d-clickhouse]                                      |
+| ClickHouse           | `clickhouse`    | `ch`                                           | [github.com/xo/dbimp/clickhouse][d-clickhouse]                                              |
 | CSVQ                 | `csvq`          | `cs`, `csv`, `tsv`, `json`                     | [github.com/mithrandie/csvq-driver][d-csvq] <sup>[§][f-embedded]</sup>                      |
 |                      |                 |                                                |                                                                                             |
 | Alibaba MaxCompute   | `maxcompute`    | `mc`                                           | [github.com/aliyun/aliyun-odps-go-sdk/sqldriver][d-maxcompute] <sup>[¶][f-hosted]</sup>     |
@@ -178,7 +178,7 @@ to `sql.Open`:
 [d-awsathena]: https://github.com/uber/athenadriver
 [d-bigquery]: https://github.com/go-gorm/bigquery
 [d-chai]: https://github.com/chaisql/chai
-[d-clickhouse]: https://github.com/ClickHouse/clickhouse-go
+[d-clickhouse]: https://github.com/xo/dbimp
 [d-cockroachdb]: https://github.com/jackc/pgx
 [d-cosmos]: https://github.com/btnguyen2k/gocosmos
 [d-couchbase]: https://github.com/xo/dbimp

@@ -60,8 +60,8 @@ yourself and do not write it as though it were settled.
    and no default port on purpose, so the driver reads `PGHOST` (D22). Do not
    supply options that change how the driver or the database behaves. The
    calling client owns those. Three exceptions are in the codebase:
-   `sslmode=disable` for CockroachDB, `ServiceName` for DB2 over ODBC, and
-   `sqlmode=disable` for influxql (D29). An option the driver cannot start
+   `sslmode=disable` for CockroachDB, `sqlmode=disable` for influxql (D29),
+   and `flavor` for trino and presto (D50). An option the driver cannot start
    without is a separate case, covered by D16. `auth=NONE` for hive is the
    only one.
 8. Add a scheme only when the matching driver is in `usql`, or is expected
@@ -74,7 +74,8 @@ yourself and do not write it as though it were settled.
     path or the user, return an error from the generator that names it:
     `ErrMissingHost`, `ErrMissingPath` or `ErrMissingUser`. Do not fill the
     field in. A default host or port under rule 7 is not a filled field,
-    because it names a real server (D38).
+    because it names a real server (D38). Trino and Presto write the user
+    `user` when the URL has none, which is the one exception (D50).
 
 ## The four files
 
