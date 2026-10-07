@@ -64,6 +64,7 @@ if D11 amends D4, then D4 says so too.
 | [D52](#d52-odbc-sends-the-url-to-xoodbc) | Decided |
 | [D53](#d53-clickhouse-opens-the-dbimp-driver) | Decided |
 | [D54](#d54-drill-solr-elasticsearch-and-opensearch-are-schemes-for-the-dbimp-drivers) | Decided |
+| [D55](#d55-dynamodb-opens-the-dbimp-driver) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -2333,3 +2334,39 @@ the driver. dbimp says two answers of Ken's can still change a DSN: whether
 which the DSN refuses today. When dbimp tags each driver, run its generator
 through the tagged `ParseDSN` again, and change it where the two disagree. A
 release that carries D54 may ship before the tags, under D38.
+
+### D55. dynamodb opens the dbimp driver. Decided.
+
+Ken decided on 2026-10-07 that DynamoDB moves from
+`github.com/btnguyen2k/godynamo` to `github.com/xo/dbimp/dynamodb`, and that
+the URLs change with it. The scheme is now `dynamodb`, where it was `godynamo`
+with `dynamodb` as an alias, and its `Dialect` is `dynamodb`. The aliases are
+`dy`, `dyn` and `dynamo`. The name `godynamo` is dropped, as `trs` was in D50,
+and returns `ErrUnknownDatabaseScheme`. `GoPackage` is
+`github.com/xo/dbimp/dynamodb`, and the scheme is `DeploymentServer |
+DeploymentHosted`, because DynamoDB Local runs anywhere.
+
+THE URL
+
+The old URL was `dynamodb://key:secret@us-east-1`, with the region as the host
+and the other options as godynamo keys. The new URL is
+`dynamodb://key:secret@host:port?region=us-east-1`. The host is the endpoint,
+such as `dynamodb.us-east-1.amazonaws.com` or `localhost:8000`, and the region
+is the key `region`, which the driver requires. The driver speaks HTTPS, and
+`tls=false` selects HTTP. It refuses a path and any other key.
+
+`GenDynamo` is `genRewrite` with the scheme `dynamodb`. The signature needs the
+access key and the secret key, so a URL with no user, or no password, returns
+`ErrMissingUser` (rule 10). A missing `region` is left to the driver, which
+refuses it. It adds no port, because the driver uses 443 or 80 by scheme, and
+the host defaults to `localhost`, which is the endpoint of DynamoDB Local.
+
+THE PROVISIONAL PARTS
+
+dbimp has not tagged the driver, which is in its working tree (the newest tag
+is `v0.13.0`). `GenDynamo` was run through `dynamodb.ParseDSN` there, by a
+replace in a scratch module. An AWS endpoint came back with TLS on and no port,
+a local endpoint with port 8000 and `tls=false`, and a secret holding `/` came
+back whole. A missing region, a path and an unknown key failed in the driver.
+When dbimp tags the driver, run the generator through the tagged `ParseDSN`
+again, as D54 asks.

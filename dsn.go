@@ -364,19 +364,28 @@ func GenDatabend(u *URL) (string, string, error) {
 	return genRewrite(u, "databend", "", u.RawQuery), "", nil
 }
 
-// GenDynamo generates a dynamo DSN from the passed URL.
+// GenDynamo generates a dynamodb DSN from the passed URL.
+//
+// Targets the driver [xo/dbimp/dynamodb], which reads a dynamodb:// URL. The
+// host is the endpoint, such as dynamodb.us-east-1.amazonaws.com, and the
+// region is the key region, which the driver requires. The user is the access
+// key and the password is the secret key, and the signature needs both, so a
+// URL without one returns [ErrMissingUser]. The driver speaks HTTPS unless the
+// URL names tls=false, and refuses a path and any other key. The path, the
+// user information and the query pass through. It adds no port, because the
+// driver uses the port of the scheme (D34 and D55).
+//
+// The driver has no tag yet, so this generator is provisional (D55).
+//
+// [xo/dbimp/dynamodb]: https://github.com/xo/dbimp
 func GenDynamo(u *URL) (string, string, error) {
-	var v []string
-	if host := u.Hostname(); host != "" {
-		v = append(v, "Region="+host)
+	if u.User == nil {
+		return "", "", ErrMissingUser
 	}
-	if u.User != nil {
-		v = append(v, "AkId="+u.User.Username())
-		if pass, ok := u.User.Password(); ok {
-			v = append(v, "Secret_Key="+pass)
-		}
+	if p, _ := u.User.Password(); u.User.Username() == "" || p == "" {
+		return "", "", ErrMissingUser
 	}
-	return strings.Join(v, ";") + genOptions(u.Query(), ";", "=", ";", ",", true, []string{"Region", "Secret_Key", "AkId"}, nil), "", nil
+	return genRewrite(u, "dynamodb", "", u.RawQuery), "", nil
 }
 
 // GenDatabricks generates a databricks DSN from the passed URL.

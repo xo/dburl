@@ -145,7 +145,7 @@ to `sql.Open`:
 | CrateDB              | `cratedb`       | `ct`, `crate`                                  | [github.com/jackc/pgx/v5/stdlib][d-cratedb]                                                 |
 | Databend             | `databend`      | `dd`, `bend`                                   | [github.com/xo/dbimp/databend][d-databend]                                                  |
 | Databricks           | `databricks`    | `br`, `brick`, `bricks`, `databrick`           | [github.com/databricks/databricks-sql-go][d-databricks] <sup>[¶][f-hosted]</sup>            |
-| DynamoDb             | `godynamo`      | `dy`, `dyn`, `dynamo`, `dynamodb`              | [github.com/btnguyen2k/godynamo][d-godynamo] <sup>[¶][f-hosted]</sup>                       |
+| DynamoDB             | `dynamodb`      | `dy`, `dyn`, `dynamo`                          | [github.com/xo/dbimp/dynamodb][d-dynamodb]                                                  |
 | Elasticsearch        | `elasticsearch` | `es`, `elastic`                                | [github.com/xo/dbimp/elasticsearch][d-elasticsearch]                                        |
 | Exasol               | `exasol`        | `ex`, `exa`                                    | [github.com/exasol/exasol-driver-go][d-exasol]                                              |
 | Firebird             | `firebirdsql`   | `fb`, `firebird`                               | [github.com/nakagami/firebirdsql][d-firebirdsql]                                            |
@@ -194,13 +194,13 @@ to `sql.Open`:
 [d-drill]: https://github.com/xo/dbimp
 [d-druid]: https://github.com/xo/dbimp
 [d-duckdb]: https://github.com/duckdb/duckdb-go
+[d-dynamodb]: https://github.com/xo/dbimp
 [d-elasticsearch]: https://github.com/xo/dbimp
 [d-exasol]: https://github.com/exasol/exasol-driver-go
 [d-firebirdsql]: https://github.com/nakagami/firebirdsql
 [d-flightsql]: https://github.com/apache/arrow-go/tree/main/arrow/flight/flightsql/driver
 [d-gizmosql]: https://github.com/apache/arrow-go/tree/main/arrow/flight/flightsql/driver
 [d-godror]: https://github.com/godror/godror
-[d-godynamo]: https://github.com/btnguyen2k/godynamo
 [d-h2]: https://github.com/jmrobles/h2go
 [d-hdb]: https://github.com/SAP/go-hdb
 [d-hive]: https://github.com/beltran/gohive

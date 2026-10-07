@@ -19,13 +19,14 @@ Elasticsearch and OpenSearch are provisional (D54), and the next item holds
 them. When dbimp starts another driver, add its scheme when the driver has
 `ParseDSN` at a tag, under rule 3.
 
-### Check the four search drivers at their tags
+### Check the five drivers at their tags
 
-D54 added `drill`, `solr`, `elasticsearch` and `opensearch` against the working
-tree of dbimp. When dbimp tags each driver, run its generator through the
-tagged `ParseDSN`, and change it where the two disagree. The Solr path and
-`fetch_size=0` for OpenSearch can still change a DSN. Tell `usql` and `dbmeta`
-when a tag lands, and do not release a version that `usql` cannot build.
+D54 added `drill`, `solr`, `elasticsearch` and `opensearch`, and D55 moved
+`dynamodb`, against the working tree of dbimp. When dbimp tags each driver,
+run its generator through the tagged `ParseDSN`, and change it where the two
+disagree. The Solr path and `fetch_size=0` for OpenSearch can still change a
+DSN. Tell `usql` and `dbmeta` when a tag lands, and do not release a version
+that `usql` cannot build.
 
 ### Find a driver for gizmosql that keeps a session
 
