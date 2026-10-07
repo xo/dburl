@@ -14,25 +14,18 @@ decided on the way (D27).
 dbimp D73 set the order of the drivers after Neo4j, and each of them is done:
 InfluxDB (D29), CrateDB on pgx (D30), ArangoDB (D32), Databend (D39), Pinot
 (D43), rqlite (D44), libSQL with Turso (D45), Avatica (D47) and Druid (D48).
-TDengine got no driver, and its scheme is removed (D41). No scheme here is
-provisional. When dbimp starts another driver, add its scheme when the driver
-has `ParseDSN` at a tag, under rule 3.
+TDengine got no driver, and its scheme is removed (D41). Drill, Solr,
+Elasticsearch and OpenSearch are provisional (D54), and the next item holds
+them. When dbimp starts another driver, add its scheme when the driver has
+`ParseDSN` at a tag, under rule 3.
 
-### Tell usql when the drivers of v0.43.0 exist
+### Check the four search drivers at their tags
 
-`usql` stays on v0.42.0, because v0.43.0 carries D49 and D50, which named two
-drivers that did not exist yet. D50 broke its two live drivers, because the DSN
-of `trino://` and the driver of `presto://` changed, and D49 would make its
-README name a driver it does not import. dbimp tagged its Trino driver in
-v0.12.0, and the generators are checked against it (D50), but a release of
-them is not cut. `usql` takes the next release in one step, with the move to
-dbimp's Trino driver (its W40) and the change for D51 (its W41). Both drivers
-of the release are tagged now, `github.com/xo/odbc` `v0.1.0` and dbimp
-`v0.12.0`, and the generators are checked against them (D49 and D50). D52
-changes the `odbc` DSN from a connection string to an `odbc+<driver>://` URL,
-and drops the `ServiceName` option and the default port. D53 moves `clickhouse` to the dbimp driver, which drops clickhouse-go, its
-options, the native port and `+http` and `+https`. Tell the `usql` session
-when the release is cut.
+D54 added `drill`, `solr`, `elasticsearch` and `opensearch` against the working
+tree of dbimp. When dbimp tags each driver, run its generator through the
+tagged `ParseDSN`, and change it where the two disagree. The Solr path and
+`fetch_size=0` for OpenSearch can still change a DSN. Tell `usql` and `dbmeta`
+when a tag lands, and do not release a version that `usql` cannot build.
 
 ### Find a driver for gizmosql that keeps a session
 

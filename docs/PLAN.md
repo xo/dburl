@@ -63,6 +63,7 @@ if D11 amends D4, then D4 says so too.
 | [D51](#d51-maxcompute-tablestore-and-ydb-choose-tls-by-the-tls-option) | Amended by D53 |
 | [D52](#d52-odbc-sends-the-url-to-xoodbc) | Decided |
 | [D53](#d53-clickhouse-opens-the-dbimp-driver) | Decided |
+| [D54](#d54-drill-solr-elasticsearch-and-opensearch-are-schemes-for-the-dbimp-drivers) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -2291,3 +2292,44 @@ host, port, tls, user, password and database came back as written. A password
 with `@` came back whole, `clickhouse://` with no host came back as
 `localhost:8123`, and `secure=true` came back as `unknown key`. `TestParse`
 covers each form, and `TestBadParse` covers the removed transports.
+
+### D54. drill, solr, elasticsearch and opensearch are schemes for the dbimp drivers. Decided.
+
+Ken asked on 2026-10-07 for schemes for OpenSearch, Elasticsearch, Solr and
+Drill. dbimp wrote one driver for each, in `github.com/xo/dbimp/drill`,
+`/solr`, `/elasticsearch` and `/opensearch`. Each registers a name equal to its
+package. Elasticsearch and OpenSearch share no code, so they are two schemes.
+The schemes have no transport.
+
+| Scheme | Alias | URL | Keys besides `tls` |
+| --- | --- | --- | --- |
+| `drill` | `dl` | `drill://user:pass@host:8047`, no path | `schema`, `autolimit` |
+| `solr` | `so` | `solr://user:pass@host:8983/collection`, the path optional | `mode` |
+| `elasticsearch` | `es`, `elastic` | `elasticsearch://user:pass@host:9200`, no path | `auth`, `fetch_size`, `time_zone`, `field_multi_value_leniency`, `catalog` |
+| `opensearch` | `os`, `open` | `opensearch://user:pass@host:9200`, no path | `fetch_size` |
+
+`drill` takes `dl` because the automatic alias `dr` belongs to `druid`, and
+registering it would panic. `elasticsearch` takes the explicit aliases `es`
+and `elastic`, and `opensearch` takes `os` and `open`.
+
+Each generator is `genRewrite` with the scheme name. The user information, the
+path and the query pass through, the host defaults to `localhost`, and no port
+is added, because each driver has its own default and `tls=true` does not move
+it (D34). A path on `drill`, `elasticsearch` or `opensearch`, and a key the
+driver does not know, are left for the driver to refuse (rule 5).
+`GoPackage` is the package of the driver. Elasticsearch and OpenSearch are
+`DeploymentServer | DeploymentHosted`, and the other two are `DeploymentServer`.
+
+THE PROVISIONAL PARTS
+
+dbimp has tagged none of the four drivers, and they are in its working tree,
+for the order drill, solr, elasticsearch and opensearch. So rule 3 had no
+evidence at a tag, as in D48. Each generator was run through `ParseDSN` in the
+working tree by a replace in a scratch module outside this repository. The
+default port, an explicit port, a password holding `@`, `tls`, the keys above,
+and an IPv6 host came back as intended, and a path or an unknown key failed in
+the driver. dbimp says two answers of Ken's can still change a DSN: whether
+`solr` needs a collection in the path, and `fetch_size=0` for OpenSearch 2.19.6,
+which the DSN refuses today. When dbimp tags each driver, run its generator
+through the tagged `ParseDSN` again, and change it where the two disagree. A
+release that carries D54 may ship before the tags, under D38.

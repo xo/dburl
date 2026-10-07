@@ -185,6 +185,19 @@ func GenGizmoSQL(u *URL) (string, string, error) {
 	return genRewrite(u, "flightsql", "31337", u.RawQuery), "flightsql", nil
 }
 
+// GenOpensearch generates a opensearch DSN from the passed URL.
+//
+// Targets the driver [xo/dbimp/opensearch], which reads a opensearch:// URL and refuses
+// any other scheme. The URL has no path, because OpenSearch has no database to choose. The user information and the query pass through as
+// they were written, and the driver refuses a key it does not know. It adds no
+// port, because the driver has its own default, which tls=true does not change
+// (D34 and D54).
+//
+// [xo/dbimp/opensearch]: https://github.com/xo/dbimp
+func GenOpensearch(u *URL) (string, string, error) {
+	return genRewrite(u, "opensearch", "", u.RawQuery), "", nil
+}
+
 // GenPinot generates a pinot DSN from the passed URL.
 //
 // Targets [xo/dbimp/pinot], which reads a pinot:// URL and refuses any other
@@ -309,6 +322,19 @@ func GenCosmos(u *URL) (string, string, error) {
 	return genOptionsOdbc(q, true, nil, nil), "gocosmos", nil
 }
 
+// GenDrill generates a drill DSN from the passed URL.
+//
+// Targets the driver [xo/dbimp/drill], which reads a drill:// URL and refuses
+// any other scheme. The URL has no path, and the schema is the key schema. The user information and the query pass through as
+// they were written, and the driver refuses a key it does not know. It adds no
+// port, because the driver has its own default, which tls=true does not change
+// (D34 and D54).
+//
+// [xo/dbimp/drill]: https://github.com/xo/dbimp
+func GenDrill(u *URL) (string, string, error) {
+	return genRewrite(u, "drill", "", u.RawQuery), "", nil
+}
+
 // GenDruid generates a druid DSN from the passed URL.
 //
 // Targets the driver [xo/dbimp/druid], which reads a druid:// URL, refuses any
@@ -372,6 +398,19 @@ func GenDatabricks(u *URL) (string, string, error) {
 	}
 	s := fmt.Sprintf("token:%s@%s.databricks.com:%s/sql/1.0/endpoints/%s", user, pass, port, host)
 	return s + genOptions(u.Query(), "?", "=", "&", ",", true, nil, nil), "", nil
+}
+
+// GenElasticsearch generates a elasticsearch DSN from the passed URL.
+//
+// Targets the driver [xo/dbimp/elasticsearch], which reads a elasticsearch:// URL and refuses
+// any other scheme. The URL has no path, because Elasticsearch has no database to choose. The user information and the query pass through as
+// they were written, and the driver refuses a key it does not know. It adds no
+// port, because the driver has its own default, which tls=true does not change
+// (D34 and D54).
+//
+// [xo/dbimp/elasticsearch]: https://github.com/xo/dbimp
+func GenElasticsearch(u *URL) (string, string, error) {
+	return genRewrite(u, "elasticsearch", "", u.RawQuery), "", nil
 }
 
 // GenExasol generates a exasol DSN from the passed URL.
@@ -798,6 +837,19 @@ func GenPostgres(u *URL) (string, string, error) {
 		q[k] = []string{quotePostgres(strings.Join(v, ","))}
 	}
 	return genOptions(q, "", "=", " ", ",", true, nil, nil), "", nil
+}
+
+// GenSolr generates a solr DSN from the passed URL.
+//
+// Targets the driver [xo/dbimp/solr], which reads a solr:// URL and refuses
+// any other scheme. The path is the name of one collection, and it is optional. The user information and the query pass through as
+// they were written, and the driver refuses a key it does not know. It adds no
+// port, because the driver has its own default, which tls=true does not change
+// (D34 and D54).
+//
+// [xo/dbimp/solr]: https://github.com/xo/dbimp
+func GenSolr(u *URL) (string, string, error) {
+	return genRewrite(u, "solr", "", u.RawQuery), "", nil
 }
 
 // GenSnowflake generates a snowflake DSN from the passed URL.

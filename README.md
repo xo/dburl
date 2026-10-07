@@ -128,11 +128,13 @@ to `sql.Open`:
 | Alibaba Tablestore   | `ots`           | `ot`, `tablestore`                             | [github.com/aliyun/aliyun-tablestore-go-sql-driver][d-ots] <sup>[¶][f-hosted]</sup>         |
 | Amazon Redshift      | `redshift`      | `rs`                                           | [github.com/jackc/pgx/v5/stdlib][d-redshift] <sup>[¶][f-hosted]</sup>                       |
 | Apache Avatica       | `avatica`       | `av`, `phoenix`                                | [github.com/xo/dbimp/avatica][d-avatica]                                                    |
+| Apache Drill         | `drill`         | `dl`                                           | [github.com/xo/dbimp/drill][d-drill]                                                        |
 | Apache Druid         | `druid`         | `dr`                                           | [github.com/xo/dbimp/druid][d-druid]                                                        |
 | Apache H2            | `h2`            |                                                | [github.com/jmrobles/h2go][d-h2]                                                            |
 | Apache Hive          | `hive`          | `hi`, `hive2`                                  | [github.com/beltran/gohive/v2][d-hive]                                                      |
 | Apache Impala        | `impala`        | `im`                                           | [github.com/sclgo/impala-go][d-impala]                                                      |
 | Apache Pinot         | `pinot`         | `pi`                                           | [github.com/xo/dbimp/pinot][d-pinot]                                                        |
+| Apache Solr          | `solr`          | `so`                                           | [github.com/xo/dbimp/solr][d-solr]                                                          |
 | ArangoDB             | `arangodb`      | `ar`, `arango`                                 | [github.com/xo/dbimp/arangodb][d-arangodb]                                                  |
 | AWS Athena           | `awsathena`     | `s3`, `aws`, `athena`                          | [github.com/uber/athenadriver/go][d-awsathena] <sup>[¶][f-hosted]</sup>                     |
 | Azure CosmosDB       | `cosmos`        | `cm`, `gocosmos`                               | [github.com/btnguyen2k/gocosmos][d-cosmos] <sup>[¶][f-hosted]</sup>                         |
@@ -144,6 +146,7 @@ to `sql.Open`:
 | Databend             | `databend`      | `dd`, `bend`                                   | [github.com/xo/dbimp/databend][d-databend]                                                  |
 | Databricks           | `databricks`    | `br`, `brick`, `bricks`, `databrick`           | [github.com/databricks/databricks-sql-go][d-databricks] <sup>[¶][f-hosted]</sup>            |
 | DynamoDb             | `godynamo`      | `dy`, `dyn`, `dynamo`, `dynamodb`              | [github.com/btnguyen2k/godynamo][d-godynamo] <sup>[¶][f-hosted]</sup>                       |
+| Elasticsearch        | `elasticsearch` | `es`, `elastic`                                | [github.com/xo/dbimp/elasticsearch][d-elasticsearch]                                        |
 | Exasol               | `exasol`        | `ex`, `exa`                                    | [github.com/exasol/exasol-driver-go][d-exasol]                                              |
 | Firebird             | `firebirdsql`   | `fb`, `firebird`                               | [github.com/nakagami/firebirdsql][d-firebirdsql]                                            |
 | FlightSQL            | `flightsql`     | `fl`, `flight`                                 | [github.com/apache/arrow-go/v18/arrow/flight/flightsql/driver][d-flightsql]                 |
@@ -157,6 +160,7 @@ to `sql.Open`:
 | ModernC SQLite3      | `moderncsqlite` | `mq`, `modernsqlite`                           | [modernc.org/sqlite][d-moderncsqlite] <sup>[§][f-embedded]</sup>                            |
 | Neo4j                | `neo4j`         | `nj`, `neo`, `n4j`                             | [github.com/xo/dbimp/neo4j][d-neo4j]                                                        |
 | ODBC                 | `odbc`          | `od`                                           | [github.com/xo/odbc][d-odbc]                                                                |
+| OpenSearch           | `opensearch`    | `os`, `open`                                   | [github.com/xo/dbimp/opensearch][d-opensearch]                                              |
 | PostgreSQL lib/pq    | `pq`            | `libpq`                                        | [github.com/lib/pq][d-pq]                                                                   |
 | PostgreSQL PGX       | `pgx`           | `px`                                           | [github.com/jackc/pgx/v5/stdlib][d-pgx]                                                     |
 | Presto               | `presto`        | `pr`, `prestodb`                               | [github.com/xo/dbimp/trino][d-presto]                                                       |
@@ -187,8 +191,10 @@ to `sql.Open`:
 [d-csvq]: https://github.com/mithrandie/csvq-driver
 [d-databend]: https://github.com/xo/dbimp
 [d-databricks]: https://github.com/databricks/databricks-sql-go
+[d-drill]: https://github.com/xo/dbimp
 [d-druid]: https://github.com/xo/dbimp
 [d-duckdb]: https://github.com/duckdb/duckdb-go
+[d-elasticsearch]: https://github.com/xo/dbimp
 [d-exasol]: https://github.com/exasol/exasol-driver-go
 [d-firebirdsql]: https://github.com/nakagami/firebirdsql
 [d-flightsql]: https://github.com/apache/arrow-go/tree/main/arrow/flight/flightsql/driver
@@ -208,6 +214,7 @@ to `sql.Open`:
 [d-mysql]: https://github.com/go-sql-driver/mysql
 [d-neo4j]: https://github.com/xo/dbimp
 [d-odbc]: https://github.com/xo/odbc
+[d-opensearch]: https://github.com/xo/dbimp
 [d-oracle]: https://github.com/sijms/go-ora
 [d-ots]: https://github.com/aliyun/aliyun-tablestore-go-sql-driver
 [d-pgx]: https://github.com/jackc/pgx
@@ -219,6 +226,7 @@ to `sql.Open`:
 [d-redshift]: https://github.com/jackc/pgx
 [d-rqlite]: https://github.com/xo/dbimp
 [d-snowflake]: https://github.com/snowflakedb/gosnowflake
+[d-solr]: https://github.com/xo/dbimp
 [d-spanner]: https://github.com/googleapis/go-sql-spanner
 [d-sqlite3]: https://github.com/mattn/go-sqlite3
 [d-sqlserver]: https://github.com/microsoft/go-mssqldb
