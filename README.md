@@ -151,7 +151,6 @@ to `sql.Open`:
 | Firebird             | `firebirdsql`   | `fb`, `firebird`                                 | [github.com/nakagami/firebirdsql][d-firebirdsql]                                            |
 | FlightSQL            | `flightsql`     | `fl`, `flight`                                   | [github.com/apache/arrow-go/v18/arrow/flight/flightsql/driver][d-flightsql]                 |
 | GizmoSQL             | `gizmosql`      | `gz`, `gizmo`                                    | [github.com/apache/arrow-go/v18/arrow/flight/flightsql/driver][d-gizmosql]                  |
-| GO DRiver for ORacle | `godror`        | `gr`                                             | [github.com/godror/godror][d-godror] <sup>[†][f-cgo]</sup>                                  |
 | Google BigQuery      | `bigquery`      | `bq`                                             | [gorm.io/driver/bigquery/driver][d-bigquery] <sup>[¶][f-hosted]</sup>                       |
 | Google Spanner       | `spanner`       | `sp`                                             | [github.com/googleapis/go-sql-spanner][d-spanner] <sup>[¶][f-hosted]</sup>                  |
 | InfluxDB             | `influxdb`      | `in`, `influx`                                   | [github.com/xo/dbimp/influxdb][d-influxdb]                                                  |
@@ -200,7 +199,6 @@ to `sql.Open`:
 [d-firebirdsql]: https://github.com/nakagami/firebirdsql
 [d-flightsql]: https://github.com/apache/arrow-go/tree/main/arrow/flight/flightsql/driver
 [d-gizmosql]: https://github.com/apache/arrow-go/tree/main/arrow/flight/flightsql/driver
-[d-godror]: https://github.com/godror/godror
 [d-h2]: https://github.com/jmrobles/h2go
 [d-hdb]: https://github.com/SAP/go-hdb
 [d-hive]: https://github.com/beltran/gohive

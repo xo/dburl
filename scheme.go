@@ -224,18 +224,6 @@ func BaseSchemes() []Scheme {
 		},
 		// alternate implementations
 		{
-			Name:        "godror",
-			Generator:   GenGodror,
-			Aliases:     []string{"gr"},
-			Desc:        "GO DRiver for ORacle",
-			Home:        "https://www.oracle.com/database",
-			GoPackage:   "github.com/godror/godror",
-			DriverURL:   "https://github.com/godror/godror",
-			RequiresCGO: true,
-			Deployment:  DeploymentServer,
-			Dialect:     "oracle",
-		},
-		{
 			Name:       "moderncsqlite",
 			Generator:  GenOpaque,
 			Opaque:     true,

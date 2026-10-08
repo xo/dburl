@@ -457,40 +457,6 @@ func GenFirebird(u *URL) (string, string, error) {
 	return strings.TrimPrefix(z.String(), "//"), "", nil
 }
 
-// GenGodror generates a godror DSN from the passed URL.
-func GenGodror(u *URL) (string, string, error) {
-	// Easy Connect Naming method enables clients to connect to a database server
-	// without any configuration. Clients use a connect string for a simple TCP/IP
-	// address, which includes a host name and optional port and service name:
-	// CONNECT username[/password]@[//]host[:port][/service_name][:server][/instance_name]
-	host, port, service := u.Hostname(), u.Port(), strings.TrimPrefix(u.Path, "/")
-	// grab instance name from service name
-	var instance string
-	if i := strings.LastIndex(service, "/"); i != -1 {
-		instance, service = service[i+1:], service[:i]
-	}
-	// build dsn
-	dsn := host
-	if port != "" {
-		dsn += ":" + port
-	}
-	if u.User != nil {
-		if n := u.User.Username(); n != "" {
-			if p, ok := u.User.Password(); ok {
-				n += "/" + p
-			}
-			dsn = n + "@//" + dsn
-		}
-	}
-	if service != "" {
-		dsn += "/" + service
-	}
-	if instance != "" {
-		dsn += "/" + instance
-	}
-	return dsn, "", nil
-}
-
 // GenHive generates a hive DSN from the passed URL.
 //
 // Targets [beltran/gohive/v2]. Its ParseDSN rejects any string that does not

@@ -66,6 +66,7 @@ if D11 amends D4, then D4 says so too.
 | [D54](#d54-drill-solr-elasticsearch-and-opensearch-are-schemes-for-the-dbimp-drivers) | Decided |
 | [D55](#d55-dynamodb-opens-the-dbimp-driver) | Decided |
 | [D56](#d56-cql-is-renamed-cassandra) | Decided |
+| [D57](#d57-the-godror-scheme-is-removed) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -2438,3 +2439,21 @@ host came back as `localhost`, and a URL from `cql://` and one from `scylla://`
 came back with the host, port, keyspace, consistency, timeout and each repeated
 `host` key as intended. An unknown key, and a keyspace in the path and in the
 query, failed in the driver. D56 is no longer provisional.
+
+### D57. The godror scheme is removed. Decided.
+
+Ken decided on 2026-10-09 that the `godror` driver is not needed, so D12 removes
+its scheme. The scheme `godror` and its alias `gr` go. `oracle` stays, and it
+serves the same database.
+
+Both names are published, so a URL that worked in v0.47.0 returns
+`ErrUnknownDatabaseScheme` in the next release, as D14 and D20 say. `GenGodror`
+is removed, and nothing else called it. `TestBadParse` has one case for each
+removed name, so a scheme that comes back must come back on purpose. The README
+row of `godror`, which was the only scheme in the table that needed cgo for
+Oracle, goes with it. The `godror` entry in the sample password file of
+`passfile` is only data, and it stays.
+
+D19 counted three pairs of schemes for one product after D20. With `godror`
+gone there are two: `pgx` with `postgres`, and `moderncsqlite` with `sqlite3`.
+D19 is not amended, because its rule does not change.
