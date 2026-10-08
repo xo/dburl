@@ -15,18 +15,9 @@ dbimp D73 set the order of the drivers after Neo4j, and each of them is done:
 InfluxDB (D29), CrateDB on pgx (D30), ArangoDB (D32), Databend (D39), Pinot
 (D43), rqlite (D44), libSQL with Turso (D45), Avatica (D47) and Druid (D48).
 TDengine got no driver, and its scheme is removed (D41). Drill, Solr,
-Elasticsearch and OpenSearch are provisional (D54), and the next item holds
-them. When dbimp starts another driver, add its scheme when the driver has
-`ParseDSN` at a tag, under rule 3.
-
-### Check the five drivers at their tags
-
-D54 added `drill`, `solr`, `elasticsearch` and `opensearch`, and D55 moved
-`dynamodb`, against the working tree of dbimp. When dbimp tags each driver,
-run its generator through the tagged `ParseDSN`, and change it where the two
-disagree. The Solr path and `fetch_size=0` for OpenSearch can still change a
-DSN. Tell `usql` and `dbmeta` when a tag lands, and do not release a version
-that `usql` cannot build.
+Elasticsearch, OpenSearch and DynamoDB followed (D54 and D55), and dbimp tagged
+them in `v0.14.0`. When dbimp starts another driver, add its scheme when the
+driver has `ParseDSN` at a tag, under rule 3.
 
 ### Find a driver for gizmosql that keeps a session
 

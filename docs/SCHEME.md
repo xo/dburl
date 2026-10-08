@@ -58,7 +58,7 @@ it when the DSN is itself a URL and needs a default port.
 and it joins a key that appears twice into one value. Read how the driver
 decodes its query before you use it. pgx reads `+` as itself, so a scheme
 whose driver is pgx uses `GenPgxFromURL`, which takes the same template.
-`xo/cql` takes a `host` key that can repeat, so `GenCassandra` passes the
+`xo/cassandra` takes a `host` key that can repeat, so `GenCassandra` passes the
 query through as it was written. D22 and D23 record both.
 
 `GenScheme("name")` rewrites only the scheme and forces `localhost`. Use it

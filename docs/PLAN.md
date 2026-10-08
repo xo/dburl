@@ -32,7 +32,7 @@ if D11 amends D4, then D4 says so too.
 | [D20](#d20-the-schemes-of-four-removed-drivers-leave-in-one-release) | Decided |
 | [D21](#d21-the-maxcompute-endpoint-protocol-comes-from-the-transport) | Amended by D51 |
 | [D22](#d22-postgres-opens-pgx-and-pq-opens-libpq) | Amended by D30 and D37 |
-| [D23](#d23-cql-opens-xocql-and-gets-a-url) | Decided |
+| [D23](#d23-cql-opens-xocql-and-gets-a-url) | Amended by D56 |
 | [D24](#d24-a-parsed-url-carries-its-dialect) | Amended by D30 and D37 |
 | [D25](#d25-couchbase-opens-xodbimpcouchbase) | Amended by D34 |
 | [D26](#d26-surrealdb-opens-xodbimpsurrealdb) | Amended by D34 |
@@ -65,6 +65,7 @@ if D11 amends D4, then D4 says so too.
 | [D53](#d53-clickhouse-opens-the-dbimp-driver) | Decided |
 | [D54](#d54-drill-solr-elasticsearch-and-opensearch-are-schemes-for-the-dbimp-drivers) | Decided |
 | [D55](#d55-dynamodb-opens-the-dbimp-driver) | Decided |
+| [D56](#d56-cql-is-renamed-cassandra) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -927,7 +928,9 @@ checked with `os.Stat` and not the `Stat` that the tests stub. The stubbed
 skipped, and a wrong DSN passed. It now checks with `Stat`, and no socket case
 is skipped.
 
-### D23. cql opens xo/cql, and gets a URL. Decided.
+### D23. cql opens xo/cql, and gets a URL. Amended by D56.
+
+Amended by D56: the scheme, the driver and the package are `cassandra`.
 
 Ken is rewriting the Cassandra driver as `github.com/xo/cql`, in place of
 `github.com/MichaelS11/go-cql-driver`. The `cql` scheme follows it. It still
@@ -2370,3 +2373,68 @@ a local endpoint with port 8000 and `tls=false`, and a secret holding `/` came
 back whole. A missing region, a path and an unknown key failed in the driver.
 When dbimp tags the driver, run the generator through the tagged `ParseDSN`
 again, as D54 asks.
+
+THE CHECK AT THE TAG
+
+dbimp tagged `v0.14.0` on 2026-10-07 with `drill`, `solr`, `elasticsearch`,
+`opensearch` and `dynamodb`. D54 and D55 are no longer provisional. Every
+generator, as `v0.46.0` ships it, was run through `ParseDSN` at `v0.14.0` from
+`proxy.golang.org`, and every result matched the working tree. Each default
+port, an explicit port, a password holding `@` or `/`, the aliases `dl`,
+`elastic` and `open`, an IPv6 host, and every key of each driver came back as
+intended. A path on `drill`, `elasticsearch`, `opensearch` and `dynamodb`, an
+unknown key, and a missing region failed in the driver. The new `dynamodb` key
+`token`, which carries the session token, passes through, and `TestParse`
+covers it. dbimp D178 item 16 has dburl write `flavor` from the scheme, which
+`GenTrino` and `GenPresto` already do (D50).
+
+### D56. cql is renamed cassandra. Amends D23.
+
+Ken decided on 2026-10-08 that the Cassandra driver moves from
+`github.com/xo/cql` to `github.com/xo/cassandra`, and drops the CQL name, so
+that it agrees with the other drivers. Ken confirmed to the dbmeta session that
+the module is `github.com/xo/cassandra`, the driver registers `cassandra`, the
+URL scheme is `cassandra://`, and `cql://` stays accepted as an alias.
+
+The scheme is now `cassandra`, and `Driver` and `Dialect` are `cassandra`,
+where all three were `cql`. `GoPackage` is `github.com/xo/cassandra`. The
+aliases are `ca`, `cass`, `cql`, `datastax`, `scy` and `scylla`, so `cql://` and
+`cassandra://` both parse. `GenCassandra` writes `cassandra://` whichever alias
+was parsed, and it passes the user information, the keyspace path and the query
+through. It adds no port, because gocql defaults to 9042 (D34).
+
+THE URL
+
+The cassandra session reported on 2026-10-08 that the driver reads only the
+URL `cassandra://user:password@host:port/keyspace?key=value`. The user
+information is the credentials, the host part is one host, the path is the
+keyspace, and each extra host is a repeated `host` key. It refuses an unknown
+key, a repeated key other than `host`, and any other scheme, so dburl rewrites
+`cql://` and `scylla://` to `cassandra://`. `GenCassandra` already did the
+rewrite and writes no host list.
+
+THE PROVISIONAL PARTS
+
+The new package has no tag, and Ken tags `v0.1.0` when he says. On 2026-10-08
+the cassandra session reported that its working tree holds the module
+`github.com/xo/cassandra` and registers `cassandra`, staged and not committed.
+`GenCassandra` was run through its `ParseDSN` there, by a replace in a scratch
+module. `cassandra://` with no host came back as `localhost`. A URL from `cql://`
+came back with its host, port, keyspace, consistency and timeout as intended,
+and one from `scylla://` came back with the IPv6 host and each repeated `host`
+key. An unknown key, and a keyspace in the path and in the query, failed in the
+driver. The package clause of the tree is still `cql`, which does not matter to
+dburl. When the package is tagged, run `GenCassandra` through its `ParseDSN`
+again, and release then. dbmeta changes its dialect constant, its driver map
+and its test module together, and usql changes its driver import, so do not
+release this before the tag.
+
+THE CHECK AT THE TAG
+
+`github.com/xo/cassandra` was tagged `v0.1.0` on 2026-10-08, at commit
+`2d0de96`. `GenCassandra` was run through `ParseDSN` at `v0.1.0` from
+`proxy.golang.org`, and every result matched the working tree. A URL with no
+host came back as `localhost`, and a URL from `cql://` and one from `scylla://`
+came back with the host, port, keyspace, consistency, timeout and each repeated
+`host` key as intended. An unknown key, and a keyspace in the path and in the
+query, failed in the driver. D56 is no longer provisional.

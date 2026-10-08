@@ -23,7 +23,7 @@ func TestParse(t *testing.T) {
 	}
 	exp := []Entry{
 		{"postgres", "*", "*", "*", "postgres", "P4ssw0rd"},
-		{"cql", "*", "*", "*", "cassandra", "cassandra"},
+		{"cassandra", "*", "*", "*", "cassandra", "cassandra"},
 		{"godror", "*", "*", "*", "system", "P4ssw0rd"},
 		{"ignite", "*", "*", "*", "ignite", "ignite"},
 		{"mymysql", "*", "*", "*", "root", "P4ssw0rd"},
@@ -165,7 +165,7 @@ const passfile = `# sample ~/.usqlpass file
 # protocol:host:port:dbname:user:pass
 postgres:*:*:*:postgres:P4ssw0rd
 
-cql:*:*:*:cassandra:cassandra
+cassandra:*:*:*:cassandra:cassandra
 godror:*:*:*:system:P4ssw0rd
 ignite:*:*:*:ignite:ignite
 mymysql:*:*:*:root:P4ssw0rd

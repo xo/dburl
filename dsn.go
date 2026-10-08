@@ -222,18 +222,19 @@ func GenRqlite(u *URL) (string, string, error) {
 	return genRewrite(u, "rqlite", "", u.RawQuery), "", nil
 }
 
-// GenCassandra generates a cql DSN from the passed URL.
+// GenCassandra generates a cassandra DSN from the passed URL.
 //
-// Targets [xo/cql], which reads a cql:// URL with net/url. The scheme is
-// always cql, whichever alias was parsed, so the driver never repeats the
-// alias list. The user information and the path, which is the keyspace, pass
-// through, and so does the query, as it was written, because the driver takes
-// a host key that can repeat. It adds no port, because gocql defaults to 9042
-// (D34).
+// Targets [xo/cassandra], which reads a cassandra:// URL with net/url. The
+// scheme is always cassandra, whichever alias was parsed, so cql:// and
+// scylla:// reach the driver as cassandra://, which is the only scheme it reads.
+// The user information and the path, which is the keyspace, pass through, and
+// so does the query, as it was written, because the driver takes a host key
+// that can repeat. It adds no port, because gocql defaults to 9042 (D34 and
+// D56).
 //
-// [xo/cql]: https://github.com/xo/cql
+// [xo/cassandra]: https://github.com/xo/cassandra
 func GenCassandra(u *URL) (string, string, error) {
-	return genRewrite(u, "cql", "", u.RawQuery), "", nil
+	return genRewrite(u, "cassandra", "", u.RawQuery), "", nil
 }
 
 // GenClickhouse generates a clickhouse DSN from the passed URL.
