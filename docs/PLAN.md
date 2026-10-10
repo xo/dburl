@@ -2745,8 +2745,17 @@ The notes in their comments that said the generators were provisional are gone.
 
 THE TAG
 
-This entry holds until `v0.17.0` is tagged. Run each generator through the
-`ParseDSN` of the tag, and release then.
+dbimp tagged `v0.17.0` on 2026-10-11, at commit `348c9eb7`. Every generator
+above was run through the `ParseDSN` of its package at the tag, from
+`proxy.golang.org`, and every result matched the working tree. A DSN that
+`GenSchemeHost` and `GenSpanner` write keeps its whole query, so
+`credential_file` reaches the driver. The pin of D64 made the Lint job of CI
+pass on the next run.
+
+One gap is in dbimp and not here. The Cloud Spanner emulator of dbmeta streams
+one JSON object for each line, and the driver does not read it yet, so the
+emulator form `spanner://localhost:<port>/p/i/d` is not usable until a later
+tag of dbimp.
 
 ### D64. CI pins golangci-lint v2.14.0. Amends D9.
 
