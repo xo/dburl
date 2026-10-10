@@ -432,13 +432,12 @@ func BuildURL(components map[string]any) (string, error) {
 		if port, ok := getComponent(components, "port"); ok {
 			hostinfo += ":" + port
 		}
-		var userinfo string
 		if user, ok := getComponent(components, "username", "user"); ok {
-			userinfo += url.QueryEscape(user)
+			userinfo := url.User(user)
 			if pass, ok := getComponent(components, "password", "pass"); ok {
-				userinfo += ":" + url.QueryEscape(pass)
+				userinfo = url.UserPassword(user, pass)
 			}
-			hostinfo = userinfo + "@" + hostinfo
+			hostinfo = userinfo.String() + "@" + hostinfo
 		}
 		urlstr += "//" + hostinfo
 	}
