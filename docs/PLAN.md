@@ -18,7 +18,7 @@ if D11 amends D4, then D4 says so too.
 | [D6](#d6-a-generator-is-written-for-a-dsn-format-not-for-a-database) | Decided |
 | [D7](#d7-defaults-cover-the-host-and-the-port-and-not-driver-options) | Amended by D16, D29, D34, D50 and D52 |
 | [D8](#d8-a-scheme-is-added-only-when-the-driver-is-expected-in-usql) | Decided |
-| [D9](#d9-golangci-lint-runs-in-ci-at-a-pinned-version) | Decided |
+| [D9](#d9-golangci-lint-runs-in-ci-at-a-pinned-version) | Amended by D64 |
 | [D10](#d10-a-rule-that-has-no-test-is-not-a-rule) | Amended by D17 |
 | [D11](#d11-netezza-keeps-sharing-genpostgres) | Replaced by D40 |
 | [D12](#d12-a-scheme-follows-its-driver-out-of-usql) | Decided |
@@ -73,6 +73,7 @@ if D11 amends D4, then D4 says so too.
 | [D61](#d61-databricks-moves-to-a-dbimp-driver-that-does-not-exist-yet) | Amended by D63 |
 | [D62](#d62-a-hosted-scheme-can-leave-out-the-known-suffix-of-its-host) | Amended by D63 |
 | [D63](#d63-the-five-dbimp-drivers-are-read-and-hosted-hosts-get-short-forms) | Decided |
+| [D64](#d64-ci-pins-golangci-lint-v2140) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -189,7 +190,9 @@ promise this repository cannot keep.
 Add a scheme when the matching driver is in `usql`, or when you expect it
 there soon. D12 covers the other direction.
 
-### D9. golangci-lint runs in CI at a pinned version. Decided.
+### D9. golangci-lint runs in CI at a pinned version. Amended by D64.
+
+Amended by D64: the pinned version is now v2.14.0.
 
 `.golangci.yml` sets `default: all` and lists what to turn off. That choice
 broke once without a word. `exhaustruct` and `wsl` were deprecated and renamed
@@ -2744,3 +2747,19 @@ THE TAG
 
 This entry holds until `v0.17.0` is tagged. Run each generator through the
 `ParseDSN` of the tag, and release then.
+
+### D64. CI pins golangci-lint v2.14.0. Amends D9.
+
+The Lint job of CI failed on every run after 2026-10-08, and the Test job
+passed. The job installs Go with `go-version: stable`, and `stable` moved to Go
+1.27.2. The pinned `golangci-lint` v2.13.2 could not read the export data of
+that release. It stopped on each standard library package with the error
+`export data version 5 is greater than maximum supported version 4`, so the
+failure came from the version of the linter and not from the code or from
+GitHub.
+
+Ken decided on 2026-10-11 to pin v2.14.0, the newest release. It passes with
+`0 issues` on this repository with Go 1.27.1. The pin stays exact, for the
+reason in D9. The workflow takes `stable`, so a new release of Go can break the
+pinned linter again, and the fix is the same: pin the next release of
+`golangci-lint` that reads its export data.
