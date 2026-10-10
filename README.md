@@ -167,7 +167,7 @@ to `sql.Open`:
 | rqlite               | `rqlite`        | `rq`                                             | [github.com/xo/dbimp/rqlite][d-rqlite]                                                      |
 | SAP HANA             | `hdb`           | `sa`, `sap`, `hana`, `saphana`                   | [github.com/SAP/go-hdb/driver][d-hdb]                                                       |
 | SingleStore MemSQL   | `memsql`        | `me`                                             | [github.com/go-sql-driver/mysql][d-memsql]                                                  |
-| Snowflake            | `snowflake`     | `sf`                                             | [github.com/snowflakedb/gosnowflake/v2][d-snowflake] <sup>[¶][f-hosted]</sup>               |
+| Snowflake            | `snowflake`     | `sf`                                             | [github.com/xo/dbimp/snowflake][d-snowflake] <sup>[¶][f-hosted]</sup>                       |
 | SurrealDB            | `surrealdb`     | `sr`, `sur`, `surreal`                           | [github.com/xo/dbimp/surrealdb][d-surrealdb]                                                |
 | TiDB                 | `tidb`          | `ti`                                             | [github.com/go-sql-driver/mysql][d-tidb]                                                    |
 | Trino                | `trino`         | `tr`                                             | [github.com/xo/dbimp/trino][d-trino]                                                        |
@@ -223,7 +223,7 @@ to `sql.Open`:
 [d-questdb]: https://github.com/jackc/pgx
 [d-redshift]: https://github.com/jackc/pgx
 [d-rqlite]: https://github.com/xo/dbimp
-[d-snowflake]: https://github.com/snowflakedb/gosnowflake
+[d-snowflake]: https://github.com/xo/dbimp
 [d-solr]: https://github.com/xo/dbimp
 [d-spanner]: https://github.com/googleapis/go-sql-spanner
 [d-sqlite3]: https://github.com/mattn/go-sqlite3

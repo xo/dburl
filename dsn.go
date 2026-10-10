@@ -2,6 +2,7 @@ package dburl
 
 import (
 	"fmt"
+	"net"
 	"net/url"
 	"path"
 	"sort"
@@ -829,24 +830,40 @@ func GenSolr(u *URL) (string, string, error) {
 }
 
 // GenSnowflake generates a snowflake DSN from the passed URL.
+//
+// Targets [xo/dbimp/snowflake], which reads a snowflake:// URL. The host is
+// the full host of the account, such as org-account.snowflakecomputing.com,
+// and the driver refuses a host that does not end that way. The user is the
+// login user, and the password is the private key of the user, as the base64url
+// text of its PKCS8 DER bytes. The key is the only way to sign in, so a URL with
+// no host, no user or no password returns [ErrMissingHost] or [ErrMissingUser].
+// A host that does not end that way, has no port and is not an IP address is
+// an account name, such as org-account, and GenSnowflake adds the suffix (D58).
+// The path holds the database and the schema, and the query takes role,
+// warehouse, timeout and timezone. Each one passes through as it was written,
+// and the driver refuses any other key. It adds no port, because the driver
+// uses 443 (D34 and D58).
+//
+// [xo/dbimp/snowflake]: https://github.com/xo/dbimp
 func GenSnowflake(u *URL) (string, string, error) {
-	host, port, dbname := u.Hostname(), u.Port(), strings.TrimPrefix(u.Path, "/")
-	if host == "" {
+	if u.Hostname() == "" {
 		return "", "", ErrMissingHost
 	}
-	if port != "" {
-		port = ":" + port
-	}
-	// add user/pass
 	if u.User == nil {
 		return "", "", ErrMissingUser
 	}
-	user := u.User.Username()
-	if pass, _ := u.User.Password(); pass != "" {
-		user += ":" + pass
+	if p, _ := u.User.Password(); u.User.Username() == "" || p == "" {
+		return "", "", ErrMissingUser
 	}
-	return user + "@" + host + port + "/" + dbname + genQueryOptions(u.Query()), "", nil
+	z := *u
+	if host := u.Hostname(); u.Port() == "" && net.ParseIP(host) == nil && !strings.HasSuffix(strings.ToLower(host), snowflakeSuffix) {
+		z.Host = host + snowflakeSuffix
+	}
+	return genRewrite(&z, "snowflake", "", u.RawQuery), "", nil
 }
+
+// snowflakeSuffix ends the host of every Snowflake account.
+const snowflakeSuffix = ".snowflakecomputing.com"
 
 // GenSpanner generates a spanner DSN from the passed URL.
 //

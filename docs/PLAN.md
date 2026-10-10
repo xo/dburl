@@ -67,6 +67,7 @@ if D11 amends D4, then D4 says so too.
 | [D55](#d55-dynamodb-opens-the-dbimp-driver) | Decided |
 | [D56](#d56-cql-is-renamed-cassandra) | Decided |
 | [D57](#d57-the-godror-scheme-is-removed) | Decided |
+| [D58](#d58-snowflake-opens-the-dbimp-driver) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -2457,3 +2458,54 @@ Oracle, goes with it. The `godror` entry in the sample password file of
 D19 counted three pairs of schemes for one product after D20. With `godror`
 gone there are two: `pgx` with `postgres`, and `moderncsqlite` with `sqlite3`.
 D19 is not amended, because its rule does not change.
+
+### D58. snowflake opens the dbimp driver. Decided.
+
+Ken decided on 2026-10-10 that `snowflake` moves from
+`github.com/snowflakedb/gosnowflake/v2` to `github.com/xo/dbimp/snowflake`. The
+driver registers the same name, `snowflake`, so a program can link only one of
+them, and dburl names the dbimp one. The scheme, the alias `sf`, the `Dialect`
+and the deployment do not change. `GoPackage` and `DriverURL` do.
+
+THE URL
+
+The old DSN was `user:pass@account/database?key=value`, which gosnowflake read
+with many keys. The new URL is
+`snowflake://user:key@org-account.snowflakecomputing.com/database/schema?role=r`.
+The host is the full host of the account, and the driver refuses a host that
+does not end in `.snowflakecomputing.com`, unless the URL names a port or the
+host is an IP address. `GenSnowflake` adds the suffix to a bare account name, as
+below.
+The password is the private key of the user, as the base64url text of its
+PKCS8 DER bytes, and the driver signs a token with it. The path holds the
+database and the schema, and each is optional. The query takes `role`,
+`warehouse`, `timeout`, with a unit such as `60s`, and `timezone`, and the
+driver refuses any other key, such as `authenticator`.
+
+`GenSnowflake` is `genRewrite` with the scheme `snowflake`, after three checks
+under rule 10. A URL with no host returns `ErrMissingHost`, and one with no
+user or no password returns `ErrMissingUser`, because the key is the only way to
+sign in. It adds no port, because the driver uses 443.
+
+THE CHECK
+
+The generator was run through `snowflake.ParseDSN` at dbimp `v0.16.0`, which
+holds the driver, from `proxy.golang.org`, with a generated RSA key. The host,
+the port 443, the user, the key, the database, the schema, the role, the
+warehouse, the time zone and a timeout of `60s` came back as intended. A bare
+account name sent to the driver by hand, a timeout with no unit, and the key `authenticator` failed in the
+driver, which rule 5 leaves to it.
+
+This breaks every URL that worked before. A password is now a key and no longer
+a password. Callers must pass `u.DSN` and not the raw URL, as for every scheme.
+
+Ken decided on 2026-10-10 that a hosted scheme can add part of a host when that
+makes the URL shorter. `GenSnowflake` adds `.snowflakecomputing.com` to a host
+that does not end that way, in any letter case, that has no port, and that is
+not an IP address.
+So `sf://user:key@org-account/db` and `sf://user:key@xy12345.us-east-1/db`
+reach the driver with the full host. A host with a port, such as
+`localhost:9999`, an IP address and a full host pass through. This is a default
+host in the sense of rule 7, because the suffix names the real service, and
+rule 10 does not forbid it (D38). Another hosted scheme can do the same when
+its driver needs a full host and the suffix is fixed. None does yet.
