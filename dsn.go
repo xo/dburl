@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/url"
 	"path"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -38,9 +39,8 @@ func GenScheme(scheme string) func(*URL) (string, string, error) {
 
 // GenSchemeHost returns a generator that rewrites only the scheme, as
 // [GenScheme] does, and that returns [ErrMissingHost] when the URL names no
-// host. It is for a scheme whose host is not a server, such as the S3 bucket
-// of awsathena or the project of bigquery, where localhost is never right
-// (D38).
+// host. It is for a scheme whose host is not a server, such as the project of
+// bigquery, where localhost is never right (D38).
 func GenSchemeHost(scheme string) func(*URL) (string, string, error) {
 	gen := GenScheme(scheme)
 	return func(u *URL) (string, string, error) {
@@ -49,6 +49,32 @@ func GenSchemeHost(scheme string) func(*URL) (string, string, error) {
 		}
 		return gen(u)
 	}
+}
+
+// genSchemeSuffix returns a generator that works as [GenSchemeHost] does, and
+// that adds suffix to the host of a hosted service when the URL names a short
+// form of it (D62). The suffix is added only to a host that does not end that
+// way, in any letter case, that has no port and that is not an IP address. When
+// bare is true, only a host with no dot gets it, because a dotted host is
+// already a full name of another cloud.
+func genSchemeSuffix(scheme, suffix string, bare bool) func(*URL) (string, string, error) {
+	gen := GenSchemeHost(scheme)
+	return func(u *URL) (string, string, error) {
+		return gen(withHostSuffix(u, suffix, bare))
+	}
+}
+
+// withHostSuffix returns u with suffix added to its host, as [genSchemeSuffix]
+// describes, and returns u itself when nothing is added.
+func withHostSuffix(u *URL, suffix string, bare bool) *URL {
+	host := u.Hostname()
+	if host == "" || u.Port() != "" || net.ParseIP(host) != nil ||
+		strings.HasSuffix(strings.ToLower(host), suffix) || (bare && strings.Contains(host, ".")) {
+		return u
+	}
+	z := *u
+	z.Host = host + suffix
+	return &z
 }
 
 // genRewrite writes u with the scheme of the driver, which a driver that
@@ -169,8 +195,6 @@ func GenAvatica(u *URL) (string, string, error) {
 // arangodb:// URL and refuse any other scheme. The user information, the path
 // and the query pass through as they were written. It adds no port, because
 // the driver defaults to 8529 (D34).
-//
-// The driver has no tag yet, so this generator is provisional (D32).
 //
 // [xo/dbimp/arangodb]: https://github.com/xo/dbimp
 func GenArangoDB(u *URL) (string, string, error) {
@@ -305,25 +329,6 @@ func GenQuestDB(u *URL) (string, string, error) {
 	return dsn, "pgx", err
 }
 
-// GenCosmos generates a cosmos DSN from the passed URL.
-func GenCosmos(u *URL) (string, string, error) {
-	host, port, dbname := u.Hostname(), u.Port(), strings.TrimPrefix(u.Path, "/")
-	if port != "" {
-		port = ":" + port
-	}
-	q := u.Query()
-	q.Set("AccountEndpoint", "https://"+host+port)
-	// add user/pass
-	if u.User == nil {
-		return "", "", ErrMissingUser
-	}
-	q.Set("AccountKey", u.User.Username())
-	if dbname != "" {
-		q.Set("Db", dbname)
-	}
-	return genOptionsOdbc(q, true, nil, nil), "gocosmos", nil
-}
-
 // GenDrill generates a drill DSN from the passed URL.
 //
 // Targets the driver [xo/dbimp/drill], which reads a drill:// URL and refuses
@@ -359,8 +364,6 @@ func GenDruid(u *URL) (string, string, error) {
 // through as they were written. It adds no port, because the driver defaults
 // to 8000, with TLS or without (D34 and D39).
 //
-// The driver has no tag yet, so this generator is provisional (D39).
-//
 // [xo/dbimp/databend]: https://github.com/xo/dbimp
 func GenDatabend(u *URL) (string, string, error) {
 	return genRewrite(u, "databend", "", u.RawQuery), "", nil
@@ -370,14 +373,14 @@ func GenDatabend(u *URL) (string, string, error) {
 //
 // Targets the driver [xo/dbimp/dynamodb], which reads a dynamodb:// URL. The
 // host is the endpoint, such as dynamodb.us-east-1.amazonaws.com, and the
-// region is the key region, which the driver requires. The user is the access
-// key and the password is the secret key, and the signature needs both, so a
-// URL without one returns [ErrMissingUser]. The driver speaks HTTPS unless the
-// URL names tls=false, and refuses a path and any other key. The path, the
-// user information and the query pass through. It adds no port, because the
-// driver uses the port of the scheme (D34 and D55).
-//
-// The driver has no tag yet, so this generator is provisional (D55).
+// region is the key region, which the driver requires. A host that is only a
+// region, such as us-east-1, is the short form: GenDynamo writes the endpoint
+// of the region, and names the region in the key when the URL has none (D62
+// and D63). The user is the access key and the password is the secret key, and
+// the signature needs both, so a URL without one returns [ErrMissingUser]. The
+// driver speaks HTTPS unless the URL names tls=false, and refuses a path and
+// any other key. The user information and the query pass through. It adds no
+// port, because the driver uses the port of the scheme (D34 and D55).
 //
 // [xo/dbimp/dynamodb]: https://github.com/xo/dbimp
 func GenDynamo(u *URL) (string, string, error) {
@@ -387,28 +390,102 @@ func GenDynamo(u *URL) (string, string, error) {
 	if p, _ := u.User.Password(); u.User.Username() == "" || p == "" {
 		return "", "", ErrMissingUser
 	}
-	return genRewrite(u, "dynamodb", "", u.RawQuery), "", nil
+	z, region := withAWSEndpoint(u, "dynamodb")
+	rawQuery := u.RawQuery
+	if region != "" && !u.Query().Has("region") {
+		if rawQuery != "" {
+			rawQuery += "&"
+		}
+		rawQuery += "region=" + region
+	}
+	return genRewrite(z, "dynamodb", "", rawQuery), "", nil
 }
 
-// GenDatabricks generates a databricks DSN from the passed URL.
-func GenDatabricks(u *URL) (string, string, error) {
+// regionPattern matches the name of a region of AWS: two letters, words of
+// letters, and a number, such as us-east-1 and us-gov-west-1.
+var regionPattern = regexp.MustCompile(`^[a-z]{2}(-[a-z]+)+-[0-9]+$`)
+
+// withAWSEndpoint returns u with the endpoint of service when its host is only
+// the name of a region, as service.region.amazonaws.com, with the region. It
+// returns u and an empty region for any other host, and for a host with a port,
+// which is a test endpoint (D63).
+func withAWSEndpoint(u *URL, service string) (*URL, string) {
+	host := strings.ToLower(u.Hostname())
+	if u.Port() != "" || !regionPattern.MatchString(host) {
+		return u, ""
+	}
+	z := *u
+	z.Host = service + "." + host + ".amazonaws.com"
+	return &z, host
+}
+
+// GenAthena generates an athena DSN from the passed URL.
+//
+// Targets the driver [xo/dbimp/athena], which reads an athena:// URL. The host
+// is the endpoint, such as athena.us-east-1.amazonaws.com, and the driver reads
+// the region from it. A host that is only a region, such as us-east-1, is the
+// short form, and GenAthena writes the endpoint (D62 and D63). The path is the
+// database, and the query takes workgroup, output, token and catalog. The user
+// is the access key and the password is the secret key. The driver accepts a URL
+// with neither, so GenAthena checks neither. A URL with no host returns
+// [ErrMissingHost]. Everything else passes through as it was written (D59).
+//
+// [xo/dbimp/athena]: https://github.com/xo/dbimp
+func GenAthena(u *URL) (string, string, error) {
+	z, _ := withAWSEndpoint(u, "athena")
+	return GenSchemeHost("athena")(z)
+}
+
+// GenCosmos generates a cosmos DSN from the passed URL.
+//
+// Targets the driver [xo/dbimp/cosmos], which reads a cosmos:// URL. The host
+// is the account, such as account.documents.azure.com, and a name with no dot
+// gets that suffix (D62). The user is any text, and the password is the master
+// key of the account as base64 text, so a URL with no host returns
+// [ErrMissingHost], and one with no password returns [ErrMissingUser]. The path is the database and the container, and the query
+// takes tls, insecure, pagesize and partitionkey. Everything else passes through
+// as it was written (D59).
+//
+// [xo/dbimp/cosmos]: https://github.com/xo/dbimp
+func GenCosmos(u *URL) (string, string, error) {
+	if u.Hostname() == "" {
+		return "", "", ErrMissingHost
+	}
 	if u.User == nil {
 		return "", "", ErrMissingUser
 	}
-	user := u.User.Username()
-	pass, ok := u.User.Password()
-	if !ok || pass == "" {
+	if p, _ := u.User.Password(); p == "" {
 		return "", "", ErrMissingUser
 	}
-	host, port := u.Hostname(), u.Port()
-	if host == "" {
+	return genSchemeSuffix("cosmos", ".documents.azure.com", true)(u)
+}
+
+// GenDatabricks generates a databricks DSN from the passed URL.
+//
+// Targets the driver [xo/dbimp/databricks], which reads a
+// databricks://token:<access token>@host/<warehouse id> URL. The host is the
+// workspace, and a name with no dot gets the suffix .cloud.databricks.com
+// (D62). The password is the access token, and the driver accepts only the user
+// token or no user, so a URL with no host returns [ErrMissingHost] and one with
+// no password returns [ErrMissingUser]. The path is the id of the SQL warehouse,
+// so a URL with no path returns [ErrMissingPath]. The query takes catalog, schema, timeout and tls, and
+// everything else passes through as it was written (D61).
+//
+// [xo/dbimp/databricks]: https://github.com/xo/dbimp
+func GenDatabricks(u *URL) (string, string, error) {
+	if u.Hostname() == "" {
 		return "", "", ErrMissingHost
 	}
-	if port == "" {
-		port = "443"
+	if u.User == nil {
+		return "", "", ErrMissingUser
 	}
-	s := fmt.Sprintf("token:%s@%s.databricks.com:%s/sql/1.0/endpoints/%s", user, pass, port, host)
-	return s + genOptions(u.Query(), "?", "=", "&", ",", true, nil, nil), "", nil
+	if p, _ := u.User.Password(); p == "" {
+		return "", "", ErrMissingUser
+	}
+	if strings.Trim(u.Path, "/") == "" {
+		return "", "", ErrMissingPath
+	}
+	return genSchemeSuffix("databricks", ".cloud.databricks.com", true)(u)
 }
 
 // GenElasticsearch generates a elasticsearch DSN from the passed URL.
@@ -855,11 +932,7 @@ func GenSnowflake(u *URL) (string, string, error) {
 	if p, _ := u.User.Password(); u.User.Username() == "" || p == "" {
 		return "", "", ErrMissingUser
 	}
-	z := *u
-	if host := u.Hostname(); u.Port() == "" && net.ParseIP(host) == nil && !strings.HasSuffix(strings.ToLower(host), snowflakeSuffix) {
-		z.Host = host + snowflakeSuffix
-	}
-	return genRewrite(&z, "snowflake", "", u.RawQuery), "", nil
+	return genRewrite(withHostSuffix(u, snowflakeSuffix, false), "snowflake", "", u.RawQuery), "", nil
 }
 
 // snowflakeSuffix ends the host of every Snowflake account.
@@ -867,16 +940,15 @@ const snowflakeSuffix = ".snowflakecomputing.com"
 
 // GenSpanner generates a spanner DSN from the passed URL.
 //
-// Targets [googleapis/go-sql-spanner]. The URL is
-// spanner://host:port/project/instance/database?name=value, and the DSN is
-// host:port/projects/project/instances/instance/databases/database;name=value.
-// An empty host leaves the endpoint to the driver, as spanner:///p/i/d does.
-// [Parse] reads a URL with no host and a path as a unix socket, so the scheme
-// accepts that transport, and a spanner+unix URL is refused here.
-// The path must name all three, and each query option passes through as a
-// driver option, such as usePlainText=true for the emulator (D35).
+// Targets [xo/dbimp/spanner]. The URL is
+// spanner://host:port/project/instance/database?credential_file=/key.json, and
+// it passes through with its user information and its whole query as they were
+// written (D60 and D63). An empty host leaves the endpoint to the driver, as spanner:///p/i/d
+// does, so GenSpanner adds no host. [Parse] reads a URL with no host and a path
+// as a unix socket, so the scheme accepts that transport, and a spanner+unix URL
+// is refused here. The path must name all three parts (D35).
 //
-// [googleapis/go-sql-spanner]: https://github.com/googleapis/go-sql-spanner
+// [xo/dbimp/spanner]: https://github.com/xo/dbimp
 func GenSpanner(u *URL) (string, string, error) {
 	if strings.Contains(u.OriginalScheme, "+") {
 		return "", "", ErrInvalidTransportProtocol
@@ -886,24 +958,30 @@ func GenSpanner(u *URL) (string, string, error) {
 		return "", "", ErrMissingPath
 	}
 	var b strings.Builder
-	if u.Host != "" {
-		b.WriteString(u.Host + "/")
+	b.WriteString("spanner://")
+	if u.User != nil {
+		b.WriteString(u.User.String() + "@")
 	}
-	b.WriteString("projects/" + parts[0] + "/instances/" + parts[1] + "/databases/" + parts[2])
-	q := u.Query()
-	keys := make([]string, 0, len(q))
-	for k := range q {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	for _, k := range keys {
-		b.WriteString(";" + k + "=" + strings.Join(q[k], ","))
+	b.WriteString(u.Host)
+	b.WriteString(u.EscapedPath())
+	if u.RawQuery != "" {
+		b.WriteString("?" + u.RawQuery)
 	}
 	return b.String(), "", nil
 }
 
 // GenSqlserver generates a sqlserver DSN from the passed URL.
+//
+// A URL for azuresql, by its scheme or by the key fedauth, can name a server
+// with no dot, such as myserver, and GenSqlserver adds .database.windows.net to
+// it. A host with a port is left as it is (D62 and D63).
 func GenSqlserver(u *URL) (string, string, error) {
+	driver := "sqlserver"
+	if strings.Contains(strings.ToLower(u.Scheme), "azuresql") ||
+		u.Query().Get("fedauth") != "" {
+		driver = "azuresql"
+		u = withHostSuffix(u, ".database.windows.net", true)
+	}
 	z := &url.URL{
 		Scheme:   "sqlserver",
 		Opaque:   u.Opaque,
@@ -915,11 +993,6 @@ func GenSqlserver(u *URL) (string, string, error) {
 	}
 	if z.Host == "" {
 		z.Host = "localhost"
-	}
-	driver := "sqlserver"
-	if strings.Contains(strings.ToLower(u.Scheme), "azuresql") ||
-		u.Query().Get("fedauth") != "" {
-		driver = "azuresql"
 	}
 	v := strings.Split(strings.TrimPrefix(z.Path, "/"), "/")
 	if n, q := len(v), z.Query(); !q.Has("database") && n != 0 && len(v[0]) != 0 {
@@ -1148,12 +1221,6 @@ func genQueryOptions(q url.Values) string {
 	return ""
 }
 
-// genOptionsOdbc is a util wrapper around genOptions that uses the fixed
-// settings for ODBC style connection strings.
-func genOptionsOdbc(q url.Values, skipWhenEmpty bool, ignore, ignorePrefixes []string) string {
-	return genOptions(q, "", "=", ";", ",", skipWhenEmpty, ignore, ignorePrefixes)
-}
-
 // genOptions takes URL values and generates options.
 //
 // Each name and value is joined by assign, each pair is separated by sep, and
@@ -1165,8 +1232,6 @@ func genOptionsOdbc(q url.Values, skipWhenEmpty bool, ignore, ignorePrefixes []s
 // For example, an ODBC style connection string is built like this:
 //
 //	genOptions(u.Query(), "", "=", ";", ",", true, nil, nil)
-//
-//nolint:unparam
 func genOptions(q url.Values, joiner, assign, sep, valSep string, skipWhenEmpty bool, ignore, ignorePrefixes []string) string {
 	if len(q) == 0 {
 		return ""

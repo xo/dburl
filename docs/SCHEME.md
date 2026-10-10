@@ -73,8 +73,8 @@ A generator returns an error when the URL lacks a field that the driver
 requires: `ErrMissingHost`, `ErrMissingPath` or `ErrMissingUser`. It does not
 fill the field in with a guess. `GenSurrealDB` returns `ErrMissingPath` when
 the path does not name both the namespace and the database, and
-`GenSchemeHost` returns `ErrMissingHost` for awsathena and bigquery, whose
-host is a bucket or a project and not a server. A default host or port under
+`GenSchemeHost` returns `ErrMissingHost` for bigquery, whose host is a project
+and not a server. A default host or port under
 step 4 is not a guess, because it names a real server. That is D38.
 
 ## 4. Supply the defaults, then let the URL override them
@@ -119,13 +119,22 @@ on UTF-8 and enabling connection retries are the kind of thing that qualifies.
 The codebase holds three: `sslmode=disable` in the CockroachDB template,
 `sqlmode=disable` in `GenInfluxQL`, which selects the query language of the
 scheme (D29), and `flavor` in `GenTrino` and `GenPresto`, which selects the
-product (D50). If you are writing
-a fourth, say why in [PLAN.md](PLAN.md). This is D7.
+product (D50). If you are writing a fourth, say why in [PLAN.md](PLAN.md).
+This is D7.
 
 Set one also when the driver cannot start without it and has no valid empty
 value for it. `hive` carries `auth=NONE` for that reason, because the driver
 panics on a missing `auth`. That is D16, and its scope is narrow: a field the
 driver needs to build a connection, never one that tunes it.
+
+A hosted service can have a host that always ends the same way, such as
+`.snowflakecomputing.com`. Let the URL leave the suffix out, so that the URL is
+shorter, and add it in the generator. `withHostSuffix` and `genSchemeSuffix` do
+this, and they add the suffix only to a host that does not end with it, has no
+port and is not an IP address. Add it to a host with no dot when the suffix
+depends on the cloud, as for `databricks` and `cosmos`. A host that is only an
+AWS region gets the endpoint of the service, as for `athena` and `dynamodb`.
+That is D62 and D63.
 
 ## 5. Know which of the two URL forms your scheme takes
 

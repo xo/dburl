@@ -126,6 +126,7 @@ to `sql.Open`:
 |                      |                 |                                                  |                                                                                             |
 | Alibaba MaxCompute   | `maxcompute`    | `mc`                                             | [github.com/aliyun/aliyun-odps-go-sdk/sqldriver][d-maxcompute] <sup>[¶][f-hosted]</sup>     |
 | Alibaba Tablestore   | `ots`           | `ot`, `tablestore`                               | [github.com/aliyun/aliyun-tablestore-go-sql-driver][d-ots] <sup>[¶][f-hosted]</sup>         |
+| Amazon Athena        | `athena`        | `s3`, `aws`, `awsathena`                         | [github.com/xo/dbimp/athena][d-athena] <sup>[¶][f-hosted]</sup>                             |
 | Amazon Redshift      | `redshift`      | `rs`                                             | [github.com/jackc/pgx/v5/stdlib][d-redshift] <sup>[¶][f-hosted]</sup>                       |
 | Apache Avatica       | `avatica`       | `av`, `phoenix`                                  | [github.com/xo/dbimp/avatica][d-avatica]                                                    |
 | Apache Drill         | `drill`         | `dl`                                             | [github.com/xo/dbimp/drill][d-drill]                                                        |
@@ -136,23 +137,22 @@ to `sql.Open`:
 | Apache Pinot         | `pinot`         | `pi`                                             | [github.com/xo/dbimp/pinot][d-pinot]                                                        |
 | Apache Solr          | `solr`          | `so`                                             | [github.com/xo/dbimp/solr][d-solr]                                                          |
 | ArangoDB             | `arangodb`      | `ar`, `arango`                                   | [github.com/xo/dbimp/arangodb][d-arangodb]                                                  |
-| AWS Athena           | `awsathena`     | `s3`, `aws`, `athena`                            | [github.com/uber/athenadriver/go][d-awsathena] <sup>[¶][f-hosted]</sup>                     |
-| Azure CosmosDB       | `cosmos`        | `cm`, `gocosmos`                                 | [github.com/btnguyen2k/gocosmos][d-cosmos] <sup>[¶][f-hosted]</sup>                         |
+| Azure Cosmos DB      | `cosmos`        | `cm`                                             | [github.com/xo/dbimp/cosmos][d-cosmos] <sup>[¶][f-hosted]</sup>                             |
 | Cassandra            | `cassandra`     | `ca`, `cql`, `scy`, `cass`, `scylla`, `datastax` | [github.com/xo/cassandra][d-cassandra]                                                      |
 | ChaiSQL              | `chai`          | `ci`, `genji`, `chaisql`                         | [github.com/chaisql/chai][d-chai] <sup>[§][f-embedded]</sup>                                |
 | CockroachDB          | `cockroachdb`   | `cr`, `cdb`, `crdb`, `cockroach`                 | [github.com/jackc/pgx/v5/stdlib][d-cockroachdb]                                             |
 | Couchbase            | `couchbase`     | `n1`, `n1ql`                                     | [github.com/xo/dbimp/couchbase][d-couchbase]                                                |
 | CrateDB              | `cratedb`       | `ct`, `crate`                                    | [github.com/jackc/pgx/v5/stdlib][d-cratedb]                                                 |
 | Databend             | `databend`      | `dd`, `bend`                                     | [github.com/xo/dbimp/databend][d-databend]                                                  |
-| Databricks           | `databricks`    | `br`, `brick`, `bricks`, `databrick`             | [github.com/databricks/databricks-sql-go][d-databricks] <sup>[¶][f-hosted]</sup>            |
+| Databricks           | `databricks`    | `br`, `brick`, `bricks`, `databrick`             | [github.com/xo/dbimp/databricks][d-databricks] <sup>[¶][f-hosted]</sup>                     |
 | DynamoDB             | `dynamodb`      | `dy`, `dyn`, `dynamo`                            | [github.com/xo/dbimp/dynamodb][d-dynamodb]                                                  |
 | Elasticsearch        | `elasticsearch` | `es`, `elastic`                                  | [github.com/xo/dbimp/elasticsearch][d-elasticsearch]                                        |
 | Exasol               | `exasol`        | `ex`, `exa`                                      | [github.com/exasol/exasol-driver-go][d-exasol]                                              |
 | Firebird             | `firebirdsql`   | `fb`, `firebird`                                 | [github.com/nakagami/firebirdsql][d-firebirdsql]                                            |
 | FlightSQL            | `flightsql`     | `fl`, `flight`                                   | [github.com/apache/arrow-go/v18/arrow/flight/flightsql/driver][d-flightsql]                 |
 | GizmoSQL             | `gizmosql`      | `gz`, `gizmo`                                    | [github.com/apache/arrow-go/v18/arrow/flight/flightsql/driver][d-gizmosql]                  |
-| Google BigQuery      | `bigquery`      | `bq`                                             | [gorm.io/driver/bigquery/driver][d-bigquery] <sup>[¶][f-hosted]</sup>                       |
-| Google Spanner       | `spanner`       | `sp`                                             | [github.com/googleapis/go-sql-spanner][d-spanner] <sup>[¶][f-hosted]</sup>                  |
+| Google BigQuery      | `bigquery`      | `bq`                                             | [github.com/xo/dbimp/bigquery][d-bigquery] <sup>[¶][f-hosted]</sup>                         |
+| Google Spanner       | `spanner`       | `sp`                                             | [github.com/xo/dbimp/spanner][d-spanner] <sup>[¶][f-hosted]</sup>                           |
 | InfluxDB             | `influxdb`      | `in`, `influx`                                   | [github.com/xo/dbimp/influxdb][d-influxdb]                                                  |
 | InfluxDB InfluxQL    | `influxql`      | `iq`                                             | [github.com/xo/dbimp/influxdb][d-influxql]                                                  |
 | libSQL               | `libsql`        | `ls`, `turso`                                    | [github.com/xo/dbimp/libsql][d-libsql]                                                      |
@@ -177,19 +177,19 @@ to `sql.Open`:
 | YDB                  | `ydb`           | `yd`                                             | [github.com/ydb-platform/ydb-go-sdk/v3][d-ydb]                                              |
 
 [d-arangodb]: https://github.com/xo/dbimp
+[d-athena]: https://github.com/xo/dbimp
 [d-avatica]: https://github.com/xo/dbimp
-[d-awsathena]: https://github.com/uber/athenadriver
-[d-bigquery]: https://github.com/go-gorm/bigquery
+[d-bigquery]: https://github.com/xo/dbimp
 [d-cassandra]: https://github.com/xo/cassandra
 [d-chai]: https://github.com/chaisql/chai
 [d-clickhouse]: https://github.com/xo/dbimp
 [d-cockroachdb]: https://github.com/jackc/pgx
-[d-cosmos]: https://github.com/btnguyen2k/gocosmos
+[d-cosmos]: https://github.com/xo/dbimp
 [d-couchbase]: https://github.com/xo/dbimp
 [d-cratedb]: https://github.com/jackc/pgx
 [d-csvq]: https://github.com/mithrandie/csvq-driver
 [d-databend]: https://github.com/xo/dbimp
-[d-databricks]: https://github.com/databricks/databricks-sql-go
+[d-databricks]: https://github.com/xo/dbimp
 [d-drill]: https://github.com/xo/dbimp
 [d-druid]: https://github.com/xo/dbimp
 [d-duckdb]: https://github.com/duckdb/duckdb-go
@@ -225,7 +225,7 @@ to `sql.Open`:
 [d-rqlite]: https://github.com/xo/dbimp
 [d-snowflake]: https://github.com/xo/dbimp
 [d-solr]: https://github.com/xo/dbimp
-[d-spanner]: https://github.com/googleapis/go-sql-spanner
+[d-spanner]: https://github.com/xo/dbimp
 [d-sqlite3]: https://github.com/mattn/go-sqlite3
 [d-sqlserver]: https://github.com/microsoft/go-mssqldb
 [d-surrealdb]: https://github.com/xo/dbimp

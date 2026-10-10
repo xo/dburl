@@ -44,7 +44,7 @@ if D11 amends D4, then D4 says so too.
 | [D32](#d32-arangodb-is-a-provisional-scheme-for-the-dbimp-driver) | Amended by D34 and D38 |
 | [D33](#d33-passfile-opens-the-go-driver-that-dburlopen-opens) | Amended by D37 |
 | [D34](#d34-a-default-port-is-added-only-where-the-driver-has-none) | Amended by D40, D50 and D53 |
-| [D35](#d35-a-spanner-url-names-its-host-first) | Decided |
+| [D35](#d35-a-spanner-url-names-its-host-first) | Amended by D60 |
 | [D36](#d36-gizmosql-questdb-and-three-provisional-schemes) | Amended by D38, D41, D43 and D44 |
 | [D37](#d37-a-scheme-names-its-driver-and-override-is-gone) | Decided |
 | [D38](#d38-a-missing-required-field-is-an-error-and-provisional-schemes-can-ship) | Amended by D41, D43 and D50 |
@@ -64,10 +64,15 @@ if D11 amends D4, then D4 says so too.
 | [D52](#d52-odbc-sends-the-url-to-xoodbc) | Decided |
 | [D53](#d53-clickhouse-opens-the-dbimp-driver) | Decided |
 | [D54](#d54-drill-solr-elasticsearch-and-opensearch-are-schemes-for-the-dbimp-drivers) | Decided |
-| [D55](#d55-dynamodb-opens-the-dbimp-driver) | Decided |
+| [D55](#d55-dynamodb-opens-the-dbimp-driver) | Amended by D63 |
 | [D56](#d56-cql-is-renamed-cassandra) | Decided |
 | [D57](#d57-the-godror-scheme-is-removed) | Decided |
 | [D58](#d58-snowflake-opens-the-dbimp-driver) | Decided |
+| [D59](#d59-bigquery-cosmos-and-athena-are-schemes-for-dbimp-drivers-that-do-not-exist-yet) | Amended by D63 |
+| [D60](#d60-spanner-moves-to-a-dbimp-driver-that-does-not-exist-yet) | Amended by D63 |
+| [D61](#d61-databricks-moves-to-a-dbimp-driver-that-does-not-exist-yet) | Amended by D63 |
+| [D62](#d62-a-hosted-scheme-can-leave-out-the-known-suffix-of-its-host) | Amended by D63 |
+| [D63](#d63-the-five-dbimp-drivers-are-read-and-hosted-hosts-get-short-forms) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -148,7 +153,7 @@ Presto. It was split in v0.27.0.
 Sharing was not the defect. Nobody rereading the drivers was. Split a
 generator when the drivers behind it stop agreeing, and not before.
 
-### D7. Defaults cover the host and the port, and not driver options. Amended by D16, D29, D34 and D50.
+### D7. Defaults cover the host and the port, and not driver options. Amended by D16, D29, D34, D50 and D52.
 
 Amended by D50: `flavor` in `GenTrino` and `GenPresto` is a fourth exception to
 this rule.
@@ -1552,7 +1557,9 @@ driver, the default host and a default port that is empty for all of them.
 `go run gen.go` changed no row that existed before, and the `gen.go` lint
 findings are fixed in the same change.
 
-### D35. A spanner URL names its host first. Decided.
+### D35. A spanner URL names its host first. Amended by D60.
+
+Amended by D60: the DSN is the URL, and no longer `host/projects/...;name=value`.
 
 Ken decided on 2026-09-29 that a spanner URL is
 `spanner://host:port/project/instance/database?name=value`. Before, the host
@@ -2340,8 +2347,9 @@ which the DSN refuses today. When dbimp tags each driver, run its generator
 through the tagged `ParseDSN` again, and change it where the two disagree. A
 release that carries D54 may ship before the tags, under D38.
 
-### D55. dynamodb opens the dbimp driver. Decided.
+### D55. dynamodb opens the dbimp driver. Amended by D63.
 
+Amended by D63: a host that is only a region, such as `us-east-1`, is the short form of the endpoint, and names the region.
 Ken decided on 2026-10-07 that DynamoDB moves from
 `github.com/btnguyen2k/godynamo` to `github.com/xo/dbimp/dynamodb`, and that
 the URLs change with it. The scheme is now `dynamodb`, where it was `godynamo`
@@ -2509,3 +2517,230 @@ reach the driver with the full host. A host with a port, such as
 host in the sense of rule 7, because the suffix names the real service, and
 rule 10 does not forbid it (D38). Another hosted scheme can do the same when
 its driver needs a full host and the suffix is fixed. None does yet.
+
+### D59. bigquery, cosmos and athena are schemes for dbimp drivers that do not exist yet. Amended by D63.
+
+Amended by D63: the drivers exist in the working tree of dbimp, so `athena` and `cosmos` check what their drivers need.
+Ken decided on 2026-10-10 that `bigquery`, `cosmos` and `athena` move to dbimp
+drivers, and asked that the schemes follow the form of the other dbimp drivers
+before any driver is written. dbimp lists the three as W35, W36 and W37
+(D184). Its documents `BIGQUERY.md`, `COSMOS.md` and `ATHENA.md` say "Not
+written yet" under every heading, including the DSN, and no package exists.
+
+THE SCHEMES
+
+Each scheme is named for its package, `github.com/xo/dbimp/bigquery`, `/cosmos`
+and `/athena`, and has no transport. The old driver names go, as `godynamo` did
+in D55:
+
+- `bigquery` keeps its alias `bq`. It left `gorm.io/driver/bigquery/driver`.
+- `cosmos` keeps its alias `cm`. It left `github.com/btnguyen2k/gocosmos`, and
+  the alias `gocosmos` is gone. The `Driver` was `gocosmos` and is now
+  `cosmos`.
+- `athena` was `awsathena`, which opened `github.com/uber/athenadriver/go`.
+  The scheme and its `Dialect` are now `athena`, and `awsathena`, `s3` and
+  `aws` are aliases, so every old URL still parses. The `Driver` was
+  `awsathena` and is now `athena`.
+
+THE GENERATORS
+
+The form of the other dbimp drivers is
+`scheme://user:password@host:port/path?key=value`. Each generator is
+`GenSchemeHost` with the new scheme name, so the URL passes through as it was
+written, and a URL with no host returns `ErrMissingHost`, as D38 decided for
+these hosted services, where `localhost` is never right. `GenCosmos` is removed.
+The old generators of `bigquery` and `awsathena` already wrote the scheme and
+passed the URL on, and the old `GenCosmos` built an `AccountEndpoint` string
+that the new driver cannot read.
+
+THE PROVISIONAL PARTS
+
+Rule 3 has no evidence, because no driver exists. The generators do not check
+the user, the path or any key, and they add no port and no host suffix. When
+dbimp writes each `ParseDSN`, read it, and then decide what the host, the user
+and the path mean for the service, whether `GenCosmos` must return
+`ErrMissingUser` for a missing key, and whether the generator can add a fixed
+host suffix, as `GenSnowflake` does (D58). Do not release this decision before
+dbimp tags the three drivers, because `usql` still imports the old ones, and a
+tag that names a driver that does not exist blocked `usql` before (D48).
+
+### D60. spanner moves to a dbimp driver that does not exist yet. Amends D35. Amended by D63.
+
+Amended by D63: the driver exists in the working tree of dbimp, and the generator was checked against it.
+Ken decided on 2026-10-10 that `spanner` moves from
+`github.com/googleapis/go-sql-spanner` to a dbimp driver. No package exists in
+dbimp and no document of it, so this follows D59: the scheme is staged and
+provisional.
+
+`GoPackage` is `github.com/xo/dbimp/spanner`, and the alias `sp`, the `Dialect`
+and the unix transport do not change. D35 made the URL
+`spanner://host:port/project/instance/database?name=value` and built a
+go-sql-spanner DSN from it, `host:port/projects/p/instances/i/databases/d;name=v`.
+The new driver reads a URL, as every dbimp driver does, so `GenSpanner` writes
+the URL back with its user information, host, path and query as they were
+written, and writes the scheme `spanner`. An empty host stays empty, so
+`spanner:///p/i/db` leaves the endpoint to the driver. The checks stay: a
+`spanner+unix` or `spanner+tcp` URL returns `ErrInvalidTransportProtocol`, and
+a path that does not name the project, the instance and the database returns
+`ErrMissingPath` (rule 10). The query options of go-sql-spanner, such as
+`usePlainText=true`, pass through, and the new driver may refuse them, or name
+its own.
+
+THE PROVISIONAL PARTS
+
+Rule 3 has no evidence. The path form, the query keys, the default endpoint and
+the emulator are guesses that follow D35. When dbimp writes the driver, read its
+`ParseDSN` and change the generator where the two disagree. Do not release this
+before dbimp tags the driver, because `usql` still imports go-sql-spanner.
+
+### D61. databricks moves to a dbimp driver that does not exist yet. Amended by D63.
+
+Amended by D63: the driver exists in the working tree of dbimp, and the generator was checked against it.
+Ken decided on 2026-10-10 that `databricks` moves from
+`github.com/databricks/databricks-sql-go` to a dbimp driver. dbimp lists
+Databricks over its SQL Statement Execution API in `TARGETS.md`, and no package
+or driver document exists, so this follows D59 and D60: the scheme is staged and
+provisional.
+
+`GoPackage` is `github.com/xo/dbimp/databricks`, and the aliases `br`, `brick`,
+`bricks` and `databrick` and the `Dialect` do not change.
+
+The old generator wrote a go driver DSN of the form
+`token:<user>@<password>.databricks.com:443/sql/1.0/endpoints/<host>`. It read
+the user of the URL as the access token, the password as the name of the
+workspace and the host as the warehouse, which no reader could guess. `GenDatabricks` is removed, and the generator is `GenSchemeHost` with the scheme
+`databricks`, as for D59. The URL passes through as it was written, and a URL with no host
+returns `ErrMissingHost`. It no longer returns `ErrMissingUser` for a missing
+token, because no driver says where the token goes, and it adds no port.
+
+THE PROVISIONAL PARTS
+
+Rule 3 has no evidence. A URL written for the old generator, such as
+`br://token:workspace@warehouse`, now reaches the driver as written, and means
+something else. When dbimp writes the driver, read its `ParseDSN`, decide where
+the access token, the workspace host, the warehouse and the path go, whether
+`ErrMissingUser` is due (rule 10), and whether the generator can add the fixed
+suffix of a Databricks host, as `GenSnowflake` does (D58). Do not release this
+before dbimp tags the driver, because `usql` still imports the old one.
+
+### D62. A hosted scheme can leave out the known suffix of its host. Amended by D63.
+
+Amended by D63: `athena` and `dynamodb` get a short form from a region, and `azuresql` gets a suffix.
+Ken decided on 2026-10-10 that every hosted scheme with a known host suffix
+makes the suffix optional, so the URL can be short or full. D58 did this for
+`snowflake`. This entry makes the rule general and adds two schemes.
+
+The shared helper `withHostSuffix` adds a suffix to the host of a URL when the
+host does not already end with it, in any letter case, has no port, and is not
+an IP address. A host with a port is a test endpoint or an emulator, so it
+passes through. `genSchemeSuffix` wraps it for a scheme that only passes the URL
+on, and `GenSnowflake` calls it directly.
+
+THE SCHEMES
+
+- `snowflake` adds `.snowflakecomputing.com` to any host, so `org-account` and
+  `xy12345.us-east-1` both work (D58).
+- `databricks` adds `.cloud.databricks.com` to a host with no dot, such as
+  `dbc-1234`. That is the form of the AWS workspaces. An Azure host,
+  `adb-1.2.azuredatabricks.net`, and a GCP host have dots, so they pass through
+  and must be written in full.
+- `cosmos` adds `.documents.azure.com` to an account name with no dot. A
+  host of another cloud, such as `account.documents.azure.us`, has a dot and
+  passes through.
+
+For `databricks` and `cosmos` the suffix is added only to a host with no dot,
+because the suffix depends on the cloud, and a dotted host is already a full
+name. Both are guesses until dbimp writes the drivers (D59 and D61), and a
+driver can ask for a different suffix or refuse a short form.
+
+THE SCHEMES THAT GET NONE
+
+`bigquery`, `athena`, `dynamodb` and `spanner` get no suffix. Their hosts are
+not an account name. The host of `bigquery` is a project, the host of `athena`
+was a bucket, and the host of `dynamodb` and `spanner` is an endpoint that
+depends on a region or on the emulator. A suffix would have to come from the
+region or the project, and no driver says where those go. Add one when the
+driver does.
+
+`TestParse` covers each scheme with a short host, a full host, a dotted host
+of another cloud, a mixed case host, and a host with a port.
+
+### D63. The five dbimp drivers are read, and hosted hosts get short forms. Amends D55, D59, D60, D61 and D62.
+
+dbimp wrote the drivers for `athena`, `bigquery`, `cosmos`, `databricks` and
+`spanner`. They are on its main branch at commit `348c9eb7` and will be in
+`v0.17.0`, which is not tagged yet. dbimp confirmed on 2026-10-11 that the DSNs
+will not change from the working tree. Ken asked on 2026-10-11 that `azuresql`
+get its host suffix for consistency.
+
+THE DSNS
+
+Each generator was run through the `ParseDSN` of its package, by a replace in a
+scratch module, and every case came back as intended:
+
+- `athena://key:secret@athena.us-east-1.amazonaws.com/database?workgroup=w`. The
+  region is the label after `athena` in the host, and the driver refuses a host
+  with no such label. The key and the secret are optional, and a connector with
+  none refuses to connect.
+- `bigquery://project/location/dataset?credential_file=/key.json`. The host is
+  the project. The location is optional, in the path or in the key `location`.
+  The user is ignored, a password is refused, and the secret is the path of a
+  key file, never text in the URL.
+- `cosmos://user:key@account.documents.azure.com/database/container`. The user is
+  any text, and the password is the master key as base64 text.
+- `databricks://token:pat@workspace/warehouse?catalog=c&schema=s`. The user is
+  `token` or empty, the password is the access token, and the path is the id of
+  the warehouse.
+- `spanner://host:port/project/instance/database?credential_file=/key.json`. The
+  host defaults to `spanner.googleapis.com`, and `tls` defaults to false for
+  `localhost` and true elsewhere.
+
+THE CHECKS
+
+`GenCosmos` returns `ErrMissingHost` for no host and `ErrMissingUser` for no
+password. `GenDatabricks` returns `ErrMissingHost` for no host,
+`ErrMissingUser` for no password, and `ErrMissingPath` for no warehouse. They
+return them because the driver needs each field and has no default (rule 10).
+The key of `cosmos` was the user of the URL under the old driver, and now it is
+the password. `GenSchemeHost` stays for `bigquery`, and the user information
+and every query key pass through, so `credential_file` reaches the driver.
+`GenAthena` replaces `GenSchemeHost("athena")`, and `GenSpanner` is unchanged
+from D60.
+
+THE SHORT FORMS
+
+D62 gave `athena` and `dynamodb` no suffix, because the region was not in the
+host. The drivers put it in the host, as `athena.<region>.amazonaws.com` and
+`dynamodb.<region>.amazonaws.com`, so a host that is only a region, such as
+`us-east-1`, is the short form. The helper `withAWSEndpoint` writes the
+endpoint of the region for a host with no port. `GenDynamo` also adds
+`region=<region>` when the URL has no `region` key, because the driver needs it,
+and a `region` key that the URL has wins. A host that is not a region passes
+through.
+
+`azuresql`, by its scheme or by the key `fedauth`, adds `.database.windows.net`
+to a host with no dot and no port, as `databricks` and `cosmos` do. The scheme
+`sqlserver` without `fedauth` adds nothing, because it reaches any server.
+
+THE BREAKS
+
+The aliases `awsathena`, `s3` and `aws` still parse, but the old meaning of the
+host, a bucket, is gone, so `awsathena://bucket/db` now reaches the driver, which
+refuses a host that names no region. A `databricks` URL written for the old
+generator, such as `br://token:workspace@warehouse`, means something else now.
+
+Callers must keep the whole query when they pass the DSN on, because
+`credential_file` and the other keys are in it. `GenSchemeHost` and
+`GenSpanner` do.
+
+THE OLDER PROVISIONAL SCHEMES
+
+The drivers of `arangodb` (D32) and `databend` (D39) are in dbimp `v0.16.1`.
+Both generators were run through the tagged `ParseDSN`, with a default host, an
+explicit port, a password holding `@`, `tls` and a path, and every case matched.
+The notes in their comments that said the generators were provisional are gone.
+
+THE TAG
+
+This entry holds until `v0.17.0` is tagged. Run each generator through the
+`ParseDSN` of the tag, and release then.

@@ -19,6 +19,14 @@ Elasticsearch, OpenSearch and DynamoDB followed (D54 and D55), and dbimp tagged
 them in `v0.14.0`. When dbimp starts another driver, add its scheme when the
 driver has `ParseDSN` at a tag, under rule 3.
 
+### Check the five drivers at v0.17.0
+
+D63 checked `athena`, `bigquery`, `cosmos`, `databricks` and `spanner` against
+dbimp at commit `348c9eb7`, and dbimp says `v0.17.0` will not change them. When
+it is tagged, run each generator through the tagged `ParseDSN`, release, and
+tell `usql` and `dbmeta` the tag. `dbmeta` reads the `Dialect`, which changes
+from `awsathena` to `athena`.
+
 ### Find a driver for gizmosql that keeps a session
 
 The `usql` session reported on 2026-09-29 that `gizmosql://` connects to

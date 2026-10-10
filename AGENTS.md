@@ -75,7 +75,7 @@ yourself and do not write it as though it were settled.
     `ErrMissingHost`, `ErrMissingPath` or `ErrMissingUser`. Do not fill the
     field in. A default host or port under rule 7 is not a filled field,
     because it names a real server (D38). A hosted scheme can add the fixed
-    suffix of its host, as Snowflake does (D58). Trino and Presto write the user
+    suffix of its host, as Snowflake does (D58, D62 and D63). Trino and Presto write the user
     `user` when the URL has none, which is the one exception (D50).
 
 ## The four files
