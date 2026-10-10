@@ -3,6 +3,7 @@ package dburl
 import (
 	"errors"
 	"io/fs"
+	"net/url"
 	"os"
 	"slices"
 	"strconv"
@@ -1918,7 +1919,7 @@ func TestBuildURL(t *testing.T) {
 					"opt1": "b zzzz@@@:/",
 				},
 			},
-			"pg://user+name:P%21%21%21%40%40%40%40+%F0%9F%91%80@host+name/my%20awesome%20db?foo=bar+is+cool&opt1=b+zzzz%40%40%40%3A%2F", nil,
+			"pg://user%20name:P%21%21%21%40%40%40%40%20%F0%9F%91%80@host+name/my%20awesome%20db?foo=bar+is+cool&opt1=b+zzzz%40%40%40%3A%2F", nil,
 		},
 		{
 			map[string]any{
@@ -1950,6 +1951,65 @@ func TestBuildURL(t *testing.T) {
 				t.Logf("url: %q", u.String())
 			}
 		})
+	}
+}
+
+func TestBuildURLUserinfo(t *testing.T) {
+	tests := []struct {
+		name string
+		user string
+		pass string
+		set  bool
+		has  bool
+	}{
+		{"username space", "user name", "", false, false},
+		{"password space", "user", "p w", true, true},
+		{"both spaces", "user name", "p w", true, true},
+		{"plus", "user+name", "p+w", true, true},
+		{"reserved", "user:@/?#%&=", "p:@/?#%&=", true, true},
+		{"unicode", "us\u00e9r\u00a0name", "p\t\u00e4ss word", true, true},
+		{"no password", "user", "", false, false},
+		{"empty password", "user", "", true, false},
+		{"leading and trailing spaces", " user ", " p ", true, true},
+		{"username reserved", "user:@", "", false, false},
+	}
+	for _, keys := range [][2]string{{"username", "password"}, {"user", "pass"}} {
+		for _, test := range tests {
+			t.Run(keys[0]+"/"+test.name, func(t *testing.T) {
+				m := map[string]any{
+					"proto":  "postgres",
+					"host":   "localhost",
+					keys[0]:  test.user,
+					"dbname": "app",
+				}
+				if test.set {
+					m[keys[1]] = test.pass
+				}
+				s, err := BuildURL(m)
+				if err != nil {
+					t.Fatal(err)
+				}
+				v, err := url.Parse(s)
+				if err != nil {
+					t.Fatal(err)
+				}
+				u, err := FromMap(m)
+				if err != nil {
+					t.Fatal(err)
+				}
+				for _, user := range []*url.Userinfo{v.User, u.User} {
+					if user == nil {
+						t.Fatal("expected user information")
+					}
+					if got := user.Username(); got != test.user {
+						t.Errorf("expected username %q, got: %q", test.user, got)
+					}
+					if pass, set := user.Password(); pass != test.pass || set != test.has {
+						t.Errorf("expected password %q, present %t, got: %q, present %t", test.pass, test.has, pass, set)
+					}
+				}
+			})
+		}
 	}
 }
 
