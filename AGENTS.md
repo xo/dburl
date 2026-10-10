@@ -59,7 +59,9 @@ yourself and do not write it as though it were settled.
    out, under rule 3 (D34). `GenPostgres` and `GenPgx` supply no default host
    and no default port on purpose, so the driver reads `PGHOST` (D22). Do not
    supply options that change how the driver or the database behaves. The
-   calling client owns those. Three exceptions are in the codebase:
+   calling client owns those, except the query defaults that a scheme carries
+   in `Defaults`, which the URL always overrides (D65). Three exceptions are in
+   the codebase:
    `sslmode=disable` for CockroachDB, `sqlmode=disable` for influxql (D29),
    and `flavor` for trino and presto (D50). An option the driver cannot start
    without is a separate case, covered by D16. `auth=NONE` for hive is the

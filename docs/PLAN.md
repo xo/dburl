@@ -16,7 +16,7 @@ if D11 amends D4, then D4 says so too.
 | [D4](#d4-a-generator-is-written-against-the-driver-version-pinned-in-usql) | Decided |
 | [D5](#d5-dburl-does-not-compensate-for-a-broken-driver-parser) | Decided |
 | [D6](#d6-a-generator-is-written-for-a-dsn-format-not-for-a-database) | Decided |
-| [D7](#d7-defaults-cover-the-host-and-the-port-and-not-driver-options) | Amended by D16, D29, D34, D50 and D52 |
+| [D7](#d7-defaults-cover-the-host-and-the-port-and-not-driver-options) | Amended by D16, D29, D34, D50, D52 and D65 |
 | [D8](#d8-a-scheme-is-added-only-when-the-driver-is-expected-in-usql) | Decided |
 | [D9](#d9-golangci-lint-runs-in-ci-at-a-pinned-version) | Amended by D64 |
 | [D10](#d10-a-rule-that-has-no-test-is-not-a-rule) | Amended by D17 |
@@ -74,6 +74,7 @@ if D11 amends D4, then D4 says so too.
 | [D62](#d62-a-hosted-scheme-can-leave-out-the-known-suffix-of-its-host) | Amended by D63 |
 | [D63](#d63-the-five-dbimp-drivers-are-read-and-hosted-hosts-get-short-forms) | Decided |
 | [D64](#d64-ci-pins-golangci-lint-v2140) | Decided |
+| [D65](#d65-a-scheme-can-carry-default-query-options-and-the-url-always-wins) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -154,7 +155,7 @@ Presto. It was split in v0.27.0.
 Sharing was not the defect. Nobody rereading the drivers was. Split a
 generator when the drivers behind it stop agreeing, and not before.
 
-### D7. Defaults cover the host and the port, and not driver options. Amended by D16, D29, D34, D50 and D52.
+### D7. Defaults cover the host and the port, and not driver options. Amended by D16, D29, D34, D50, D52 and D65.
 
 Amended by D50: `flavor` in `GenTrino` and `GenPresto` is a fourth exception to
 this rule.
@@ -2772,3 +2773,50 @@ Ken decided on 2026-10-11 to pin v2.14.0, the newest release. It passes with
 reason in D9. The workflow takes `stable`, so a new release of Go can break the
 pinned linter again, and the fix is the same: pin the next release of
 `golangci-lint` that reads its export data.
+
+### D65. A scheme can carry default query options, and the URL always wins. Amends D7.
+
+Ken decided on 2026-10-11 that the DSN options which `usql` kept in its drivers
+belong in `dburl`, because `dburl` generates the DSN of each driver, and
+`dbmeta` must never know a connection string. Ken confirmed that a value the
+URL gives always wins. This changes D7, which said that the calling client owns
+every option that changes how a driver behaves.
+
+THE MECHANISM
+
+`Scheme` has a field `Defaults`, a map of query keys to values. `Parse` adds
+each default that the URL does not name, and each one that the URL names with
+an empty value, to the query before it runs the generator. The defaults go at
+the end of the query in the order of the sorted keys. The query that the caller
+wrote keeps its encoding, and `URL.RawQuery` and `URL.String` hold what the
+caller wrote, so only the DSN changes. Every generator sees the same query, so
+none needs code for it. A scheme with no defaults is not affected, and a caller
+that registers a scheme can set its own.
+
+THE DEFAULTS
+
+These are the options that `usql` set, read from its drivers:
+
+- `mysql`, `memsql`, `tidb` and `vitess`, which `usql` opens through its mysql
+  driver: `parseTime=true`, `loc=Local` and `sql_mode=ansi`. The aliases of
+  `mysql` share them.
+- `sqlite3`: `loc=auto`. `moderncsqlite` gets none, because `usql` sets none.
+- `cassandra`: `timeout=300s`.
+- `couchbase`: `txtimeout=30m`.
+
+`usql` forced the mysql and sqlite3 options, and set the cassandra and couchbase
+ones only when the key was missing. Here every one is a default, so a URL that
+writes `loc=UTC` gets `loc=UTC`.
+
+`hive` stays as D16 made it. `GenHive` adds `auth=NONE` itself, so the exported
+generator works without the registry. The oracle fallback to `ORACLE_SID` stays
+in `usql`, because it reads the environment, and `dburl` never does.
+
+THE LIMITS
+
+A default changes the DSN of every caller of `dburl`, not only `usql`, so a
+client that wants no default must write the key with the value it wants. An
+empty value does not turn a default off. `TestParse` covers each scheme with
+and without the key, and `TestSchemeDefaults` covers the registry and the
+unchanged URL. Add a default only for an option that every xo project needs, and
+record it here.

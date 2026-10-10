@@ -3,6 +3,7 @@ package dburl
 import (
 	"bytes"
 	"fmt"
+	"maps"
 	"regexp"
 	"slices"
 	"sort"
@@ -59,6 +60,12 @@ type Scheme struct {
 	Opaque bool
 	// Aliases are any additional aliases for the scheme.
 	Aliases []string
+	// Defaults are query options that [Parse] adds to the URL before it runs
+	// the Generator, when the URL does not name the key or gives it an empty
+	// value. A value the URL gives always wins, so the caller can change any of
+	// them. They are options that the driver needs to behave as the xo
+	// projects expect, such as parseTime for mysql (D65).
+	Defaults map[string]string
 	// Dialect is the Name of the scheme that is canonical for the database
 	// product, which is this scheme's own Name when it is the canonical one.
 	//
@@ -101,6 +108,7 @@ func BaseSchemes() []Scheme {
 		{
 			Name:       "mysql",
 			Generator:  GenMysql,
+			Defaults:   map[string]string{"parseTime": "true", "loc": "Local", "sql_mode": "ansi"},
 			Transport:  TransportTCP | TransportUDP | TransportUnix,
 			Aliases:    []string{"mariadb", "maria", "percona", "aurora"},
 			Desc:       "MySQL",
@@ -136,6 +144,7 @@ func BaseSchemes() []Scheme {
 		{
 			Name:        "sqlite3",
 			Generator:   GenOpaque,
+			Defaults:    map[string]string{"loc": "auto"},
 			Opaque:      true,
 			Aliases:     []string{"sqlite"},
 			Desc:        "SQLite3",
@@ -183,6 +192,7 @@ func BaseSchemes() []Scheme {
 		{
 			Name:       "memsql",
 			Generator:  GenMysql,
+			Defaults:   map[string]string{"parseTime": "true", "loc": "Local", "sql_mode": "ansi"},
 			Desc:       "SingleStore MemSQL",
 			Home:       "https://www.singlestore.com",
 			GoPackage:  "github.com/go-sql-driver/mysql",
@@ -204,6 +214,7 @@ func BaseSchemes() []Scheme {
 		{
 			Name:       "tidb",
 			Generator:  GenTiDB,
+			Defaults:   map[string]string{"parseTime": "true", "loc": "Local", "sql_mode": "ansi"},
 			Desc:       "TiDB",
 			Home:       "https://www.pingcap.com/tidb",
 			GoPackage:  "github.com/go-sql-driver/mysql",
@@ -214,6 +225,7 @@ func BaseSchemes() []Scheme {
 		{
 			Name:       "vitess",
 			Generator:  GenMysql,
+			Defaults:   map[string]string{"parseTime": "true", "loc": "Local", "sql_mode": "ansi"},
 			Aliases:    []string{"vt"},
 			Desc:       "Vitess Database",
 			Home:       "https://vitess.io",
@@ -329,6 +341,7 @@ func BaseSchemes() []Scheme {
 		{
 			Name:       "couchbase",
 			Generator:  GenCouchbase,
+			Defaults:   map[string]string{"txtimeout": "30m"},
 			Aliases:    []string{"n1ql", "n1"},
 			Desc:       "Couchbase",
 			Home:       "https://www.couchbase.com",
@@ -340,6 +353,7 @@ func BaseSchemes() []Scheme {
 		{
 			Name:       "cassandra",
 			Generator:  GenCassandra,
+			Defaults:   map[string]string{"timeout": "300s"},
 			Aliases:    []string{"ca", "cass", "cql", "datastax", "scy", "scylla"},
 			Desc:       "Cassandra",
 			Home:       "https://cassandra.apache.org",
@@ -815,6 +829,7 @@ func Register(scheme Scheme) {
 		Transport: scheme.Transport,
 		Opaque:    scheme.Opaque,
 		Dialect:   scheme.Dialect,
+		Defaults:  maps.Clone(scheme.Defaults),
 	}
 	schemeMap[scheme.Name] = sz
 	// add aliases

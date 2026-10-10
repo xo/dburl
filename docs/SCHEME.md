@@ -111,7 +111,10 @@ here would override them. That is D22.
 
 Defaults stop there. Do not add an option that changes how the driver or the
 database behaves. The client that opens the connection owns those, and `usql`
-and `dbtpl` inject their own.
+and `dbtpl` inject their own. The one way to carry an option is the `Defaults`
+field of the `Scheme`, which adds a query key only when the URL does not give it
+(D65). Use it for an option that every xo project needs, and say why in
+[PLAN.md](PLAN.md).
 
 Two narrow exceptions exist. Set an option when it forces the driver or the
 database into a standards compliant mode that a using package needs. Turning

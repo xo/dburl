@@ -19,6 +19,7 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strings"
 )
 
@@ -173,13 +174,54 @@ func Parse(urlstr string) (*URL, error) {
 	}
 	// set the scheme, and the driver the generator names
 	u.SchemeName, u.Dialect = scheme.Name, scheme.Dialect
-	if u.DSN, u.Driver, err = scheme.Generator(u); err != nil {
+	rawQuery := u.RawQuery
+	u.RawQuery = withDefaults(u.RawQuery, scheme.Defaults)
+	u.DSN, u.Driver, err = scheme.Generator(u)
+	u.RawQuery = rawQuery
+	if err != nil {
 		return nil, err
 	}
 	if u.Driver == "" {
 		u.Driver = scheme.Name
 	}
 	return u, nil
+}
+
+// withDefaults returns rawQuery with each default that the query does not name
+// appended, in the order of the sorted keys. A key that the query gives an
+// empty value counts as not named. The query the caller wrote keeps its
+// encoding, and a value the caller gave always wins (D65).
+func withDefaults(rawQuery string, defaults map[string]string) string {
+	if len(defaults) == 0 {
+		return rawQuery
+	}
+	q, _ := url.ParseQuery(rawQuery)
+	keys := make([]string, 0, len(defaults))
+	for k := range defaults {
+		if q.Get(k) == "" {
+			keys = append(keys, k)
+		}
+	}
+	if len(keys) == 0 {
+		return rawQuery
+	}
+	sort.Strings(keys)
+	// an empty value that the caller wrote is dropped, so the default replaces it
+	var parts []string
+	for _, part := range strings.Split(rawQuery, "&") {
+		if part == "" {
+			continue
+		}
+		k, v, _ := strings.Cut(part, "=")
+		if name, err := url.QueryUnescape(k); err == nil && v == "" && defaults[name] != "" {
+			continue
+		}
+		parts = append(parts, part)
+	}
+	for _, k := range keys {
+		parts = append(parts, url.QueryEscape(k)+"="+url.QueryEscape(defaults[k]))
+	}
+	return strings.Join(parts, "&")
 }
 
 // FromMap creates a [URL] using the mapped components.

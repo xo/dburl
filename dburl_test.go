@@ -589,55 +589,55 @@ func TestParse(t *testing.T) {
 		{
 			`my:`,
 			`mysql`,
-			`tcp(localhost)/`,
+			`tcp(localhost)/?loc=Local&parseTime=true&sql_mode=ansi`,
 			``,
 		},
 		{
 			`my://`,
 			`mysql`,
-			`tcp(localhost)/`,
+			`tcp(localhost)/?loc=Local&parseTime=true&sql_mode=ansi`,
 			``,
 		},
 		{
 			`my:booktest:booktest@localhost/booktest`,
 			`mysql`,
-			`booktest:booktest@tcp(localhost)/booktest`,
+			`booktest:booktest@tcp(localhost)/booktest?loc=Local&parseTime=true&sql_mode=ansi`,
 			``,
 		},
 		{
 			`my:/var/run/mysqld/mysqld.sock/mydb?timeout=90`,
 			`mysql`,
-			`unix(/var/run/mysqld/mysqld.sock)/mydb?timeout=90`,
+			`unix(/var/run/mysqld/mysqld.sock)/mydb?loc=Local&parseTime=true&sql_mode=ansi&timeout=90`,
 			`/var/run/mysqld/mysqld.sock`,
 		},
 		{
 			`/var/run/mysqld/mysqld.sock/mydb?timeout=90`,
 			`mysql`,
-			`unix(/var/run/mysqld/mysqld.sock)/mydb?timeout=90`,
+			`unix(/var/run/mysqld/mysqld.sock)/mydb?loc=Local&parseTime=true&sql_mode=ansi&timeout=90`,
 			`/var/run/mysqld/mysqld.sock`,
 		},
 		{
 			`my:///var/run/mysqld/mysqld.sock/mydb?timeout=90`,
 			`mysql`,
-			`unix(/var/run/mysqld/mysqld.sock)/mydb?timeout=90`,
+			`unix(/var/run/mysqld/mysqld.sock)/mydb?loc=Local&parseTime=true&sql_mode=ansi&timeout=90`,
 			`/var/run/mysqld/mysqld.sock`,
 		},
 		{
 			`my+unix:user:pass@mysqld.sock?timeout=90`,
 			`mysql`,
-			`user:pass@unix(mysqld.sock)/?timeout=90`,
+			`user:pass@unix(mysqld.sock)/?loc=Local&parseTime=true&sql_mode=ansi&timeout=90`,
 			``,
 		},
 		{
 			`my:./path/to/socket`,
 			`mysql`,
-			`unix(path/to/socket)/`,
+			`unix(path/to/socket)/?loc=Local&parseTime=true&sql_mode=ansi`,
 			``,
 		},
 		{
 			`my+unix:./path/to/socket`,
 			`mysql`,
-			`unix(path/to/socket)/`,
+			`unix(path/to/socket)/?loc=Local&parseTime=true&sql_mode=ansi`,
 			``,
 		},
 		{
@@ -733,25 +733,25 @@ func TestParse(t *testing.T) {
 		{
 			`sqlite:///path/to/file.sqlite3`,
 			`sqlite3`,
-			`/path/to/file.sqlite3`,
+			`/path/to/file.sqlite3?loc=auto`,
 			``,
 		},
 		{
 			`sq://path/to/file.sqlite3`,
 			`sqlite3`,
-			`path/to/file.sqlite3`,
+			`path/to/file.sqlite3?loc=auto`,
 			``,
 		},
 		{
 			`sq:path/to/file.sqlite3`,
 			`sqlite3`,
-			`path/to/file.sqlite3`,
+			`path/to/file.sqlite3?loc=auto`,
 			``,
 		},
 		{
 			`sq:./path/to/file.sqlite3`,
 			`sqlite3`,
-			`./path/to/file.sqlite3`,
+			`./path/to/file.sqlite3?loc=auto`,
 			``,
 		},
 		{
@@ -823,19 +823,19 @@ func TestParse(t *testing.T) {
 		{
 			`ca://host`,
 			`cassandra`,
-			`cassandra://host`,
+			`cassandra://host?timeout=300s`,
 			``,
 		},
 		{
 			`cassandra://host:9999`,
 			`cassandra`,
-			`cassandra://host:9999`,
+			`cassandra://host:9999?timeout=300s`,
 			``,
 		},
 		{
 			`scy://user@host:9999`,
 			`cassandra`,
-			`cassandra://user@host:9999`,
+			`cassandra://user@host:9999?timeout=300s`,
 			``,
 		},
 		{
@@ -1045,7 +1045,7 @@ func TestParse(t *testing.T) {
 		{
 			`cql://user:p%40ss@[::1]:9042/ks?consistency=localQuorum&host=%5B::2%5D:9042&host=h3`,
 			`cassandra`,
-			`cassandra://user:p%40ss@[::1]:9042/ks?consistency=localQuorum&host=%5B::2%5D:9042&host=h3`,
+			`cassandra://user:p%40ss@[::1]:9042/ks?consistency=localQuorum&host=%5B::2%5D:9042&host=h3&timeout=300s`,
 			``,
 		},
 		{
@@ -1057,55 +1057,55 @@ func TestParse(t *testing.T) {
 		{
 			`couchbase://`,
 			`couchbase`,
-			`couchbase://localhost`,
+			`couchbase://localhost?txtimeout=30m`,
 			``,
 		},
 		{
 			`n1ql://user:pass@host/`,
 			`couchbase`,
-			`couchbase://user:pass@host/`,
+			`couchbase://user:pass@host/?txtimeout=30m`,
 			``,
 		},
 		{
 			`n1://user:pass@host:9093`,
 			`couchbase`,
-			`couchbase://user:pass@host:9093`,
+			`couchbase://user:pass@host:9093?txtimeout=30m`,
 			``,
 		},
 		{
 			`couchbase://user:p%40ss@host/?tls=true&query_context=default%3Adbmeta._default`,
 			`couchbase`,
-			`couchbase://user:p%40ss@host/?tls=true&query_context=default%3Adbmeta._default`,
+			`couchbase://user:p%40ss@host/?tls=true&query_context=default%3Adbmeta._default&txtimeout=30m`,
 			``,
 		},
 		{
 			`couchbase://[::1]/?scan_consistency=request_plus&timeout=10s`,
 			`couchbase`,
-			`couchbase://[::1]/?scan_consistency=request_plus&timeout=10s`,
+			`couchbase://[::1]/?scan_consistency=request_plus&timeout=10s&txtimeout=30m`,
 			``,
 		},
 		{
 			`couchbase://host?tls=1`,
 			`couchbase`,
-			`couchbase://host?tls=1`,
+			`couchbase://host?tls=1&txtimeout=30m`,
 			``,
 		},
 		{
 			`couchbase://host:9000?tls=true`,
 			`couchbase`,
-			`couchbase://host:9000?tls=true`,
+			`couchbase://host:9000?tls=true&txtimeout=30m`,
 			``,
 		},
 		{
 			`couchbase://host?tls=false`,
 			`couchbase`,
-			`couchbase://host?tls=false`,
+			`couchbase://host?tls=false&txtimeout=30m`,
 			``,
 		},
 		{
 			`couchbase://host?tls=bogus`,
 			`couchbase`,
-			`couchbase://host?tls=bogus`,
+			`couchbase://host?tls=bogus&txtimeout=30m`,
 			``,
 		},
 		{
@@ -1243,25 +1243,25 @@ func TestParse(t *testing.T) {
 		{
 			`tidb://root@host/db`,
 			`mysql`,
-			`root@tcp(host:4000)/db`,
+			`root@tcp(host:4000)/db?loc=Local&parseTime=true&sql_mode=ansi`,
 			``,
 		},
 		{
 			`ti://root@host:4001/db`,
 			`mysql`,
-			`root@tcp(host:4001)/db`,
+			`root@tcp(host:4001)/db?loc=Local&parseTime=true&sql_mode=ansi`,
 			``,
 		},
 		{
 			`vitess://root@host/db`,
 			`mysql`,
-			`root@tcp(host)/db`,
+			`root@tcp(host)/db?loc=Local&parseTime=true&sql_mode=ansi`,
 			``,
 		},
 		{
 			`memsql://root@host/db`,
 			`mysql`,
-			`root@tcp(host)/db`,
+			`root@tcp(host)/db?loc=Local&parseTime=true&sql_mode=ansi`,
 			``,
 		},
 		{
@@ -1579,7 +1579,7 @@ func TestParse(t *testing.T) {
 		{
 			`ca://`,
 			`cassandra`,
-			`cassandra://localhost`,
+			`cassandra://localhost?timeout=300s`,
 			``,
 		},
 		{
@@ -1675,7 +1675,7 @@ func TestParse(t *testing.T) {
 		{
 			`file:./testdata/test.sqlite3?a=b`,
 			`sqlite3`,
-			`./testdata/test.sqlite3?a=b`,
+			`./testdata/test.sqlite3?a=b&loc=auto`,
 			``,
 		},
 		{
@@ -1687,13 +1687,13 @@ func TestParse(t *testing.T) {
 		{
 			`file:__nonexistent__.db`,
 			`sqlite3`,
-			`__nonexistent__.db`,
+			`__nonexistent__.db?loc=auto`,
 			``,
 		},
 		{
 			`file:__nonexistent__.sqlite3`,
 			`sqlite3`,
-			`__nonexistent__.sqlite3`,
+			`__nonexistent__.sqlite3?loc=auto`,
 			``,
 		},
 		{
@@ -1705,13 +1705,13 @@ func TestParse(t *testing.T) {
 		{
 			`__nonexistent__.db`,
 			`sqlite3`,
-			`__nonexistent__.db`,
+			`__nonexistent__.db?loc=auto`,
 			``,
 		},
 		{
 			`__nonexistent__.sqlite3`,
 			`sqlite3`,
-			`__nonexistent__.sqlite3`,
+			`__nonexistent__.sqlite3?loc=auto`,
 			``,
 		},
 		{
@@ -1723,13 +1723,13 @@ func TestParse(t *testing.T) {
 		{
 			`file:fake.sqlite3?a=b`,
 			`sqlite3`,
-			`fake.sqlite3?a=b`,
+			`fake.sqlite3?a=b&loc=auto`,
 			``,
 		},
 		{
 			`fake.sq`,
 			`sqlite3`,
-			`fake.sq`,
+			`fake.sq?loc=auto`,
 			``,
 		},
 		{
@@ -1747,7 +1747,7 @@ func TestParse(t *testing.T) {
 		{
 			`file:/var/run/mysqld/mysqld.sock/mydb?timeout=90`,
 			`mysql`,
-			`unix(/var/run/mysqld/mysqld.sock)/mydb?timeout=90`,
+			`unix(/var/run/mysqld/mysqld.sock)/mydb?loc=Local&parseTime=true&sql_mode=ansi&timeout=90`,
 			`/var/run/mysqld/mysqld.sock`,
 		},
 		{
@@ -1958,6 +1958,54 @@ func TestParse(t *testing.T) {
 			`bq://my-project/EU/dataset?credential_file=/k.json`,
 			`bigquery`,
 			`bigquery://my-project/EU/dataset?credential_file=/k.json`,
+			``,
+		},
+		{
+			`mysql://u:p@h/db?parseTime=false&loc=UTC&sql_mode=traditional`,
+			`mysql`,
+			`u:p@tcp(h)/db?loc=UTC&parseTime=false&sql_mode=traditional`,
+			``,
+		},
+		{
+			`tidb://u:p@h/db?loc=Asia%2FJakarta`,
+			`mysql`,
+			`u:p@tcp(h:4000)/db?loc=Asia%2FJakarta&parseTime=true&sql_mode=ansi`,
+			``,
+		},
+		{
+			`vitess://u:p@h/db?sql_mode=`,
+			`mysql`,
+			`u:p@tcp(h)/db?loc=Local&parseTime=true&sql_mode=ansi`,
+			``,
+		},
+		{
+			`memsql://h/db`,
+			`mysql`,
+			`tcp(h)/db?loc=Local&parseTime=true&sql_mode=ansi`,
+			``,
+		},
+		{
+			`sqlite3:/tmp/f.db?loc=UTC`,
+			`sqlite3`,
+			`/tmp/f.db?loc=UTC`,
+			``,
+		},
+		{
+			`sqlite3:/tmp/f.db`,
+			`sqlite3`,
+			`/tmp/f.db?loc=auto`,
+			``,
+		},
+		{
+			`cassandra://h?timeout=5s`,
+			`cassandra`,
+			`cassandra://h?timeout=5s`,
+			``,
+		},
+		{
+			`couchbase://h?txtimeout=1h`,
+			`couchbase`,
+			`couchbase://h?txtimeout=1h`,
 			``,
 		},
 		{
@@ -2219,4 +2267,39 @@ func (s stat) Read(b []byte) (int, error) {
 	v := []byte(s.content)
 	copy(b, v)
 	return len(v), nil
+}
+
+// TestSchemeDefaults holds D65. A scheme adds each default option that the URL
+// does not give, a value that the URL gives wins, and the URL keeps its own
+// query.
+func TestSchemeDefaults(t *testing.T) {
+	t.Parallel()
+	u, err := Parse(`mysql://user:pass@host/db?loc=UTC`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if exp := `mysql://user:pass@host/db?loc=UTC`; u.String() != exp {
+		t.Errorf("expected String %q, got: %q", exp, u.String())
+	}
+	if exp := `loc=UTC`; u.RawQuery != exp {
+		t.Errorf("expected RawQuery %q, got: %q", exp, u.RawQuery)
+	}
+	if exp := `user:pass@tcp(host)/db?loc=UTC&parseTime=true&sql_mode=ansi`; u.DSN != exp {
+		t.Errorf("expected DSN %q, got: %q", exp, u.DSN)
+	}
+	for _, name := range []string{"mysql", "tidb", "memsql", "vitess", "sqlite3", "cassandra", "couchbase"} {
+		if len(schemeMap[name].Defaults) == 0 {
+			t.Errorf("expected defaults for scheme %s", name)
+		}
+	}
+	for name, scheme := range schemeMap {
+		if scheme.Name != name {
+			continue
+		}
+		for k, v := range scheme.Defaults {
+			if k == "" || v == "" {
+				t.Errorf("scheme %s has an empty default %q=%q", name, k, v)
+			}
+		}
+	}
 }
