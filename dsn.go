@@ -968,6 +968,14 @@ func GenSpanner(u *URL) (string, string, error) {
 	return b.String(), "", nil
 }
 
+// GenModernCSqlite generates a modernc.org/sqlite DSN from the passed URL. It is
+// [GenOpaque], and it names the driver sqlite, which is the name that
+// modernc.org/sqlite registers with database/sql (D67).
+func GenModernCSqlite(u *URL) (string, string, error) {
+	dsn, _, err := GenOpaque(u)
+	return dsn, "sqlite", err
+}
+
 // GenSqlserver generates a sqlserver DSN from the passed URL.
 //
 // A URL for azuresql, by its scheme or by the key fedauth, can name a server

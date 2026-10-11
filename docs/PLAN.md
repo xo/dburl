@@ -74,8 +74,9 @@ if D11 amends D4, then D4 says so too.
 | [D62](#d62-a-hosted-scheme-can-leave-out-the-known-suffix-of-its-host) | Amended by D63 |
 | [D63](#d63-the-five-dbimp-drivers-are-read-and-hosted-hosts-get-short-forms) | Decided |
 | [D64](#d64-ci-pins-golangci-lint-v2140) | Decided |
-| [D65](#d65-a-scheme-can-carry-default-query-options-and-the-url-always-wins) | Decided |
+| [D65](#d65-a-scheme-can-carry-default-query-options-and-the-url-always-wins) | Amended by D67 |
 | [D66](#d66-exasol-opens-the-dbimp-driver) | Decided |
+| [D67](#d67-the-sqlite-schemes-set-the-time-zone-with-the-keys-their-drivers-read) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -2775,7 +2776,9 @@ reason in D9. The workflow takes `stable`, so a new release of Go can break the
 pinned linter again, and the fix is the same: pin the next release of
 `golangci-lint` that reads its export data.
 
-### D65. A scheme can carry default query options, and the URL always wins. Amends D7.
+### D65. A scheme can carry default query options, and the URL always wins. Amends D7. Amended by D67.
+
+Amended by D67: the sqlite3 default is `_loc=auto`, and `moderncsqlite` has the default `_timezone=Local`.
 
 Ken decided on 2026-10-11 that the DSN options which `usql` kept in its drivers
 belong in `dburl`, because `dburl` generates the DSN of each driver, and
@@ -2859,3 +2862,48 @@ that is not a SHA-256 failed in the driver. When dbimp tags the driver, run
 `GenExasol` through the tagged `ParseDSN` and change it where the two disagree.
 Do not release this before the tag, because `usql` still imports the old
 driver (D48).
+
+THE CHECK AT THE TAG
+
+dbimp tagged `v0.20.0` on 2026-10-11 with the Exasol driver. `GenExasol`, as
+`v0.52.0` ships it, was run through `exasol.ParseDSN` at the tag from
+`proxy.golang.org`, and every result matched the working tree. The default
+host and port, an explicit port, a schema, `tls=false`, `fetchsize`,
+`autocommit=false` and a password holding `@` came back as intended, and an
+unknown key, a path of two names and a bad fingerprint failed in the driver.
+D66 is no longer provisional.
+
+### D67. The sqlite schemes set the time zone with the keys their drivers read. Amends D65.
+
+The usql session measured on 2026-10-11, with `TZ=America/Los_Angeles`, a
+timestamp column that holds `2026-10-10 10:00:00+00:00`. D65 gave `sqlite3` the
+default `loc=auto`, which `usql` had forced before. The driver
+`github.com/mattn/go-sqlite3` reads the key `_loc` and not `loc` (read in
+`sqlite3.go` at v1.14.52), so `loc=auto` changed nothing, and both SQLite drivers
+of `usql` had always printed UTC. Ken asked on 2026-10-11 that the two SQLite
+drivers agree with each other and with the MySQL family, which prints the local
+time with `loc=Local`.
+
+THE KEYS
+
+- `sqlite3` has the default `_loc=auto`, which makes go-sqlite3 read a timestamp
+  in `time.Local`. `loc=auto` was wrong and is gone.
+- `moderncsqlite` has the default `_timezone=Local`. `modernc.org/sqlite` reads
+  `_timezone` as a name for `time.LoadLocation`, and `Local` is `time.Local`
+  (read in `sqlite.go` at v1.60.1). It had no default.
+
+A value that the URL gives wins, as D65 says, so `?_loc=UTC` and
+`?_timezone=UTC` keep UTC.
+
+THE DRIVER NAME
+
+`modernc.org/sqlite` registers the name `sqlite` with `database/sql`, and not
+`moderncsqlite`. The generator returned no name, so `URL.Driver` was
+`moderncsqlite`, and `sql.Open` failed with it. `GenModernCSqlite` is `GenOpaque`
+that names the driver `sqlite` (D37), so `URL.Driver` is the name that
+`sql.Open` takes. `usql` can drop its hook for the old name. The scheme, its
+aliases, its `Dialect` and its `GoPackage` do not change.
+
+`TestParse` covers both defaults, a value that overrides each, and the driver
+name. The behavior of the time zone is the measurement of `usql`, and the source
+of each driver agrees with it. This repository opens no database.

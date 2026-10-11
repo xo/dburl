@@ -144,7 +144,7 @@ func BaseSchemes() []Scheme {
 		{
 			Name:        "sqlite3",
 			Generator:   GenOpaque,
-			Defaults:    map[string]string{"loc": "auto"},
+			Defaults:    map[string]string{"_loc": "auto"},
 			Opaque:      true,
 			Aliases:     []string{"sqlite"},
 			Desc:        "SQLite3",
@@ -237,7 +237,8 @@ func BaseSchemes() []Scheme {
 		// alternate implementations
 		{
 			Name:       "moderncsqlite",
-			Generator:  GenOpaque,
+			Generator:  GenModernCSqlite,
+			Defaults:   map[string]string{"_timezone": "Local"},
 			Opaque:     true,
 			Aliases:    []string{"mq", "modernsqlite"},
 			Desc:       "ModernC SQLite3",
