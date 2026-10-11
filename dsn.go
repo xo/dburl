@@ -501,25 +501,23 @@ func GenElasticsearch(u *URL) (string, string, error) {
 	return genRewrite(u, "elasticsearch", "", u.RawQuery), "", nil
 }
 
-// GenExasol generates a exasol DSN from the passed URL.
+// GenExasol generates an exasol DSN from the passed URL.
+//
+// Targets the driver [xo/dbimp/exasol], which reads an
+// exasol://user:password@host:port/schema URL. The user is required, so a URL
+// with no user returns [ErrMissingUser]. The password and the schema, which is
+// the path, are optional. The query takes tls, validateservercertificate,
+// certificatefingerprint, compression, autocommit, fetchsize, querytimeout,
+// clientname and protocol, and the driver refuses any other key and a repeated
+// one. The user information, the path and the query pass through as they were
+// written. It adds no port, because the driver defaults to 8563 (D34 and D66).
+//
+// [xo/dbimp/exasol]: https://github.com/xo/dbimp
 func GenExasol(u *URL) (string, string, error) {
-	host, port, dbname := u.Hostname(), u.Port(), strings.TrimPrefix(u.Path, "/")
-	if host == "" {
-		host = "localhost"
+	if u.User == nil || u.User.Username() == "" {
+		return "", "", ErrMissingUser
 	}
-	if port == "" {
-		port = "8563"
-	}
-	q := u.Query()
-	if dbname != "" {
-		q.Set("schema", dbname)
-	}
-	if u.User != nil {
-		q.Set("user", u.User.Username())
-		pass, _ := u.User.Password()
-		q.Set("password", pass)
-	}
-	return fmt.Sprintf("exa:%s:%s%s", host, port, genOptions(q, ";", "=", ";", ",", true, nil, nil)), "", nil
+	return genRewrite(u, "exasol", "", u.RawQuery), "", nil
 }
 
 // GenFirebird generates a firebird DSN from the passed URL.

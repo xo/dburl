@@ -75,6 +75,7 @@ if D11 amends D4, then D4 says so too.
 | [D63](#d63-the-five-dbimp-drivers-are-read-and-hosted-hosts-get-short-forms) | Decided |
 | [D64](#d64-ci-pins-golangci-lint-v2140) | Decided |
 | [D65](#d65-a-scheme-can-carry-default-query-options-and-the-url-always-wins) | Decided |
+| [D66](#d66-exasol-opens-the-dbimp-driver) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -2820,3 +2821,41 @@ empty value does not turn a default off. `TestParse` covers each scheme with
 and without the key, and `TestSchemeDefaults` covers the registry and the
 unchanged URL. Add a default only for an option that every xo project needs, and
 record it here.
+
+### D66. exasol opens the dbimp driver. Decided.
+
+Ken decided on 2026-10-11 that `exasol` moves from
+`github.com/exasol/exasol-driver-go` to `github.com/xo/dbimp/exasol`. The
+driver is on dbimp's main branch at commit `f59cd61e`, and the newest tag,
+`v0.19.0`, does not hold it, so the scheme is provisional, as D48 and D54 were.
+The scheme, the aliases `ex` and `exa`, the `Dialect` and the deployment do not
+change. `GoPackage` and `DriverURL` do. The driver registers `exasol`, so the
+`Driver` is `exasol`.
+
+THE URL
+
+The old DSN was `exa:host:port;key=value;user=u;password=p`. The new URL is
+`exasol://user:password@host:port/schema?key=value`, and the driver reads it
+with `ParseDSN`. The keys are `tls`, `validateservercertificate`,
+`certificatefingerprint`, `compression`, `autocommit`, `fetchsize`,
+`querytimeout`, `clientname` and `protocol`, and the driver refuses any other
+key and a repeated one. These are not the keys of the old driver, which used
+`encryption=0` and a value of `1` for a true option, so a URL with such a key
+must change. The path is one schema, and it is optional.
+
+`GenExasol` is `genRewrite` with the scheme `exasol`, after one check. The
+driver requires a user, so a URL with no user returns `ErrMissingUser` (rule
+10). The old generator wrote no user check, and `exa://` was valid. It adds no
+port, because the driver defaults to 8563, and the old generator added that
+port itself (D34). The host defaults to `localhost`.
+
+THE PROVISIONAL PARTS
+
+The generator was run through `exasol.ParseDSN` in the working tree by a
+replace in a scratch module. The default port and host, an explicit port, a
+schema, `tls=false`, `fetchsize`, `autocommit=false` and a password holding `@`
+came back as intended. An unknown key, a path of two names and a fingerprint
+that is not a SHA-256 failed in the driver. When dbimp tags the driver, run
+`GenExasol` through the tagged `ParseDSN` and change it where the two disagree.
+Do not release this before the tag, because `usql` still imports the old
+driver (D48).

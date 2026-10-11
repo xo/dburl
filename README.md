@@ -147,7 +147,7 @@ to `sql.Open`:
 | Databricks           | `databricks`    | `br`, `brick`, `bricks`, `databrick`             | [github.com/xo/dbimp/databricks][d-databricks] <sup>[¶][f-hosted]</sup>                     |
 | DynamoDB             | `dynamodb`      | `dy`, `dyn`, `dynamo`                            | [github.com/xo/dbimp/dynamodb][d-dynamodb]                                                  |
 | Elasticsearch        | `elasticsearch` | `es`, `elastic`                                  | [github.com/xo/dbimp/elasticsearch][d-elasticsearch]                                        |
-| Exasol               | `exasol`        | `ex`, `exa`                                      | [github.com/exasol/exasol-driver-go][d-exasol]                                              |
+| Exasol               | `exasol`        | `ex`, `exa`                                      | [github.com/xo/dbimp/exasol][d-exasol]                                                      |
 | Firebird             | `firebirdsql`   | `fb`, `firebird`                                 | [github.com/nakagami/firebirdsql][d-firebirdsql]                                            |
 | FlightSQL            | `flightsql`     | `fl`, `flight`                                   | [github.com/apache/arrow-go/v18/arrow/flight/flightsql/driver][d-flightsql]                 |
 | GizmoSQL             | `gizmosql`      | `gz`, `gizmo`                                    | [github.com/apache/arrow-go/v18/arrow/flight/flightsql/driver][d-gizmosql]                  |
@@ -195,7 +195,7 @@ to `sql.Open`:
 [d-duckdb]: https://github.com/duckdb/duckdb-go
 [d-dynamodb]: https://github.com/xo/dbimp
 [d-elasticsearch]: https://github.com/xo/dbimp
-[d-exasol]: https://github.com/exasol/exasol-driver-go
+[d-exasol]: https://github.com/xo/dbimp
 [d-firebirdsql]: https://github.com/nakagami/firebirdsql
 [d-flightsql]: https://github.com/apache/arrow-go/tree/main/arrow/flight/flightsql/driver
 [d-gizmosql]: https://github.com/apache/arrow-go/tree/main/arrow/flight/flightsql/driver

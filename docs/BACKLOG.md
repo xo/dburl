@@ -27,6 +27,13 @@ it is tagged, run each generator through the tagged `ParseDSN`, release, and
 tell `usql` and `dbmeta` the tag. `dbmeta` reads the `Dialect`, which changes
 from `awsathena` to `athena`.
 
+### Check exasol when dbimp tags the driver
+
+D66 moved `exasol` to the dbimp driver at commit `f59cd61e`, which no tag holds.
+When dbimp tags it, run `GenExasol` through the tagged `ParseDSN`, release, and
+tell `usql` and `dbmeta` the tag. Do not release before the tag, because `usql`
+still imports the old driver.
+
 ### Find a driver for gizmosql that keeps a session
 
 The `usql` session reported on 2026-09-29 that `gizmosql://` connects to
