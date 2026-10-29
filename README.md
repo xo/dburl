@@ -124,8 +124,8 @@ to `sql.Open`:
 | ClickHouse           | `clickhouse`    | `ch`                                             | [github.com/xo/dbimp/clickhouse][d-clickhouse]                                              |
 | CSVQ                 | `csvq`          | `cs`, `csv`, `tsv`, `json`                       | [github.com/mithrandie/csvq-driver][d-csvq] <sup>[§][f-embedded]</sup>                      |
 |                      |                 |                                                  |                                                                                             |
-| Alibaba MaxCompute   | `maxcompute`    | `mc`                                             | [github.com/aliyun/aliyun-odps-go-sdk/sqldriver][d-maxcompute] <sup>[¶][f-hosted]</sup>     |
-| Alibaba Tablestore   | `ots`           | `ot`, `tablestore`                               | [github.com/aliyun/aliyun-tablestore-go-sql-driver][d-ots] <sup>[¶][f-hosted]</sup>         |
+| Alibaba MaxCompute   | `maxcompute`    | `mc`                                             | [github.com/xo/dbimp/maxcompute][d-maxcompute] <sup>[¶][f-hosted]</sup>                     |
+| Alibaba Tablestore   | `tablestore`    | `ot`, `ots`                                      | [github.com/xo/dbimp/tablestore][d-tablestore] <sup>[¶][f-hosted]</sup>                     |
 | Amazon Athena        | `athena`        | `s3`, `aws`, `awsathena`                         | [github.com/xo/dbimp/athena][d-athena] <sup>[¶][f-hosted]</sup>                             |
 | Amazon Redshift      | `redshift`      | `rs`                                             | [github.com/jackc/pgx/v5/stdlib][d-redshift] <sup>[¶][f-hosted]</sup>                       |
 | Apache Avatica       | `avatica`       | `av`, `phoenix`                                  | [github.com/xo/dbimp/avatica][d-avatica]                                                    |
@@ -206,7 +206,7 @@ to `sql.Open`:
 [d-influxdb]: https://github.com/xo/dbimp
 [d-influxql]: https://github.com/xo/dbimp
 [d-libsql]: https://github.com/xo/dbimp
-[d-maxcompute]: https://github.com/aliyun/aliyun-odps-go-sdk
+[d-maxcompute]: https://github.com/xo/dbimp
 [d-memsql]: https://github.com/go-sql-driver/mysql
 [d-moderncsqlite]: https://gitlab.com/cznic/sqlite
 [d-mysql]: https://github.com/go-sql-driver/mysql
@@ -214,7 +214,6 @@ to `sql.Open`:
 [d-odbc]: https://github.com/xo/odbc
 [d-opensearch]: https://github.com/xo/dbimp
 [d-oracle]: https://github.com/sijms/go-ora
-[d-ots]: https://github.com/aliyun/aliyun-tablestore-go-sql-driver
 [d-pgx]: https://github.com/jackc/pgx
 [d-pinot]: https://github.com/xo/dbimp
 [d-postgres]: https://github.com/jackc/pgx
@@ -229,6 +228,7 @@ to `sql.Open`:
 [d-sqlite3]: https://github.com/mattn/go-sqlite3
 [d-sqlserver]: https://github.com/microsoft/go-mssqldb
 [d-surrealdb]: https://github.com/xo/dbimp
+[d-tablestore]: https://github.com/xo/dbimp
 [d-tidb]: https://github.com/go-sql-driver/mysql
 [d-trino]: https://github.com/xo/dbimp
 [d-vertica]: https://github.com/vertica/vertica-sql-go

@@ -30,7 +30,7 @@ if D11 amends D4, then D4 says so too.
 | [D18](#d18-a-scheme-records-how-the-database-is-deployed) | Decided |
 | [D19](#d19-a-scheme-names-the-dialect-of-its-product) | Amended by D22, D30 and D37 |
 | [D20](#d20-the-schemes-of-four-removed-drivers-leave-in-one-release) | Decided |
-| [D21](#d21-the-maxcompute-endpoint-protocol-comes-from-the-transport) | Amended by D51 |
+| [D21](#d21-the-maxcompute-endpoint-protocol-comes-from-the-transport) | Amended by D51 and D68 |
 | [D22](#d22-postgres-opens-pgx-and-pq-opens-libpq) | Amended by D30 and D37 |
 | [D23](#d23-cql-opens-xocql-and-gets-a-url) | Amended by D56 |
 | [D24](#d24-a-parsed-url-carries-its-dialect) | Amended by D30 and D37 |
@@ -60,7 +60,7 @@ if D11 amends D4, then D4 says so too.
 | [D48](#d48-druid-is-a-scheme-for-the-dbimp-driver) | Decided |
 | [D49](#d49-odbc-opens-xoodbc) | Amended by D52 |
 | [D50](#d50-trino-and-presto-move-to-one-dbimp-driver) | Decided |
-| [D51](#d51-maxcompute-tablestore-and-ydb-choose-tls-by-the-tls-option) | Amended by D53 |
+| [D51](#d51-maxcompute-tablestore-and-ydb-choose-tls-by-the-tls-option) | Amended by D53 and D68 |
 | [D52](#d52-odbc-sends-the-url-to-xoodbc) | Decided |
 | [D53](#d53-clickhouse-opens-the-dbimp-driver) | Decided |
 | [D54](#d54-drill-solr-elasticsearch-and-opensearch-are-schemes-for-the-dbimp-drivers) | Decided |
@@ -77,6 +77,7 @@ if D11 amends D4, then D4 says so too.
 | [D65](#d65-a-scheme-can-carry-default-query-options-and-the-url-always-wins) | Amended by D67 |
 | [D66](#d66-exasol-opens-the-dbimp-driver) | Decided |
 | [D67](#d67-the-sqlite-schemes-set-the-time-zone-with-the-keys-their-drivers-read) | Decided |
+| [D68](#d68-maxcompute-and-tablestore-are-schemes-for-dbimp-drivers-that-do-not-exist-yet) | Provisional |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -689,7 +690,9 @@ purpose. D12 says that a removal can be undone, and the same way applies.
 D19 counted four pairs of schemes for one product. With `mymysql` gone there
 are three. D19 is not amended, because its rule does not change.
 
-### D21. The maxcompute endpoint protocol comes from the transport. Amended by D51.
+### D21. The maxcompute endpoint protocol comes from the transport. Amended by D51 and D68.
+
+Amended by D68: the URL is no longer an http or https endpoint.
 
 Amended by D51: the protocol comes from the `tls` option, and `mc+http` and
 `mc+https` are removed.
@@ -2181,7 +2184,10 @@ catalog `default`, and now neither generator fills it.
 package that it names, so the dbmeta session is told. The `usql` drivers for
 the two old clients move in the same change that takes the release.
 
-### D51. maxcompute, tablestore and ydb choose TLS by the tls option. Amends D21. Amended by D53.
+### D51. maxcompute, tablestore and ydb choose TLS by the tls option. Amends D21. Amended by D53 and D68.
+
+Amended by D68: `maxcompute` and `tablestore` pass `tls` through to their dbimp
+drivers, as the other dbimp schemes do. Only `ydb` is still read here.
 
 Amended by D53: `clickhouse` also chooses TLS by `tls`, and no scheme keeps
 `+http` or `+https`.
@@ -2907,3 +2913,68 @@ aliases, its `Dialect` and its `GoPackage` do not change.
 `TestParse` covers both defaults, a value that overrides each, and the driver
 name. The behavior of the time zone is the measurement of `usql`, and the source
 of each driver agrees with it. This repository opens no database.
+
+### D68. maxcompute and tablestore are schemes for dbimp drivers that do not exist yet. Amends D21 and D51.
+
+Provisional. Ken asked on 2026-10-29 that `maxcompute` and `tablestore` move to
+dbimp drivers. The dbimp tree at v0.20.2 has no code for either. Its notes
+(W47 and W48) have no decided DSN, and its session asked that this change be
+marked as provisional. Ken decided the URLs here, and dbimp must read them, or
+tell dburl what changes. This decision is not final until dburl is checked at
+the dbimp tag, as D59 and D66 were.
+
+THE URLS
+
+- `maxcompute://id:key@host/project`. The user is the access key id, and the
+  password is the access key secret. The path is the project. The old form
+  `/api?project=p` is gone, and the driver adds `/api` itself.
+- `tablestore://id:secret@host/instance`. The user is the access key id, and the
+  password is the access key secret. The path is the instance.
+
+REGION
+
+MaxCompute signs requests with the region. The host
+`service.<region>.maxcompute.aliyun.com` holds it, and the driver reads it from
+the host. A host of another form, such as a VPC endpoint, needs the `region`
+option. dburl adds no prefix and no suffix to a MaxCompute host, because
+`service.<region>` is not a suffix, and D58 only adds a suffix.
+
+THE HOST OF TABLESTORE
+
+A host that is `<instance>.<region>` gets the suffix `.ots.aliyuncs.com`, under
+D58, D62 and D63. A host with no dot, such as `localhost`, does not get it,
+because a proxy on the local machine must still work. A host that ends in the
+suffix, in any letter case, a host with a port and an IP address pass through.
+
+REQUIRED FIELDS
+
+Both generators return `ErrMissingHost`, `ErrMissingUser` or `ErrMissingPath`
+under rule 10. A missing password is `ErrMissingUser`, as for `databricks`. The
+drivers must not read the keys from the environment, as the SDK driver did, so
+a URL with no key is an error and not a fallback.
+
+TLS
+
+dburl no longer reads `tls` for these two schemes. It passes the query through,
+and the dbimp drivers read `tls`, as D50 says. `genHTTP` is removed, and
+`tlsOption` stays for `ydb`. The scheme has no `+http` or `+https` transport, as
+before.
+
+THE NAMES
+
+`ots` becomes `tablestore`, and `ot` and `ots` are aliases. Ken asked on
+2026-10-29 that the short alias stay `ot`, as it was. The Dialect changes from `ots`
+to `tablestore`, in the same step, because the Dialect names the model package
+in dbmeta (D46). The dbmeta session agreed and renames its constant in the same
+release. The scheme `tablestore` was an alias before, so the name still parses.
+`URL.Driver` and `URL.Dialect` are `tablestore` for both names.
+
+`GoPackage` names `github.com/xo/dbimp/maxcompute` and
+`github.com/xo/dbimp/tablestore`, and `DriverURL` names the dbimp repository.
+dbmeta reads `GoPackage` to choose the driver for its tests (D46), so a release
+of this change must wait for the dbimp tags, as D59 did.
+
+`TestParse` and `TestBadParse` cover each URL, the suffix, the cases that do not
+get it, and each missing field. Open: the `region` option, the `tls` default and
+the key names are the choice of the driver, and this decision must be checked
+against it.

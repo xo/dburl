@@ -1093,9 +1093,8 @@ func GenVoltdb(u *URL) (string, string, error) {
 }
 
 // tlsOption reads the tls option of u, with def as the value when it is not
-// named, and returns it with the raw query that has no tls key. The drivers
-// that [GenMaxCompute], [GenTableStore] and [GenYDB] target do not know the
-// key, and MaxCompute would send it to the server as a hint, so it is removed.
+// named, and returns it with the raw query that has no tls key. The driver
+// that [GenYDB] targets does not know the key, so it is removed.
 // A value that strconv.ParseBool refuses, and a key given twice, return
 // [ErrInvalidQuery]. The dbimp drivers read tls in the same way (D51).
 func tlsOption(u *URL, def bool) (bool, string, error) {
@@ -1115,60 +1114,70 @@ func tlsOption(u *URL, def bool) (bool, string, error) {
 	return tls, q.Encode(), nil
 }
 
-// genHTTP writes a URL for a driver that reads an http or https endpoint. The
-// scheme is https when the tls option is true, and the option defaults to defTLS.
-// The host defaults to localhost, and the path to defPath. The user information
-// and the path pass through (D51).
-func genHTTP(u *URL, defTLS bool, defPath string) (string, string, error) {
-	tls, rawQuery, err := tlsOption(u, defTLS)
-	if err != nil {
-		return "", "", err
-	}
-	scheme := "http"
-	if tls {
-		scheme = "https"
-	}
-	host := u.Host
-	if host == "" {
-		host = "localhost"
-	}
-	path, rawPath := u.Path, u.RawPath
-	if path == "" {
-		path = defPath
-	}
-	z := &url.URL{
-		Scheme:   scheme,
-		User:     u.User,
-		Host:     host,
-		Path:     path,
-		RawPath:  rawPath,
-		RawQuery: rawQuery,
-	}
-	return z.String(), "", nil
-}
-
 // GenMaxCompute generates a maxcompute DSN from the passed URL.
 //
-// Targets [aliyun/aliyun-odps-go-sdk/sqldriver], which takes an http or https
-// URL as the endpoint and reads the project from the project query option. The
-// endpoint is https, because MaxCompute is a hosted service, and tls=false
-// makes it http. The scheme has no +http or +https transport (D51).
+// Targets the driver [xo/dbimp/maxcompute], which reads a
+// maxcompute://id:key@host/project URL. The user is the access key id and the
+// password is the access key secret, so a URL with no password returns
+// [ErrMissingUser]. The path is the project, so a URL with no path returns
+// [ErrMissingPath], and a URL with no host returns [ErrMissingHost]. The host is
+// service.<region>.maxcompute.aliyun.com, and the driver reads the region from
+// it, or from the region option when the host has another form. The tls option
+// passes through to the driver, and the endpoint path /api is the driver's
+// (D68).
 //
-// [aliyun/aliyun-odps-go-sdk/sqldriver]: https://github.com/aliyun/aliyun-odps-go-sdk
+// [xo/dbimp/maxcompute]: https://github.com/xo/dbimp
 func GenMaxCompute(u *URL) (string, string, error) {
-	return genHTTP(u, true, "/")
+	if err := requireHostKeyPath(u); err != nil {
+		return "", "", err
+	}
+	return genRewrite(u, "maxcompute", "", u.RawQuery), "", nil
 }
+
+// tablestoreSuffix is the suffix of a public Tablestore host, which is
+// <instance>.<region>.ots.aliyuncs.com.
+const tablestoreSuffix = ".ots.aliyuncs.com"
 
 // GenTableStore generates a tablestore DSN from the passed URL.
 //
-// Targets [aliyun/aliyun-tablestore-go-sql-driver], which reads its endpoint
-// from the scheme and the host. The endpoint is https, because Tablestore is a
-// hosted service, and tls=false makes it http. The scheme has no +http or
-// +https transport (D51).
+// Targets the driver [xo/dbimp/tablestore], which reads a
+// tablestore://id:secret@host/instance URL. The user is the access key id and
+// the password is the access key secret, so a URL with no password returns
+// [ErrMissingUser]. The path is the instance, so a URL with no path returns
+// [ErrMissingPath], and a URL with no host returns [ErrMissingHost]. A host that
+// is <instance>.<region> gets the suffix .ots.aliyuncs.com, and a host with no
+// dot, such as localhost, does not (D68). The tls option passes through to the
+// driver.
 //
-// [aliyun/aliyun-tablestore-go-sql-driver]: https://github.com/aliyun/aliyun-tablestore-go-sql-driver
+// [xo/dbimp/tablestore]: https://github.com/xo/dbimp
 func GenTableStore(u *URL) (string, string, error) {
-	return genHTTP(u, true, "")
+	if err := requireHostKeyPath(u); err != nil {
+		return "", "", err
+	}
+	if strings.Contains(u.Hostname(), ".") {
+		u = withHostSuffix(u, tablestoreSuffix, false)
+	}
+	return genRewrite(u, "tablestore", "", u.RawQuery), "", nil
+}
+
+// requireHostKeyPath returns the error for a URL that has no host, no access key
+// id, no access key secret or no path, in that order. The Alibaba schemes
+// ([GenMaxCompute] and [GenTableStore]) need all four, and the drivers do not
+// read the environment (D68).
+func requireHostKeyPath(u *URL) error {
+	if u.Hostname() == "" {
+		return ErrMissingHost
+	}
+	if u.User == nil {
+		return ErrMissingUser
+	}
+	if p, _ := u.User.Password(); p == "" || u.User.Username() == "" {
+		return ErrMissingUser
+	}
+	if strings.Trim(u.Path, "/") == "" {
+		return ErrMissingPath
+	}
+	return nil
 }
 
 // GenYDB generates a ydb dsn from the passed URL.
