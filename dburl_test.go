@@ -173,7 +173,7 @@ func TestParseDialect(t *testing.T) {
 		{`trino://host`, "trino", "trino", "trino"},
 		{`presto://host`, "presto", "trino", "presto"},
 		{`moderncsqlite:file.db`, "moderncsqlite", "sqlite", "sqlite3"},
-		{`oracle://user:pass@host/sid`, "oracle", "oracle", "oracle"},
+		{`oracle://user:pass@host/service`, "oracle", "oracle", "oracle"},
 		{`arango://host/db`, "arangodb", "arangodb", "arangodb"},
 		{`influxdb://host/db`, "influxdb", "influxdb", "influxdb"},
 		{`influxql://host/db`, "influxql", "influxdb", "influxql"},
@@ -784,9 +784,9 @@ func TestParse(t *testing.T) {
 			``,
 		},
 		{
-			`or://user:pass@localhost:3000/sidname`,
+			`or://user:pass@localhost:3000/servicename`,
 			`oracle`,
-			`oracle://user:pass@localhost:3000/sidname`,
+			`oracle://user:pass@localhost:3000/servicename`,
 			``,
 		},
 		{
@@ -823,6 +823,24 @@ func TestParse(t *testing.T) {
 			`odpi://username:password@sales-server:1521/sales.us.acme.com`,
 			`oracle`,
 			`oracle://username:password@sales-server:1521/sales.us.acme.com`,
+			``,
+		},
+		{
+			`oracle://user:pass@host/svc?server=a:1&server=b:2&sid=xe`,
+			`oracle`,
+			`oracle://user:pass@host:1521/svc?server=a:1&server=b:2&sid=xe`,
+			``,
+		},
+		{
+			`oracle://user:p%40ss@host/svc/inst?sslmode=verify-full&sslrootcert=%2Fetc%2Fca.pem`,
+			`oracle`,
+			`oracle://user:p%40ss@host:1521/svc/inst?sslmode=verify-full&sslrootcert=%2Fetc%2Fca.pem`,
+			``,
+		},
+		{
+			`oracle://user:pass@host/a%2Fb/inst`,
+			`oracle`,
+			`oracle://user:pass@host:1521/a%2Fb/inst`,
 			``,
 		},
 		{

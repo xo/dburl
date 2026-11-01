@@ -725,6 +725,21 @@ func GenOdbc(u *URL) (string, string, error) {
 	return z.String(), "", nil
 }
 
+// GenOracle generates an oracle DSN from the passed URL.
+//
+// Targets the driver [xo/oracle], which reads an
+// oracle://user:password@host:port/service/instance URL. The first path
+// segment is the service name, and the second is the instance name and is
+// optional. A / in a service name must be written as %2F, and the path passes
+// through with its escaping. The port defaults to 1521. The query passes through
+// as it was written, because the driver reads a key that is given more than
+// once, such as server, and it refuses a key it does not know (D69).
+//
+// [xo/oracle]: https://github.com/xo/oracle
+func GenOracle(u *URL) (string, string, error) {
+	return genRewrite(u, "oracle", "1521", u.RawQuery), "", nil
+}
+
 // GenPgx generates a pgx DSN from the passed URL.
 //
 // Targets [jackc/pgx/v5/stdlib], which reads a postgres:// URL with the same

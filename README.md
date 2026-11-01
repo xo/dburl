@@ -45,13 +45,13 @@ Where:
 | user                | username                                                                             |
 | pass                | password                                                                             |
 | host                | host                                                                                 |
-| dbname<sup>\*</sup> | database, instance, or service name/ID to connect to                                 |
+| dbname<sup>\*</sup> | database, instance, or service name to connect to                                    |
 | ?opt1=...           | additional database driver options (see respective SQL driver for available options) |
 
 <i><sup><b>\*</b></sup> For Microsoft SQL Server, `/dbname` can be
 `/instance/dbname`, where `/instance` is optional. For Oracle Database,
-`/dbname` takes the form `/service/dbname`. Here `/service` is the service
-name or SID, and `/dbname` is optional. See the examples below.</i>
+`/dbname` takes the form `/service/instance`, where `/instance` is optional.
+Write a `/` that is part of a service name as `%2F`. See the examples below.</i>
 
 ## Quickstart
 
@@ -93,7 +93,8 @@ mysql:/var/run/mysqld/mysqld.sock
 sqlserver://user:pass@remote-host.com/dbname
 mssql://user:pass@remote-host.com/instance/dbname
 ms://user:pass@remote-host.com:port/instance/dbname?keepAlive=10
-oracle://user:pass@somehost.com/sid
+oracle://user:pass@somehost.com/service
+oracle://user:pass@somehost.com:1522/service/instance?sslmode=require
 sap://user:pass@localhost/dbname
 cassandra://user:pass@localhost/keyspace?consistency=localQuorum
 sqlite:/path/to/file.db
@@ -118,7 +119,7 @@ to `sql.Open`:
 | PostgreSQL           | `postgres`      | `pg`, `pgsql`, `postgresql`                      | [github.com/jackc/pgx/v5/stdlib][d-postgres]                                                |
 | MySQL                | `mysql`         | `my`, `maria`, `aurora`, `mariadb`, `percona`    | [github.com/go-sql-driver/mysql][d-mysql]                                                   |
 | Microsoft SQL Server | `sqlserver`     | `ms`, `mssql`, `azuresql`                        | [github.com/microsoft/go-mssqldb][d-sqlserver]                                              |
-| Oracle Database      | `oracle`        | `or`, `ora`, `oci`, `oci8`, `odpi`, `odpi-c`     | [github.com/sijms/go-ora/v3][d-oracle]                                                      |
+| Oracle Database      | `oracle`        | `or`, `ora`, `oci`, `oci8`, `odpi`, `odpi-c`     | [github.com/xo/oracle][d-oracle]                                                            |
 | SQLite3              | `sqlite3`       | `sq`, `sqlite`, `file`                           | [github.com/mattn/go-sqlite3][d-sqlite3] <sup>[†][f-cgo]</sup> <sup>[§][f-embedded]</sup>   |
 | DuckDB               | `duckdb`        | `dk`, `ddb`, `duck`, `file`                      | [github.com/duckdb/duckdb-go/v2][d-duckdb] <sup>[†][f-cgo]</sup> <sup>[§][f-embedded]</sup> |
 | ClickHouse           | `clickhouse`    | `ch`                                             | [github.com/xo/dbimp/clickhouse][d-clickhouse]                                              |
@@ -213,7 +214,7 @@ to `sql.Open`:
 [d-neo4j]: https://github.com/xo/dbimp
 [d-odbc]: https://github.com/xo/odbc
 [d-opensearch]: https://github.com/xo/dbimp
-[d-oracle]: https://github.com/sijms/go-ora
+[d-oracle]: https://github.com/xo/oracle
 [d-pgx]: https://github.com/jackc/pgx
 [d-pinot]: https://github.com/xo/dbimp
 [d-postgres]: https://github.com/jackc/pgx

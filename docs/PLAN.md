@@ -77,7 +77,8 @@ if D11 amends D4, then D4 says so too.
 | [D65](#d65-a-scheme-can-carry-default-query-options-and-the-url-always-wins) | Amended by D67 |
 | [D66](#d66-exasol-opens-the-dbimp-driver) | Decided |
 | [D67](#d67-the-sqlite-schemes-set-the-time-zone-with-the-keys-their-drivers-read) | Decided |
-| [D68](#d68-maxcompute-and-tablestore-are-schemes-for-dbimp-drivers-that-do-not-exist-yet) | Provisional |
+| [D68](#d68-maxcompute-and-tablestore-are-schemes-for-dbimp-drivers-that-do-not-exist-yet) | Decided |
+| [D69](#d69-oracle-opens-xooracle) | Provisional |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -2916,12 +2917,12 @@ of each driver agrees with it. This repository opens no database.
 
 ### D68. maxcompute and tablestore are schemes for dbimp drivers that do not exist yet. Amends D21 and D51.
 
-Provisional. Ken asked on 2026-10-29 that `maxcompute` and `tablestore` move to
+Ken asked on 2026-10-29 that `maxcompute` and `tablestore` move to
 dbimp drivers. The dbimp tree at v0.20.2 has no code for either. Its notes
 (W47 and W48) have no decided DSN, and its session asked that this change be
 marked as provisional. Ken decided the URLs here, and dbimp must read them, or
-tell dburl what changes. This decision is not final until dburl is checked at
-the dbimp tag, as D59 and D66 were.
+tell dburl what changes. dburl was checked at dbimp v0.21.1, and this decision is no longer provisional
+(see THE CHECK).
 
 THE URLS
 
@@ -2978,3 +2979,94 @@ of this change must wait for the dbimp tags, as D59 did.
 get it, and each missing field. Open: the `region` option, the `tls` default and
 the key names are the choice of the driver, and this decision must be checked
 against it.
+
+THE CHECK
+
+dbimp v0.21.0 added the two drivers, and v0.21.1 changed only the tests of the
+drill driver. A scratch module with a `replace` for dbimp v0.21.1 gave the DSN of
+each generator to `ParseDSN` of the driver. Every case parsed as intended: the
+region from the host and from `region`, the port, `tls=false`, an `odps.` setting,
+a key with an escaped `/` and a project with an escaped space for maxcompute, and
+the added suffix, an upper case host, `localhost:8080` and `tls=false` for
+tablestore. The aliases `mc`, `ots` and `ot` reach the same drivers. The driver
+accepts a tablestore URL with no key, and then it refuses to connect. The
+generator still returns `ErrMissingUser`, because rule 10 asks for the field the
+driver needs, and a connection with no key cannot work.
+
+### D69. oracle opens xo/oracle.
+
+Provisional. Ken asked on 2026-10-31 that the `oracle` scheme move from
+`github.com/sijms/go-ora/v3` to `github.com/xo/oracle`, which the `oracle`
+session maintains. Ken decided the DSN of the new driver, and the `oracle`
+session wrote it in its own PLAN.md (D11). The parser is not implemented, and
+the driver has no tag. This decision is not final until dburl is checked at the
+tag.
+
+THE URL
+
+The URL is `oracle://user:password@host[:port]/service[/instance]?key=value`.
+
+- The first path segment is the service name, and the second is the instance
+  name and is optional. This is the meaning that the old form
+  `/service_name/instance_name` had in dburl, so no URL changes.
+- A `/` that is part of a service name must be written as `%2F`. `GenOracle`
+  keeps the escaping of the path, so a URL with `%2F` reaches the driver as it
+  was written.
+- The driver has no `service` key, and it no longer takes the go-ora keys, such
+  as `SSL`, `SERVICE NAME` and `INSTANCE NAME`. Its keys are lower case with no
+  spaces. A key that it does not know, and a key that is given twice, is an
+  error, except `server`, which can repeat.
+- The scheme must be `oracle`. `GenOracle` writes it, so every alias works.
+
+THE KEYS
+
+TLS uses the keys of pgx: `sslmode` (`disable`, `require`, `verify-ca` or
+`verify-full`, with `disable` by default), `sslrootcert`, `sslcert`, `sslkey` and
+`sslservername`. The driver refuses `allow` and `prefer`. The key `tls` is not a
+key of this driver, and dburl does not translate it, under rule 5. dburl has no
+mapping from `tls` to `sslmode` for any scheme. The other keys are `sid`,
+`descriptor`, `server`, `timeout`, `connect_timeout`, `prefetch`, `lob_fetch`,
+`lob_read`, `auth`, `privilege`, `token`, `token_key`, `encryption`, `checksum`,
+`language`, `territory`, `charset`, `program`, `proxy_user`, `unix_socket`,
+`wallet` and `wallet_password`. They are the driver's choice and dburl does not
+read them.
+
+THE GENERATOR
+
+`GenOracle` replaces `GenFromURL("oracle://localhost:1521")`. The port defaults
+to 1521, as before (D34), and the host defaults to `localhost`. The driver also
+defaults the port, so adding it is harmless. `GenFromURL` rebuilt the query. That
+wrote a space as `+`, sorted the keys, and joined a key that is given twice into
+one value. The driver reads `server` more than once, so `GenOracle` passes the
+raw query through, as the other xo drivers do.
+
+BuildURL puts `instance` before `database` in the path, which is the order of
+SQL Server. For Oracle the order is service and then instance, so a caller must
+pass `database` as the service and write the instance in `path`, or build the
+URL as text. This decision does not change `BuildURL`.
+
+THE NAMES
+
+The scheme, the aliases (`ora`, `oci`, `oci8`, `odpi`, `odpi-c`), the driver
+name `oracle` and the Dialect do not change. `GoPackage` names
+`github.com/xo/oracle`, and `DriverURL` names the same repository. The package
+name of the module becomes `oracle`, and the import path stays the same.
+
+dbmeta read `go-ora/v3` from `GoPackage`, and tested v2 and v3 at a fixed
+commit (D46). It must change its test module when xo/oracle has a tag.
+
+THE CHECK
+
+Done on 2026-10-31 against commit `c825f8d` of xo/oracle, which is local and has
+no tag. A scratch module with a `replace` gave the DSN of each generator to
+`ParseDSN` of the new parser. Every case parsed as intended: the default port,
+the service with and without an instance, `%2F` in a service name, two `server`
+keys, `sid`, `sslmode=verify-full` with `sslrootcert`, and the timeout and
+prefetch keys. The aliases `or`, `ora`, `oci` and `odpi` reach the driver.
+`tls=true`, `sslmode=prefer` and a repeated `sid` fail in the parser, as the
+driver intends, and dburl does not compensate for them (rule 5).
+
+A URL with no path, such as `or://localhost`, parses in dburl and fails in the
+driver with `no service and no sid`. It parsed in dburl before this decision, and
+a `sid` or a `descriptor` key can replace the path, so the generator does not
+return `ErrMissingPath`. This decision is provisional until the tag is checked.
