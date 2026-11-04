@@ -742,6 +742,36 @@ func TestParse(t *testing.T) {
 			``,
 		},
 		{
+			`odbc+sqlite:/home/ken/a.db`,
+			`odbc`,
+			`odbc+sqlite:///home/ken/a.db`,
+			``,
+		},
+		{
+			`odbc+SQLite3:///tmp/x.db`,
+			`odbc`,
+			`odbc+SQLite3:///tmp/x.db`,
+			``,
+		},
+		{
+			`odbc+sqlite3:///tmp/x.db`,
+			`odbc`,
+			`odbc+sqlite3:///tmp/x.db`,
+			``,
+		},
+		{
+			`odbc+SQLite3+ODBC+Driver:///tmp/x.db`,
+			`odbc`,
+			`odbc+SQLite3+ODBC+Driver:///tmp/x.db`,
+			``,
+		},
+		{
+			`odbc+duckdb:///tmp/x.duckdb`,
+			`odbc`,
+			`odbc+duckdb:///tmp/x.duckdb`,
+			``,
+		},
+		{
 			`sqlite:///path/to/file.sqlite3`,
 			`sqlite3`,
 			`/path/to/file.sqlite3?_loc=auto`,

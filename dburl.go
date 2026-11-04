@@ -155,8 +155,9 @@ func Parse(urlstr string) (*URL, error) {
 	case scheme.Opaque && u.Opaque == "":
 		// force Opaque
 		u.Opaque, u.Host, u.Path, u.RawPath = u.Host+u.Path, "", "", ""
-	case u.Host == ".", u.Host == "" && strings.TrimPrefix(u.Path, "/") != "":
-		// force unix proto
+	case !checkTransport && (u.Host == "." || u.Host == "" && strings.TrimPrefix(u.Path, "/") != ""):
+		// force unix proto, unless the scheme named a +transport, which for
+		// odbc is the driver name
 		u.Transport = "unix"
 	}
 	// check transport

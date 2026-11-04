@@ -80,6 +80,7 @@ if D11 amends D4, then D4 says so too.
 | [D68](#d68-maxcompute-and-tablestore-are-schemes-for-dbimp-drivers-that-do-not-exist-yet) | Decided |
 | [D69](#d69-oracle-opens-xooracle) | Decided |
 | [D70](#d70-the-passfile-follows-the-pgpass-format-for-comments-and-escapes) | Decided |
+| [D71](#d71-a-transport-in-the-scheme-is-not-replaced-by-unix) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -3096,3 +3097,16 @@ A file that held `#` after an entry, as a comment, now holds that text in the
 password. The sample file of the package has comments only at the start of a
 line. `TestParseFields` covers a `#` in each field, an escaped `:` and `\`, a
 comment with colons, and the errors for a wrong count and an empty field.
+
+### D71. A transport in the scheme is not replaced by unix.
+
+The odbc session reported on 2026-11-04, for Ken, that
+`usql 'odbc+sqlite:/home/ken/.local/share/dbmeta/embedded/northwind.db'` failed
+with `missing driver`. For the odbc scheme the `+` part is the driver name. A URL
+with no host and a path made `Parse` set the transport to `unix`, which replaced
+the driver name, and `GenOdbc` then returned `ErrMissingDriver`.
+
+`Parse` now sets `unix` from an empty host only when the scheme named no
+`+transport`. A URL such as `postgres:/var/run/postgresql` is the same as it was.
+`odbc+sqlite:///tmp/x.db` now gives the URL itself as the DSN, and the driver
+opens `/tmp/x.db`. `TestParse` covers the five forms of the report.
