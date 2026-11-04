@@ -38,6 +38,44 @@ func TestParse(t *testing.T) {
 	}
 }
 
+func TestParseFields(t *testing.T) {
+	tests := []struct {
+		s   string
+		exp []Entry
+		err string
+	}{
+		// a # is a comment only at the start of a line
+		{"# comment:with:colons\n", nil, ""},
+		{"  # indented comment\n", nil, ""},
+		{"pg:*:*:*:u:pa#ss\n", []Entry{{"pg", "*", "*", "*", "u", "pa#ss"}}, ""},
+		{"pg:*:*:*:u:#ss\n", []Entry{{"pg", "*", "*", "*", "u", "#ss"}}, ""},
+		{"pg:h#st:*:db#:u#r:p#\n", []Entry{{"pg", "h#st", "*", "db#", "u#r", "p#"}}, ""},
+		// \: and \\ work in every field
+		{`pg:*:*:*:u:pa\:ss` + "\n", []Entry{{"pg", "*", "*", "*", "u", "pa:ss"}}, ""},
+		{`pg:*:*:*:u:pa\\ss` + "\n", []Entry{{"pg", "*", "*", "*", "u", `pa\ss`}}, ""},
+		{`pg:ho\:st:5432:d\:b:us\\er:a\:b\\c#d` + "\n", []Entry{{"pg", "ho:st", "5432", "d:b", `us\er`, `a:b\c#d`}}, ""},
+		{`pg:*:*:*:u:end\\` + "\n", []Entry{{"pg", "*", "*", "*", "u", `end\`}}, ""},
+		// an escaped colon is not a separator, so the count of fields changes
+		{`pg:*:*:*:u\:pass` + "\n", nil, "invalid entry at line 1"},
+		{"pg:*:*:*:u:p:x\n", nil, "invalid entry at line 1"},
+		{"pg:*:*:*:u:\n", nil, "line 1 has empty field 5"},
+	}
+	for _, test := range tests {
+		t.Run(strings.TrimSpace(test.s), func(t *testing.T) {
+			entries, err := Parse(strings.NewReader(test.s))
+			switch {
+			case test.err != "" && (err == nil || err.Error() != test.err):
+				t.Fatalf("expected error %q, got: %v", test.err, err)
+			case test.err == "" && err != nil:
+				t.Fatalf("expected no error, got: %v", err)
+			}
+			if !reflect.DeepEqual(entries, test.exp) {
+				t.Errorf("expected %#v, got: %#v", test.exp, entries)
+			}
+		})
+	}
+}
+
 func TestMatch(t *testing.T) {
 	file := filepath.Join(t.TempDir(), "pass")
 	const entries = `cockroachdb:crhost:*:*:cruser:crpass

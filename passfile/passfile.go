@@ -10,7 +10,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"regexp"
 	"runtime"
 	"slices"
 	"strings"
@@ -40,18 +39,23 @@ func NewEntry(v []string) Entry {
 }
 
 // Parse parses passfile entries from the reader.
+//
+// The format is the one of the PostgreSQL .pgpass file. A line that starts with
+// # is a comment, and a # anywhere else is part of a field. A : separates the
+// fields. A \ makes the next character part of the field, so a field writes a
+// : as \: and a \ as \\.
 func Parse(r io.Reader) ([]Entry, error) {
 	var entries []Entry
 	i, s := 0, bufio.NewScanner(r)
 	for s.Scan() {
 		i++
 		// grab next line
-		line := strings.TrimSpace(commentRE.ReplaceAllString(s.Text(), ""))
-		if line == "" {
+		line := strings.TrimSpace(s.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
 			continue
 		}
 		// split and check length
-		v := strings.Split(line, ":")
+		v := splitFields(line)
 		if len(v) != 6 {
 			return nil, &InvalidEntryError{i}
 		}
@@ -66,8 +70,25 @@ func Parse(r io.Reader) ([]Entry, error) {
 	return entries, nil
 }
 
-// commentRE matches comment entries in a passfile.
-var commentRE = regexp.MustCompile(`#.*`)
+// splitFields splits line at each : that a \ does not escape, and removes the
+// \ from each escape. A \ at the end of the line is kept.
+func splitFields(line string) []string {
+	var v []string
+	var b strings.Builder
+	for i := 0; i < len(line); i++ {
+		switch c := line[i]; {
+		case c == '\\' && i+1 < len(line):
+			i++
+			b.WriteByte(line[i])
+		case c == ':':
+			v = append(v, b.String())
+			b.Reset()
+		default:
+			b.WriteByte(c)
+		}
+	}
+	return append(v, b.String())
+}
 
 // ParseFile parses passfile entries contained in file.
 func ParseFile(file string) ([]Entry, error) {

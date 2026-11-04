@@ -78,7 +78,8 @@ if D11 amends D4, then D4 says so too.
 | [D66](#d66-exasol-opens-the-dbimp-driver) | Decided |
 | [D67](#d67-the-sqlite-schemes-set-the-time-zone-with-the-keys-their-drivers-read) | Decided |
 | [D68](#d68-maxcompute-and-tablestore-are-schemes-for-dbimp-drivers-that-do-not-exist-yet) | Decided |
-| [D69](#d69-oracle-opens-xooracle) | Provisional |
+| [D69](#d69-oracle-opens-xooracle) | Decided |
+| [D70](#d70-the-passfile-follows-the-pgpass-format-for-comments-and-escapes) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -2995,12 +2996,12 @@ driver needs, and a connection with no key cannot work.
 
 ### D69. oracle opens xo/oracle.
 
-Provisional. Ken asked on 2026-10-31 that the `oracle` scheme move from
+Ken asked on 2026-10-31 that the `oracle` scheme move from
 `github.com/sijms/go-ora/v3` to `github.com/xo/oracle`, which the `oracle`
 session maintains. Ken decided the DSN of the new driver, and the `oracle`
 session wrote it in its own PLAN.md (D11). The parser is not implemented, and
-the driver has no tag. This decision is not final until dburl is checked at the
-tag.
+the driver had no tag when dburl v0.55.0 was released. dburl was checked at the
+tag v0.1.0, and this decision is no longer provisional (see THE CHECK).
 
 THE URL
 
@@ -3070,3 +3071,28 @@ A URL with no path, such as `or://localhost`, parses in dburl and fails in the
 driver with `no service and no sid`. It parsed in dburl before this decision, and
 a `sid` or a `descriptor` key can replace the path, so the generator does not
 return `ErrMissingPath`. This decision is provisional until the tag is checked.
+
+The check was repeated on 2026-11-02 at the tag v0.1.0 of xo/oracle, which the Go
+proxy serves, in a scratch module with no `replace` for the driver. Every result
+was the same as at `c825f8d`. dburl needed no change. The parser of v0.1.1 is the same as that of v0.1.0, and
+the check at v0.1.1 gave the same results.
+
+### D70. The passfile follows the pgpass format for comments and escapes.
+
+The usql session asked on 2026-11-04, for Ken (xo/usql#342), that the `passfile`
+package read a password that holds `#`, `:` or `\`. The package took everything
+from the first `#` of a line as a comment, and it had no escapes. A password
+`pa#ss` became `pa`, and a password with `:` failed with `invalid entry`.
+
+The format copies the PostgreSQL `.pgpass` file, so the package now reads it as
+PostgreSQL does:
+
+- A line that starts with `#`, after the white space is cut, is a comment. A `#`
+  in any other place is part of the field.
+- A `\` makes the next character part of the field, so `\:` is a `:` and `\\` is
+  a `\`. This works in every field. A `\` at the end of a line stays as it is.
+
+A file that held `#` after an entry, as a comment, now holds that text in the
+password. The sample file of the package has comments only at the start of a
+line. `TestParseFields` covers a `#` in each field, an escaped `:` and `\`, a
+comment with colons, and the errors for a wrong count and an empty field.
