@@ -411,16 +411,6 @@ func BaseSchemes() []Scheme {
 			Dialect:     "duckdb",
 		},
 		{
-			Name:       "gizmosql",
-			Generator:  GenGizmoSQL,
-			Aliases:    []string{"gz", "gizmo"},
-			Desc:       "GizmoSQL",
-			GoPackage:  "github.com/apache/arrow-go/v18/arrow/flight/flightsql/driver",
-			DriverURL:  "https://github.com/apache/arrow-go/tree/main/arrow/flight/flightsql/driver",
-			Deployment: DeploymentServer,
-			Dialect:    "gizmosql",
-		},
-		{
 			Name:       "dynamodb",
 			Generator:  GenDynamo,
 			Aliases:    []string{"dy", "dyn", "dynamo"},
@@ -507,16 +497,6 @@ func BaseSchemes() []Scheme {
 			DriverURL:  "https://github.com/chaisql/chai",
 			Deployment: DeploymentEmbedded,
 			Dialect:    "chai",
-		},
-		{
-			Name:       "h2",
-			Generator:  GenFromURL("h2://localhost"),
-			Desc:       "Apache H2",
-			Home:       "https://h2database.com",
-			GoPackage:  "github.com/jmrobles/h2go",
-			DriverURL:  "https://github.com/jmrobles/h2go",
-			Deployment: DeploymentServer,
-			Dialect:    "h2",
 		},
 		{
 			Name:       "hdb",

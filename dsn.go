@@ -201,15 +201,6 @@ func GenArangoDB(u *URL) (string, string, error) {
 	return genRewrite(u, "arangodb", "", u.RawQuery), "", nil
 }
 
-// GenGizmoSQL generates a flightsql DSN for GizmoSQL from the passed URL.
-//
-// GizmoSQL serves Flight SQL, so the DSN is a flightsql:// URL, with the
-// default port 31337, which is the port of GizmoSQL. The Flight SQL driver has
-// no default port (D34). It returns flightsql as the Go driver.
-func GenGizmoSQL(u *URL) (string, string, error) {
-	return genRewrite(u, "flightsql", "31337", u.RawQuery), "flightsql", nil
-}
-
 // GenOpensearch generates a opensearch DSN from the passed URL.
 //
 // Targets the driver [xo/dbimp/opensearch], which reads a opensearch:// URL and refuses

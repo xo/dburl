@@ -132,7 +132,6 @@ to `sql.Open`:
 | Apache Avatica       | `avatica`       | `av`, `phoenix`                                  | [github.com/xo/dbimp/avatica][d-avatica]                                                    |
 | Apache Drill         | `drill`         | `dl`                                             | [github.com/xo/dbimp/drill][d-drill]                                                        |
 | Apache Druid         | `druid`         | `dr`                                             | [github.com/xo/dbimp/druid][d-druid]                                                        |
-| Apache H2            | `h2`            |                                                  | [github.com/jmrobles/h2go][d-h2]                                                            |
 | Apache Hive          | `hive`          | `hi`, `hive2`                                    | [github.com/beltran/gohive/v2][d-hive]                                                      |
 | Apache Impala        | `impala`        | `im`                                             | [github.com/sclgo/impala-go][d-impala]                                                      |
 | Apache Pinot         | `pinot`         | `pi`                                             | [github.com/xo/dbimp/pinot][d-pinot]                                                        |
@@ -151,7 +150,6 @@ to `sql.Open`:
 | Exasol               | `exasol`        | `ex`, `exa`                                      | [github.com/xo/dbimp/exasol][d-exasol]                                                      |
 | Firebird             | `firebirdsql`   | `fb`, `firebird`                                 | [github.com/nakagami/firebirdsql][d-firebirdsql]                                            |
 | FlightSQL            | `flightsql`     | `fl`, `flight`                                   | [github.com/apache/arrow-go/v18/arrow/flight/flightsql/driver][d-flightsql]                 |
-| GizmoSQL             | `gizmosql`      | `gz`, `gizmo`                                    | [github.com/apache/arrow-go/v18/arrow/flight/flightsql/driver][d-gizmosql]                  |
 | Google BigQuery      | `bigquery`      | `bq`                                             | [github.com/xo/dbimp/bigquery][d-bigquery] <sup>[¶][f-hosted]</sup>                         |
 | Google Spanner       | `spanner`       | `sp`                                             | [github.com/xo/dbimp/spanner][d-spanner] <sup>[¶][f-hosted]</sup>                           |
 | InfluxDB             | `influxdb`      | `in`, `influx`                                   | [github.com/xo/dbimp/influxdb][d-influxdb]                                                  |
@@ -199,8 +197,6 @@ to `sql.Open`:
 [d-exasol]: https://github.com/xo/dbimp
 [d-firebirdsql]: https://github.com/nakagami/firebirdsql
 [d-flightsql]: https://github.com/apache/arrow-go/tree/main/arrow/flight/flightsql/driver
-[d-gizmosql]: https://github.com/apache/arrow-go/tree/main/arrow/flight/flightsql/driver
-[d-h2]: https://github.com/jmrobles/h2go
 [d-hdb]: https://github.com/SAP/go-hdb
 [d-hive]: https://github.com/beltran/gohive
 [d-impala]: https://github.com/sclgo/impala-go

@@ -45,7 +45,7 @@ if D11 amends D4, then D4 says so too.
 | [D33](#d33-passfile-opens-the-go-driver-that-dburlopen-opens) | Amended by D37 |
 | [D34](#d34-a-default-port-is-added-only-where-the-driver-has-none) | Amended by D40, D50 and D53 |
 | [D35](#d35-a-spanner-url-names-its-host-first) | Amended by D60 |
-| [D36](#d36-gizmosql-questdb-and-three-provisional-schemes) | Amended by D38, D41, D43 and D44 |
+| [D36](#d36-gizmosql-questdb-and-three-provisional-schemes) | Amended by D38, D41, D43, D44 and D72 |
 | [D37](#d37-a-scheme-names-its-driver-and-override-is-gone) | Decided |
 | [D38](#d38-a-missing-required-field-is-an-error-and-provisional-schemes-can-ship) | Amended by D41, D43 and D50 |
 | [D39](#d39-databend-moves-to-the-dbimp-driver) | Decided |
@@ -81,6 +81,7 @@ if D11 amends D4, then D4 says so too.
 | [D69](#d69-oracle-opens-xooracle) | Decided |
 | [D70](#d70-the-passfile-follows-the-pgpass-format-for-comments-and-escapes) | Decided |
 | [D71](#d71-a-transport-in-the-scheme-is-not-replaced-by-unix) | Decided |
+| [D72](#d72-the-h2-and-gizmosql-schemes-are-removed) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -1597,7 +1598,9 @@ The output was run through `ExtractConnectorConfig` at v1.26.0. The host, the
 project, the instance, the database and `usePlainText` came back as intended,
 with a host and without one.
 
-### D36. gizmosql, questdb, and three provisional schemes. Amended by D38, D41, D43 and D44.
+### D36. gizmosql, questdb, and three provisional schemes. Amended by D38, D41, D43, D44 and D72.
+
+Amended by D72: the `gizmosql` scheme is removed.
 
 Amended by D44: `rqlite` is checked against dbimp `v0.8.0`, and adds no
 port.
@@ -3110,3 +3113,19 @@ the driver name, and `GenOdbc` then returned `ErrMissingDriver`.
 `+transport`. A URL such as `postgres:/var/run/postgresql` is the same as it was.
 `odbc+sqlite:///tmp/x.db` now gives the URL itself as the DSN, and the driver
 opens `/tmp/x.db`. `TestParse` covers the five forms of the report.
+
+### D72. The h2 and gizmosql schemes are removed. Amends D36.
+
+Ken decided on 2026-11-05, through the `usql` session, that `usql` drops the
+`h2` and `gizmosql` drivers, and that `usql` moves to one build with every
+driver. Hard rule 8 says a scheme goes when `usql` removes its driver, so
+dburl removes both schemes with their aliases (`gz` and `gizmo`), `GenGizmoSQL`,
+the tests and the README rows.
+
+- `h2`: `github.com/jmrobles/h2go` had no release after 2020-11-14.
+- `gizmosql`: the Flight SQL driver never keeps the session of GizmoSQL, so
+  every query fails with `No session ID in request context`. The backlog item
+  about it is closed.
+
+The `h2` and `gizmosql` values of `Dialect` go with the schemes. A URL with
+either scheme now returns `ErrUnknownDatabaseScheme`.

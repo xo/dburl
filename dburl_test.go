@@ -152,7 +152,6 @@ func TestParseDialect(t *testing.T) {
 		{`tidb://host/db`, "tidb", "mysql", "tidb"},
 		{`memsql://host/db`, "memsql", "mysql", "memsql"},
 		{`vt://host/db`, "vitess", "mysql", "vitess"},
-		{`gizmosql://host`, "gizmosql", "flightsql", "gizmosql"},
 		{`questdb://host/qdb`, "questdb", "pgx", "questdb"},
 		{`qs://host/qdb`, "questdb", "pgx", "questdb"},
 		{`pinot://host`, "pinot", "pinot", "pinot"},
@@ -1336,12 +1335,6 @@ func TestParse(t *testing.T) {
 			``,
 		},
 		{
-			`h2://sa:pw@127.0.0.1/dbmeta?mem=true`,
-			`h2`,
-			`h2://sa:pw@127.0.0.1/dbmeta?mem=true`,
-			``,
-		},
-		{
 			`spanner://localhost:9010/p/i/db?usePlainText=true`,
 			`spanner`,
 			`spanner://localhost:9010/p/i/db?usePlainText=true`,
@@ -1357,24 +1350,6 @@ func TestParse(t *testing.T) {
 			`sp://host/p/i/db?a=1&b=2`,
 			`spanner`,
 			`spanner://host/p/i/db?a=1&b=2`,
-			``,
-		},
-		{
-			`gizmosql://admin:pw@127.0.0.1`,
-			`flightsql`,
-			`flightsql://admin:pw@127.0.0.1:31337`,
-			``,
-		},
-		{
-			`gz://admin:pw@host:9999?timeout=3s`,
-			`flightsql`,
-			`flightsql://admin:pw@host:9999?timeout=3s`,
-			``,
-		},
-		{
-			`gizmo://`,
-			`flightsql`,
-			`flightsql://localhost:31337`,
 			``,
 		},
 		{
