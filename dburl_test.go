@@ -60,6 +60,14 @@ func TestSchemeMetadata(t *testing.T) {
 		if scheme.Deployment == 0 {
 			t.Errorf("%s: expected a Deployment, got: %d", scheme.Name, scheme.Deployment)
 		}
+		// k8s is a forward to a database that dbfwd finds out, so it has no
+		// product and no Dialect (D73)
+		if scheme.Name == "k8s" {
+			if scheme.Dialect != "" {
+				t.Errorf("%s: expected no Dialect, got: %q", scheme.Name, scheme.Dialect)
+			}
+			continue
+		}
 		if scheme.Dialect == "" {
 			t.Errorf("%s: expected a Dialect, got: %q", scheme.Name, scheme.Dialect)
 		}
@@ -344,6 +352,11 @@ func TestBadParse(t *testing.T) {
 		{`ado://user:pass@host/dbname`, ErrUnknownDatabaseScheme},
 		{`oleodbc://user:pass@host/dbname`, ErrUnknownDatabaseScheme},
 		{`odbc://user:pass@host/dbname`, ErrMissingDriver},
+		{`k8s+://pod.ns/db`, ErrInvalidTransportProtocol},
+		{`k8s:///db`, ErrMissingHost},
+		{`k8s+postgres:///db`, ErrMissingHost},
+		{`k8s+tcp://pod.ns/db`, ErrInvalidTransportProtocol},
+		{`k8s+unix://pod.ns/db`, ErrInvalidTransportProtocol},
 		{`exasol://`, ErrMissingUser},
 		{`exa://host`, ErrMissingUser},
 		{`godror://user:pass@host/sid`, ErrUnknownDatabaseScheme},
@@ -720,6 +733,54 @@ func TestParse(t *testing.T) {
 			`azuresql://xxx.database.windows.net/dbname?fedauth=ActiveDirectoryMSI`,
 			`azuresql`,
 			`sqlserver://xxx.database.windows.net/?database=dbname&fedauth=ActiveDirectoryMSI`,
+			``,
+		},
+		{
+			`k8s://pod.ns/db`,
+			`k8s`,
+			``,
+			``,
+		},
+		{
+			`k://pg-rw.prod/`,
+			`k8s`,
+			``,
+			``,
+		},
+		{
+			`k8s+postgres://user:pass@pod.ns/db?context=prod`,
+			`k8s`,
+			``,
+			``,
+		},
+		{
+			`k8s+cnpg://svc.ns:5432/db`,
+			`k8s`,
+			``,
+			``,
+		},
+		{
+			`k+mysql://pod/db?namespace=ns&secret=s`,
+			`k8s`,
+			``,
+			``,
+		},
+		{
+			`kc+cnpg://secret:field@c.ns/db`,
+			`k8s`,
+			``,
+			``,
+		},
+		{
+			`kube+postgres://c.ns/db`,
+			`k8s`,
+			``,
+			``,
+		},
+		{
+			`kubernetes+cnpg://c.ns/db`,
+			`k8s`,
+			``,
 			``,
 		},
 		{
@@ -2365,5 +2426,84 @@ func TestSchemeDefaults(t *testing.T) {
 				t.Errorf("scheme %s has an empty default %q=%q", name, k, v)
 			}
 		}
+	}
+}
+
+func TestOpenForward(t *testing.T) {
+	t.Parallel()
+	for _, s := range []string{`k8s+postgres://user:pass@pod.ns/db`, `k8+cnpg://pod/db`, `k+mysql://pod/db`, `k://pg-rw.prod/`} {
+		u, err := Parse(s)
+		if err != nil {
+			t.Fatalf("%q expected no error, got: %v", s, err)
+		}
+		switch {
+		case u.SchemeName != "k8s":
+			t.Errorf("%q expected scheme k8s, got: %q", s, u.SchemeName)
+		case strings.Contains(s, "+") == (u.Transport == ""):
+			t.Errorf("%q expected a transport only with a +type, got: %q", s, u.Transport)
+		case u.DSN != "":
+			t.Errorf("%q expected no DSN, got: %q", s, u.DSN)
+		}
+		if _, err := Open(s); !errors.Is(err, ErrUnresolvedForward) {
+			t.Errorf("%q expected %v, got: %v", s, ErrUnresolvedForward, err)
+		}
+	}
+}
+
+// TestForwardUserinfo checks that a forward URL keeps the difference between
+// secret@ and secret:@, which dbfwd reads as a database user and as a Secret
+// with the key password.
+func TestForwardUserinfo(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		s, user, pass string
+		set           bool
+	}{
+		{`k8s+cnpg://secret@c.ns/db`, "secret", "", false},
+		{`k8s+cnpg://secret:@c.ns/db`, "secret", "", true},
+		{`k8s+cnpg://secret:key@c.ns/db?context=a%3Ab`, "secret", "key", true},
+		{`k8s+cnpg://c.ns/db`, "", "", false},
+	}
+	for _, test := range tests {
+		u, err := Parse(test.s)
+		if err != nil {
+			t.Fatalf("%q expected no error, got: %v", test.s, err)
+		}
+		pass, set := u.User.Password()
+		if u.User.Username() != test.user || pass != test.pass || set != test.set {
+			t.Errorf("%q expected %q, %q, %t, got: %q, %q, %t", test.s, test.user, test.pass, test.set, u.User.Username(), pass, set)
+		}
+		if v := u.String(); v != test.s {
+			t.Errorf("%q expected String %q, got: %q", test.s, test.s, v)
+		}
+	}
+}
+
+// TestWindowsDriveK documents that k is an alias of k8s, so a Windows path on
+// the drive K: parses as that scheme and not as a file. It is an error. A user
+// of such a drive writes the path as file:///K:/..., which is accepted.
+func TestWindowsDriveK(t *testing.T) {
+	t.Parallel()
+	for _, s := range []string{`K:\data\x.db`, `k:/data/x.db`} {
+		if _, err := Parse(s); err == nil {
+			t.Errorf("%q expected an error, got none", s)
+		}
+	}
+}
+
+func TestForwardNoType(t *testing.T) {
+	t.Parallel()
+	u, err := Parse(`k://pg-rw.prod/app`)
+	if err != nil {
+		t.Fatalf("expected no error, got: %v", err)
+	}
+	if u.Transport != "" || u.String() != `k://pg-rw.prod/app` {
+		t.Errorf("expected no transport and the same URL, got: %q and %q", u.Transport, u.String())
+	}
+	if s := u.Short(); s != `k:pg-rw.prod/app` {
+		t.Errorf("expected k:pg-rw.prod/app, got: %q", s)
+	}
+	if s := u.Normalize(":", "", 0); strings.Contains(s, "+") {
+		t.Errorf("expected no + in %q", s)
 	}
 }

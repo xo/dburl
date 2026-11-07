@@ -82,6 +82,7 @@ if D11 amends D4, then D4 says so too.
 | [D70](#d70-the-passfile-follows-the-pgpass-format-for-comments-and-escapes) | Decided |
 | [D71](#d71-a-transport-in-the-scheme-is-not-replaced-by-unix) | Decided |
 | [D72](#d72-the-h2-and-gizmosql-schemes-are-removed) | Decided |
+| [D73](#d73-the-k8s-scheme-parses-a-forward-url-and-never-opens-it) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -3129,3 +3130,46 @@ the tests and the README rows.
 
 The `h2` and `gizmosql` values of `Dialect` go with the schemes. A URL with
 either scheme now returns `ErrUnknownDatabaseScheme`.
+
+### D73. The k8s scheme parses a forward URL and never opens it.
+
+The usql session asked on 2026-11-07, for Ken, for a URL that reaches a database
+through a Kubernetes port-forward, as
+`k8s+postgres://user:pass@pod.namespace/dbname?context=prod`. The new library
+[xo/dbfwd][dbfwd] does the forwarding. It is not a `database/sql` driver. It
+turns the URL into an ordinary URL for a local port, and `usql` opens that URL.
+Ken decided that dburl only parses the URL, as it does for `odbc`.
+
+- `k8s` is a scheme with `TransportAny`. The part after the `+` is the
+  `Transport` of the URL, as the driver is for `odbc`. It is a database scheme,
+  such as `postgres`, or an operator profile, such as `cnpg`. A `+transport` on
+  another scheme is not changed, and `postgres+unix:/path` is as it was.
+- The target is the host and the path, and the query stays in `RawQuery`
+  (`context`, `namespace`, `secret` and so on). dburl reads none of them.
+- `xo/dbfwd` holds the map of an operator profile to a database scheme and the
+  table of Secrets, so dburl accepts any type name and checks none (Ken
+  decided this on 2026-11-07).
+- `GenK8s` returns an empty DSN, because the URL could hold a password and
+  nothing reads the DSN. A caller reads the fields and calls `String` to show
+  the URL. The type is optional, as in `k://pg-rw.prod/`, and `dbfwd` finds it from the
+  cluster. Such a URL has an empty `Transport`, which `Parse` sets for it, so
+  `k8s` with an empty `Transport` is the one test that a caller needs. A URL with no host returns
+  `ErrMissingHost` (hard rule 10), and an explicit type of `tcp`, `unix` or
+  nothing, as in `k8s+tcp://`, returns `ErrInvalidTransportProtocol`. `Open` returns `ErrUnresolvedForward`
+  for a `k8s` URL and does not call `sql.Open`, so no driver is picked. A caller
+  that goes straight to `sql.Open(u.Driver, u.DSN)` gets Go's own error.
+- `Parse` keeps the difference between `secret@` and `secret:@`, which the
+  `url.Userinfo` records as a password that is set and empty. `dbfwd` reads the
+  first as a database user and the second as a Secret with the key `password`.
+  `TestForwardUserinfo` covers it.
+- The aliases are `k`, `kc`, `k8`, `kube` and `kubernetes`. Ken chose them on
+  2026-11-07, and `k` is the one alias of one letter.
+- The scheme has no `Dialect`, because Kubernetes is not a database product and
+  `dbfwd` finds the product at resolve time. `GoPackage` names `dbfwd`, which
+  registers no `database/sql` driver, so that the README row links to it.
+- dburl gains no network code and no dependency.
+
+The `ssh` scheme, for an SSH local forward through a jump host, is later work.
+It is not decided, and no spelling for it is registered.
+
+[dbfwd]: https://github.com/xo/dbfwd

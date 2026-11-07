@@ -716,6 +716,38 @@ func GenOdbc(u *URL) (string, string, error) {
 	return z.String(), "", nil
 }
 
+// GenK8s generates a k8s DSN from the passed URL.
+//
+// A k8s URL reaches a database through a Kubernetes port-forward, as
+// k8s+postgres://user:pass@pod.namespace/dbname?context=prod. The part after
+// the + is the optional type, which is a database scheme or an operator
+// profile, and it is the Transport of the URL, as the driver is for [GenOdbc].
+// A URL with no type, such as k8s://pod.namespace/dbname, has an empty
+// Transport, which [Parse] sets for it. [xo/dbfwd] then finds the type from the
+// cluster, and it owns the map of an operator
+// profile to a database scheme (D73).
+//
+// [Parse] only reads the URL. It never opens the forward, so the DSN is empty,
+// because it could hold a password and nothing reads it, and [Open] returns
+// [ErrUnresolvedForward] for the URL. A caller reads the fields of the [URL]
+// and calls its String method to show it.
+//
+// A URL with no host returns [ErrMissingHost]. A type of tcp or unix, or an
+// empty one, such as k8s+tcp://, returns [ErrInvalidTransportProtocol], because
+// none of them is a database type.
+//
+// [xo/dbfwd]: https://github.com/xo/dbfwd
+func GenK8s(u *URL) (string, string, error) {
+	switch {
+	case u.Hostname() == "":
+		return "", "", ErrMissingHost
+	case u.Transport == "tcp" || u.Transport == "unix",
+		u.Transport == "" && strings.Contains(u.OriginalScheme, "+"):
+		return "", "", ErrInvalidTransportProtocol
+	}
+	return "", "", nil
+}
+
 // GenOracle generates an oracle DSN from the passed URL.
 //
 // Targets the driver [xo/oracle], which reads an

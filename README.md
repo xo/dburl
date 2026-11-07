@@ -154,6 +154,7 @@ to `sql.Open`:
 | Google Spanner       | `spanner`       | `sp`                                             | [github.com/xo/dbimp/spanner][d-spanner] <sup>[¶][f-hosted]</sup>                           |
 | InfluxDB             | `influxdb`      | `in`, `influx`                                   | [github.com/xo/dbimp/influxdb][d-influxdb]                                                  |
 | InfluxDB InfluxQL    | `influxql`      | `iq`                                             | [github.com/xo/dbimp/influxdb][d-influxql]                                                  |
+| Kubernetes           | `k8s`           | `k`, `kc`, `k8`, `kube`, `kubernetes`            | [github.com/xo/dbfwd][d-k8s]                                                                |
 | libSQL               | `libsql`        | `ls`, `turso`                                    | [github.com/xo/dbimp/libsql][d-libsql]                                                      |
 | ModernC SQLite3      | `moderncsqlite` | `mq`, `modernsqlite`                             | [modernc.org/sqlite][d-moderncsqlite] <sup>[§][f-embedded]</sup>                            |
 | Neo4j                | `neo4j`         | `nj`, `neo`, `n4j`                               | [github.com/xo/dbimp/neo4j][d-neo4j]                                                        |
@@ -202,6 +203,7 @@ to `sql.Open`:
 [d-impala]: https://github.com/sclgo/impala-go
 [d-influxdb]: https://github.com/xo/dbimp
 [d-influxql]: https://github.com/xo/dbimp
+[d-k8s]: https://github.com/xo/dbfwd
 [d-libsql]: https://github.com/xo/dbimp
 [d-maxcompute]: https://github.com/xo/dbimp
 [d-memsql]: https://github.com/go-sql-driver/mysql

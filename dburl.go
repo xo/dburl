@@ -38,6 +38,9 @@ func Open(urlstr string) (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
+	if u.SchemeName == "k8s" {
+		return nil, ErrUnresolvedForward
+	}
 	return sql.Open(u.Driver, u.DSN)
 }
 
@@ -161,17 +164,8 @@ func Parse(urlstr string) (*URL, error) {
 		u.Transport = "unix"
 	}
 	// check transport
-	if checkTransport || u.Transport != "tcp" {
-		switch {
-		case scheme.Transport == TransportNone:
-			return nil, ErrInvalidTransportProtocol
-		case scheme.Transport&TransportAny != 0 && u.Transport != "",
-			scheme.Transport&TransportTCP != 0 && u.Transport == "tcp",
-			scheme.Transport&TransportUDP != 0 && u.Transport == "udp",
-			scheme.Transport&TransportUnix != 0 && u.Transport == "unix":
-		default:
-			return nil, ErrInvalidTransportProtocol
-		}
+	if err := u.checkTransport(scheme, checkTransport); err != nil {
+		return nil, err
 	}
 	// set the scheme, and the driver the generator names
 	u.SchemeName, u.Dialect = scheme.Name, scheme.Dialect
@@ -276,7 +270,7 @@ func (u *URL) Short() string {
 			n = v.Aliases[0]
 		}
 		s += "+" + n
-	} else if u.Transport != "tcp" {
+	} else if u.Transport != "tcp" && u.Transport != "" {
 		s += "+" + u.Transport
 	}
 	s += ":"
@@ -304,7 +298,7 @@ func (u *URL) Short() string {
 // the empty string.
 func (u *URL) Normalize(sep, empty string, cut int) string {
 	s := []string{u.SchemeName, "", "", "", ""}
-	if u.Transport != "tcp" && u.Transport != "unix" {
+	if u.Transport != "tcp" && u.Transport != "unix" && u.Transport != "" {
 		s[0] += "+" + u.Transport
 	}
 	// set host port dbname fields
@@ -335,6 +329,27 @@ func (u *URL) Normalize(sep, empty string, cut int) string {
 		s = s[:i]
 	}
 	return strings.Join(s, sep)
+}
+
+// checkTransport checks the transport against the transports that the scheme
+// allows. A forward URL with no +type has no transport, as k8s://pod.ns/db.
+func (u *URL) checkTransport(scheme *Scheme, explicit bool) error {
+	if explicit || u.Transport != "tcp" {
+		switch {
+		case scheme.Transport == TransportNone:
+			return ErrInvalidTransportProtocol
+		case scheme.Transport&TransportAny != 0 && u.Transport != "",
+			scheme.Transport&TransportTCP != 0 && u.Transport == "tcp",
+			scheme.Transport&TransportUDP != 0 && u.Transport == "udp",
+			scheme.Transport&TransportUnix != 0 && u.Transport == "unix":
+		default:
+			return ErrInvalidTransportProtocol
+		}
+	}
+	if scheme.Name == "k8s" && !explicit {
+		u.Transport = ""
+	}
+	return nil
 }
 
 // buildOpaque builds a opaque path.
@@ -422,6 +437,9 @@ const (
 	ErrMissingPath Error = "missing path"
 	// ErrMissingUser is the missing user error.
 	ErrMissingUser Error = "missing user"
+	// ErrUnresolvedForward is the error for a forward URL, such as k8s+postgres,
+	// that was not resolved to a URL for a local port.
+	ErrUnresolvedForward Error = "unresolved forward"
 	// ErrMissingDriver is the missing ODBC driver error.
 	ErrMissingDriver Error = "missing driver"
 	// ErrInvalidQuery is the invalid query error.

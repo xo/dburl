@@ -586,6 +586,17 @@ func BaseSchemes() []Scheme {
 			Dialect:    "neo4j",
 		},
 		{
+			Name:       "k8s",
+			Generator:  GenK8s,
+			Aliases:    []string{"k", "kc", "k8", "kube", "kubernetes"},
+			Transport:  TransportAny,
+			Desc:       "Kubernetes",
+			Home:       "https://kubernetes.io",
+			GoPackage:  "github.com/xo/dbfwd",
+			DriverURL:  "https://github.com/xo/dbfwd",
+			Deployment: DeploymentServer,
+		},
+		{
 			Name:       "odbc",
 			Generator:  GenOdbc,
 			Transport:  TransportAny,
