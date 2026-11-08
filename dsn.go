@@ -526,42 +526,29 @@ func GenFirebird(u *URL) (string, string, error) {
 
 // GenHive generates a hive DSN from the passed URL.
 //
-// Targets [beltran/gohive/v2]. Its ParseDSN rejects any string that does not
-// start with "hive://", and reads the database name from the path.
+// Targets the driver [xo/dbimp/hive], which reads a
+// hive://user:password@host:port/database?httpPath=cliservice URL and refuses
+// any other scheme. The database in the path is optional. The user information,
+// the path and the query pass through as they were written, and the driver
+// refuses a key it does not know or a key that repeats. It has no key auth,
+// service or transport, which gohive had, so dburl supplies none (D74). It adds
+// no port, because the driver defaults to 10001, the HTTP port of Hive.
 //
-// The database name is required. An empty path is an error and not a default,
-// so an absent name becomes "default".
-//
-// The driver also cannot start without auth. Its connect path tests the
-// accepted values in turn, and anything else reaches panic("Unrecognized
-// auth"). The empty string is one of those, so an absent or empty auth
-// becomes NONE. Any other value passes through untouched. See D16.
-//
-// [beltran/gohive/v2]: https://github.com/beltran/gohive
+// [xo/dbimp/hive]: https://github.com/xo/dbimp
 func GenHive(u *URL) (string, string, error) {
-	z := &url.URL{
-		Scheme:   "hive",
-		User:     u.User,
-		Host:     u.Host,
-		RawQuery: u.RawQuery,
-		Fragment: u.Fragment,
-	}
-	// force host
-	if z.Host == "" {
-		z.Host = "localhost"
-	}
-	// the database name is required
-	dbname := strings.TrimPrefix(u.Path, "/")
-	if dbname == "" {
-		dbname = "default"
-	}
-	z.Path = "/" + dbname
-	// supply auth only when the caller has not, as the driver panics without it
-	if q := z.Query(); q.Get("auth") == "" {
-		q.Set("auth", "NONE")
-		z.RawQuery = q.Encode()
-	}
-	return z.String(), "", nil
+	return genRewrite(u, "hive", "", u.RawQuery), "", nil
+}
+
+// GenImpala generates a hive DSN for Impala from the passed URL.
+//
+// Impala is a flavor of the driver that [GenHive] targets, which tells the
+// flavors apart from what the server says, so the DSN is the one GenHive
+// writes. It returns hive as the name of the driver, because the driver
+// registers one name (D74). The driver defaults to port 10001, which is the
+// wrong port for Impala, so the scheme adds 28000, the port of its HTTP
+// endpoint (D7).
+func GenImpala(u *URL) (string, string, error) {
+	return genRewrite(u, "hive", "28000", u.RawQuery), "hive", nil
 }
 
 // GenInfluxDB generates an influxdb DSN from the passed URL.

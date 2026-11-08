@@ -25,7 +25,7 @@ if D11 amends D4, then D4 says so too.
 | [D13](#d13-this-registry-writes-two-published-driver-tables) | Amended by D17 |
 | [D14](#d14-an-alias-that-cannot-work-is-removed-not-left-failing) | Decided |
 | [D15](#d15-dburl-does-not-validate-driver-option-values) | Decided |
-| [D16](#d16-a-required-option-with-no-valid-empty-value-gets-a-default) | Decided |
+| [D16](#d16-a-required-option-with-no-valid-empty-value-gets-a-default) | Amended by D74 |
 | [D17](#d17-a-scheme-describes-its-own-database-and-driver) | Amended by D22, D30, D37 and D46 |
 | [D18](#d18-a-scheme-records-how-the-database-is-deployed) | Decided |
 | [D19](#d19-a-scheme-names-the-dialect-of-its-product) | Amended by D22, D30 and D37 |
@@ -83,6 +83,7 @@ if D11 amends D4, then D4 says so too.
 | [D71](#d71-a-transport-in-the-scheme-is-not-replaced-by-unix) | Decided |
 | [D72](#d72-the-h2-and-gizmosql-schemes-are-removed) | Decided |
 | [D73](#d73-the-k8s-scheme-parses-a-forward-url-and-never-opens-it) | Decided |
+| [D74](#d74-hive-and-impala-are-provisional-schemes-for-the-dbimp-driver) | Provisional |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -380,7 +381,11 @@ Two things follow instead. The client that injects options owns their values,
 under D7. And no example, test case or document here uses a value that panics,
 because an example is a recommendation. The hive test cases use `auth=NONE`.
 
-### D16. A required option with no valid empty value gets a default. Amends D7.
+### D16. A required option with no valid empty value gets a default. Amends D7. Amended by D74.
+
+Amended by D74: `hive` supplies no `auth` and no database now, because the
+dbimp driver has no key `auth` and takes an optional database. `GenHive` no
+longer carries this default.
 
 D7 says defaults cover the host and the port and not driver options. That is
 still the rule. This adds one case it did not cover.
@@ -3173,3 +3178,34 @@ The `ssh` scheme, for an SSH local forward through a jump host, is later work.
 It is not decided, and no spelling for it is registered.
 
 [dbfwd]: https://github.com/xo/dbfwd
+
+### D74. hive and impala are provisional schemes for the dbimp driver.
+
+Ken said on 2026-11-09 that the `hive` and `impala` drivers move to dbimp. The
+package is `github.com/xo/dbimp/hive`, and Impala is a flavor of it (dbimp D233).
+dbimp D234 decided the DSN, and Ken accepted it on 2026-11-09. The package is not
+in a dbimp tag yet (the latest is v0.25.2), so this decision is provisional, as
+D32 was for arangodb, and it waits for the tag and the check below.
+
+The DSN is `hive://user:password@host:port/database?httpPath=cliservice`:
+
+- The scheme is `hive` for both flavors, and the driver registers one name,
+  `hive`. `GenImpala` writes the same DSN and returns `hive` as the driver, as
+  `GenPresto` does for `trino` (D50). The driver tells the flavors apart from
+  what the server says.
+- The path is the database, and it is optional. The old `default` goes (D16).
+- The keys are `httpPath` (default `cliservice`) and `tls`. The driver refuses
+  any other key and a key that repeats, so dburl passes the query through. It has
+  no key `auth`, `service` or `transport`, so `GenHive` supplies no `auth=NONE`,
+  and a URL that still writes one fails in the driver (rule 5).
+- The driver defaults to port 10001, the HTTP port of Hive, so `hive` adds no
+  port. 10001 is the wrong port for Impala, so `impala` adds 28000, which is
+  `hs2_http_port` in the Impala container of dbmeta (rule 7). The `hive2` alias
+  stays.
+- The scheme moves `GoPackage` and `DriverURL` to `github.com/xo/dbimp/hive` and
+  `github.com/xo/dbimp`, for `hive` and for `impala`. The Dialects stay.
+
+The port of `impala` is my reading of rule 7 and dbimp D234, which says a caller
+of Impala names the port. Ken confirms it, or the scheme adds none. The check is
+still to do: when dbimp tags the driver, run each generator through its
+`ParseDSN` in a scratch module, and mark this decision Decided.

@@ -30,12 +30,10 @@ from `awsathena` to `athena`.
 ### Decide the generators that fill a missing field
 
 D38 says a generator returns an error for a required field that the URL
-lacks. Three generators fill one in instead:
+lacks. Two generators fill one in instead:
 
-- `GenHive` makes the database `default` when the path is empty, which D16
-  decided.
 - `GenTrino` and `GenPresto` write the user `user` when the URL has none, which
   D50 decided, as the old generators did.
 
-`GenPresto` and `GenTrino` made the catalog `default` until D50. Ken decides
-whether hive keeps its default under D16.
+`GenPresto` and `GenTrino` made the catalog `default` until D50. `GenHive` made
+the database `default` until D74.

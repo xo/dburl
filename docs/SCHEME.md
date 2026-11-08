@@ -126,9 +126,9 @@ product (D50). If you are writing a fourth, say why in [PLAN.md](PLAN.md).
 This is D7.
 
 Set one also when the driver cannot start without it and has no valid empty
-value for it. `hive` carries `auth=NONE` for that reason, because the driver
-panics on a missing `auth`. That is D16, and its scope is narrow: a field the
-driver needs to build a connection, never one that tunes it.
+value for it. That is D16, and its scope is narrow: a field the driver needs to
+build a connection, never one that tunes it. No scheme uses it now, because
+`hive` carried the only case until D74.
 
 A hosted service can have a host that always ends the same way, such as
 `.snowflakecomputing.com`. Let the URL leave the suffix out, so that the URL is
