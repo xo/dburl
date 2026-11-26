@@ -83,7 +83,7 @@ if D11 amends D4, then D4 says so too.
 | [D71](#d71-a-transport-in-the-scheme-is-not-replaced-by-unix) | Decided |
 | [D72](#d72-the-h2-and-gizmosql-schemes-are-removed) | Decided |
 | [D73](#d73-the-k8s-scheme-parses-a-forward-url-and-never-opens-it) | Decided |
-| [D74](#d74-hive-and-impala-are-provisional-schemes-for-the-dbimp-driver) | Provisional |
+| [D74](#d74-hive-and-impala-are-schemes-for-the-dbimp-driver) | Decided |
 
 ### D1. The module depends on the standard library and nothing else. Decided.
 
@@ -3179,13 +3179,14 @@ It is not decided, and no spelling for it is registered.
 
 [dbfwd]: https://github.com/xo/dbfwd
 
-### D74. hive and impala are provisional schemes for the dbimp driver.
+### D74. hive and impala are schemes for the dbimp driver.
 
 Ken said on 2026-11-09 that the `hive` and `impala` drivers move to dbimp. The
 package is `github.com/xo/dbimp/hive`, and Impala is a flavor of it (dbimp D233).
-dbimp D234 decided the DSN, and Ken accepted it on 2026-11-09. The package is not
-in a dbimp tag yet (the latest is v0.25.2), so this decision is provisional, as
-D32 was for arangodb, and it waits for the tag and the check below.
+dbimp D234 decided the DSN, and Ken accepted it on 2026-11-09. The package was
+not in a dbimp tag when dburl v0.58.0 carried this decision, so it was
+provisional, as D32 was for arangodb. dbimp v0.26.0 carries it, and the check
+below is done.
 
 The DSN is `hive://user:password@host:port/database?httpPath=cliservice`:
 
@@ -3206,6 +3207,14 @@ The DSN is `hive://user:password@host:port/database?httpPath=cliservice`:
   `github.com/xo/dbimp`, for `hive` and for `impala`. The Dialects stay.
 
 The port of `impala` is my reading of rule 7 and dbimp D234, which says a caller
-of Impala names the port. Ken confirms it, or the scheme adds none. The check is
-still to do: when dbimp tags the driver, run each generator through its
-`ParseDSN` in a scratch module, and mark this decision Decided.
+of Impala names the port. dbimp says `dbrun` publishes 28000 for Impala, and Ken
+accepted that `GenImpala` adds it.
+
+The check was run on 2026-11-09 at dbimp v0.26.0, in a scratch module with a
+`replace` for dburl, by giving the DSN of each generator to `hive.ParseDSN`. The
+DSNs of `hive://myhost/mydb`, `hive://myhost`, `hive://`,
+`hive2://user:p%40ss@myhost:9999/mydb`, `httpPath` and `tls`, `impala://` and
+`im://myhost:21050` were all read, with port 10001 for hive and 28000 for impala
+when the URL named none, and the user, the database and the escaping intact.
+`auth=NONE` is refused as an unknown key, a repeated `tls` is refused, and a path
+of more than a database is refused, which is rule 5. dburl needed no change.
